@@ -1,26 +1,242 @@
 @import "tailwindcss";
 
+@plugin 'tailwindcss-animate';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Shadcn standard theme variables */
+  --background: 210 40% 98%;
+  --foreground: 222.2 84% 4.9%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+
+  --primary: 169 72% 14%; /* Matches #0a3d34 -> 169 72% 14% */
+  --primary-foreground: 210 40% 98%;
+
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+
+  --accent: 169 72% 14%;
+  --accent-foreground: 210 40% 98%;
+
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 169 72% 14%;
+
+  --radius: 0.75rem;
+
+  /* Custom Sidebar / Layout Colors */
+  --sidebar-width: 280px;
+  --sidebar-bg: 222.2 47% 11%;
+  --sidebar-text: 210 40% 98%;
+  --sidebar-text-muted: 215 16% 47%;
+  --sidebar-hover: 215 25% 20%;
+  
+  --success: 160 84% 39%;
+  --warning: 38 92% 50%;
+  --danger: 0 84% 60%;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.dark {
+  --background: 222.2 84% 4.9%;
+  --foreground: 210 40% 98%;
+
+  --card: 222.2 84% 4.9%;
+  --card-foreground: 210 40% 98%;
+
+  --popover: 222.2 84% 4.9%;
+  --popover-foreground: 210 40% 98%;
+
+  --primary: 169 72% 40%;
+  --primary-foreground: 222.2 47.4% 11.2%;
+
+  --secondary: 217.2 32.6% 17.5%;
+  --secondary-foreground: 210 40% 98%;
+
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+
+  --accent: 169 72% 20%;
+  --accent-foreground: 210 40% 98%;
+
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
+
+  --border: 217.2 32.6% 17.5%;
+  --input: 217.2 32.6% 17.5%;
+  --ring: 169 72% 40%;
+  /* Legacy Design Tokens */
+  --accent-hex: #0a3d34;
+  --accent-hover-hex: #072b25;
+  --accent-light-alpha: rgba(10, 61, 52, 0.08);
+  
+  --radius-lg-legacy: 20px;
+  --radius-md-legacy: 12px;
+  --radius-sm-legacy: 8px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    background-image:
+      radial-gradient(at 0% 0%, hsla(172, 85%, 30%, 0.05) 0, transparent 50%),
+      radial-gradient(at 50% 0%, hsla(210, 80%, 50%, 0.05) 0, transparent 50%),
+      radial-gradient(at 100% 0%, hsla(170, 70%, 40%, 0.05) 0, transparent 50%);
+    background-attachment: fixed;
+    min-height: 100vh;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  /* Legacy Component Styles */
+  .appointment-card-legacy {
+    @apply absolute rounded-lg p-0.5 text-center overflow-hidden z-10 cursor-grab shadow-sm transition-all border-l-[3px] flex flex-col justify-center items-center select-none active:cursor-grabbing leading-none;
+  }
+
+  .appointment-card-legacy .apt-name {
+    @apply font-bold text-[0.62rem] block truncate w-full px-0.5 mb-0;
+  }
+
+  .appointment-card-legacy .apt-service {
+    @apply text-[0.52rem] opacity-75 block truncate w-full px-0.5 mt-[1px];
+  }
+  
+  .appointment-card-legacy.onaylandi {
+    @apply bg-emerald-50 border-l-[#10b981] text-emerald-900;
+  }
+  
+  .appointment-card-legacy.beklemede {
+    @apply bg-amber-50 border-l-[#f59e0b] text-amber-900;
+  }
+  
+  .appointment-card-legacy.iptal {
+    @apply bg-red-50 border-l-[#ef4444] text-red-900 opacity-50 line-through;
+  }
+
+  .timeline-legacy {
+    @apply border-l-[1.5px] border-slate-200 pl-[18px] ml-2 flex flex-col gap-4 pr-2;
+  }
+
+  .timeline-item-legacy {
+    @apply relative mb-4;
+  }
+
+  .timeline-item-legacy::before {
+    content: '';
+    @apply absolute w-2.5 h-2.5 bg-white border-2 border-[#0a3d34] rounded-full -left-[23.5px] top-1;
+  }
+
+  .timeline-item-legacy.onaylandi::before { @apply border-[#10b981]; }
+  .timeline-item-legacy.iptal::before { @apply border-[#ef4444] bg-red-50; }
+  .timeline-item-legacy.beklemede::before { @apply border-[#f59e0b] bg-amber-50; }
+
+  /* Utility for no-scrollbar */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Critical Alert Animation */
+  @keyframes alertPulse {
+    0%, 100% { border-left-color: #ef4444; }
+    50% { border-left-color: #fca5a5; }
+  }
+  .animate-alert-pulse {
+    animation: alertPulse 3s ease-in-out infinite;
+  }
+
+  /* Modern Date Picker (Flatpickr) Custom Branding matched to legacy */
+  .flatpickr-calendar {
+    border-radius: 12px !important;
+    box-shadow: 0 10px 30px -5px rgba(0,0,0,0.15) !important;
+    border: 1px solid #e2e8f0 !important;
+    font-family: 'Outfit', sans-serif !important;
+    padding: 4px;
+    background: white !important;
+  }
+  .flatpickr-day.selected, .flatpickr-day.selected:hover, .flatpickr-day.selected:focus {
+    background: #0a3d34 !important;
+    border-color: #0a3d34 !important;
+    color: #fff !important;
+    border-radius: 10px !important;
+  }
+  .flatpickr-day.today {
+    border-color: transparent !important;
+    color: #0a3d34 !important;
+    font-weight: 800 !important;
+    position: relative;
+  }
+  .flatpickr-day.today::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    background: #0a3d34;
+    border-radius: 50%;
+  }
+  .flatpickr-months .flatpickr-month {
+    color: #0a3d34 !important;
+    fill: #0a3d34 !important;
+  }
+  .flatpickr-current-month .flatpickr-monthDropdown-months {
+    font-weight: 700 !important;
+  }
+  .flatpickr-weekday {
+    color: #64748b !important;
+    font-weight: 600 !important;
+    font-size: 0.75rem !important;
+  }
 }

@@ -1,0 +1,217 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth, UserProfile } from "@/hooks/use-auth";
+import { supabase } from "@/lib/supabase";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { CheckCircle, XCircle, AlertTriangle } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+export default function AdminUsersPage() {
+  const { profile, isLoading } = useAuth();
+  const router = useRouter();
+  const [users, setUsers] = useState<UserProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [userToReject, setUserToReject] = useState<UserProfile | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (profile?.role !== "admin") {
+        router.push("/");
+      } else {
+        fetchUsers();
+      }
+    }
+  }, [profile, isLoading, router]);
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (!error && data) {
+      setUsers(data as UserProfile[]);
+    }
+    setLoading(false);
+  };
+
+  const toggleApproval = async (id: string, currentStatus: boolean) => {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ is_approved: !currentStatus })
+      .eq('id', id);
+
+    if (!error) {
+      setUsers(users.map(u => u.id === id ? { ...u, is_approved: !currentStatus } : u));
+    } else {
+      alert("Durum güncellenirken bir hata oluştu.");
+    }
+  };
+
+  const confirmReject = async () => {
+    if (!userToReject) return;
+    setIsDeleting(true);
+    
+    // Profili sildiğimizde kişi bir daha asla giriş yapamaz.
+    const { error } = await supabase
+      .from('profiles')
+      .delete()
+      .eq('id', userToReject.id);
+
+    if (!error) {
+      setUsers(users.filter(u => u.id !== userToReject.id));
+      setUserToReject(null);
+    } else {
+      alert("Kullanıcı reddedilirken bir hata oluştu.");
+    }
+    setIsDeleting(false);
+  };
+
+  if (isLoading || profile?.role !== "admin") {
+    return <div className="p-8">Yükleniyor...</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Kullanıcı Yönetimi</h1>
+        <p className="text-slate-500 mt-1">Sisteme kayıt olan tüm klinikleri onayla veya reddet.</p>
+      </div>
+
+      <Card className="border-emerald-100 shadow-sm">
+        <CardHeader className="bg-emerald-50/50 border-b border-emerald-100 pb-4">
+          <CardTitle className="text-lg font-bold text-emerald-900">Kayıtlı Klinikler</CardTitle>
+          <CardDescription>
+            Sisteme yeni kayıt olan klinikleri buradan onaylayarak erişim verebilirsiniz.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="p-8 text-center text-slate-500">Kullanıcılar yükleniyor...</div>
+          ) : (
+            <Table>
+              <TableHeader className="bg-slate-50">
+                <TableRow>
+                  <TableHead className="font-semibold text-slate-700">Klinik Adı / Ünvan</TableHead>
+                  <TableHead className="font-semibold text-slate-700">Rol</TableHead>
+                  <TableHead className="font-semibold text-slate-700">Durum</TableHead>
+                  <TableHead className="text-right font-semibold text-slate-700">İşlem</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {users.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-8 text-slate-500">
+                      Sistemde kayıtlı kullanıcı bulunamadı.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  users.map((u) => (
+                    <TableRow key={u.id} className="hover:bg-slate-50/50 transition-colors">
+                      <TableCell className="font-medium text-slate-900">{u.clinic_name}</TableCell>
+                      <TableCell>
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${u.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-700'}`}>
+                          {u.role === 'admin' ? 'Yönetici' : 'Kiracı (Tenant)'}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        {u.is_approved ? (
+                          <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
+                            <CheckCircle className="w-3.5 h-3.5" />
+                            Onaylı
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+                            <XCircle className="w-3.5 h-3.5" />
+                            Beklemede
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button 
+                            variant={u.is_approved ? "outline" : "default"} 
+                            size="sm"
+                            onClick={() => toggleApproval(u.id, u.is_approved)}
+                            className={!u.is_approved ? "bg-emerald-600 hover:bg-emerald-700 text-white" : "text-slate-600"}
+                            disabled={u.role === 'admin'}
+                          >
+                            {u.is_approved ? "Yetkiyi Al" : "Onayla"}
+                          </Button>
+                          
+                          {/* Reddet butonu sadece Admin değilse görünsün */}
+                          {u.role !== 'admin' && (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => setUserToReject(u)}
+                              className="text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600"
+                            >
+                              Reddet
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Reddetme (Silme) Onay Modalı */}
+      <Dialog open={!!userToReject} onOpenChange={(open) => !open && !isDeleting && setUserToReject(null)}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader className="gap-2">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100">
+                <AlertTriangle className="h-5 w-5 text-red-600" />
+              </div>
+              <DialogTitle className="text-xl">Kliniği Reddet ve Sil</DialogTitle>
+            </div>
+            <DialogDescription className="text-base pt-2">
+              <strong className="text-slate-900">{userToReject?.clinic_name}</strong> adlı kliniğin kaydını sistemden tamamen kaldırmak istediğinize emin misiniz?
+            </DialogDescription>
+            <DialogDescription className="text-red-600 bg-red-50 p-3 rounded-md mt-2">
+              Bu işlem geri alınamaz ve kullanıcının sisteme olan tüm yetkileri kalıcı olarak iptal edilir.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4 gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setUserToReject(null)}
+              disabled={isDeleting}
+            >
+              Vazgeç
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+              onClick={confirmReject}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Siliniyor..." : "Evet, Tamamen Sil"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

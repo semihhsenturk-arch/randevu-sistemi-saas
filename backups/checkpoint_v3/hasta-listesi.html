@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uzm. Dr. Yelda Yaren Şentürk | Hasta Listesi</title>
+    <!-- Outfit Font (Friendly & Clean) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            /* Clinical Light Theme Palette (Deep Emerald) */
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --cell-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --accent: #0a3d34; /* Deep Emerald */
+            --accent-hover: #072b25;
+            --accent-light: #0a3d3410;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --success: #10b981;
+            --success-light: #d1fae5;
+            --warning: #f59e0b;
+            --warning-light: #fef3c7;
+            --danger: #ef4444;
+            --danger-light: #fee2e2;
+            
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 48px;
+            --space-2xl: 80px;
+            
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --radius-xl: 32px;
+            
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.5;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(172, 85%, 30%, 0.05) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(210, 80%, 50%, 0.05) 0, transparent 50%),
+                radial-gradient(at 100% 0%, hsla(170, 70%, 40%, 0.05) 0, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            outline: none;
+            font-family: inherit;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        input, select, textarea {
+            font-family: inherit;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 12px;
+            border-radius: var(--radius-md);
+            width: 100%;
+            height: 48px;
+            transition: all 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px var(--accent-light);
+            outline: none;
+        }
+
+        /* Layout */
+        .container {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: var(--space-lg);
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-xl);
+            position: sticky;
+            top: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(16px);
+            z-index: 100;
+            padding: 20px 32px;
+            border-radius: var(--radius-xl);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .header-left .clinic-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent);
+            margin-bottom: 2px;
+        }
+
+        .header-left h1 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .header-left .today-date {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            padding: 14px 36px;
+            border-radius: var(--radius-md);
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 10px 20px -5px rgba(10, 61, 52, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px -10px rgba(10, 61, 52, 0.4);
+        }
+
+        .btn { 
+            padding: 14px 24px; 
+            border-radius: var(--radius-md); 
+            font-weight: 700; 
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-outline { background: #f1f5f9; color: var(--text-primary); border: 1px solid var(--border-color); }
+        .btn-outline:hover { background: #e2e8f0; }
+
+        /* Modern Table */
+        .table-container {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            margin-top: var(--space-md);
+        }
+
+        .modern-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .modern-table th {
+            background: #f8fafc;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 16px 24px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .modern-table td {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+            font-weight: 500;
+            vertical-align: middle;
+        }
+
+        .modern-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .modern-table tr:hover td {
+            background: var(--accent-light);
+        }
+
+        .patient-name {
+            font-weight: 800;
+            color: var(--text-primary);
+            font-size: 1.05rem;
+        }
+
+        .service-badge {
+            display: inline-block;
+            background: #f1f5f9;
+            color: var(--text-secondary);
+            padding: 4px 12px;
+            border-radius: 99px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            border: 1px solid var(--border-color);
+        }
+
+        .time-badge {
+            font-weight: 800;
+            color: var(--accent);
+            font-size: 1rem;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 16px;
+        }
+
+        .modal {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 500px;
+            border-radius: var(--radius-xl);
+            padding: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            animation: modal-enter 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes modal-enter {
+            from { transform: scale(0.9) translateY(20px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-title { font-size: 1.5rem; font-weight: 800; color: var(--text-primary); }
+
+        .modal-close {
+            background: #f1f5f9;
+            color: var(--text-secondary);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 32px;
+        }
+
+        /* Stock Modal Rows */
+        .stock-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            margin-bottom: 8px;
+        }
+        .stock-info { display: flex; flex-direction: column; }
+        .stock-name { font-weight: 800; font-size: 0.95rem; }
+        .stock-count { font-size: 0.75rem; color: var(--text-secondary); }
+        .stock-actions { display: flex; gap: 8px; align-items: center; }
+        .stock-actions input { width: 90px; height: 36px; padding: 4px; text-align: center; }
+
+        /* Toast */
+        #toast {
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            opacity: 0;
+            pointer-events: none;
+            background: var(--text-primary);
+            color: white;
+            padding: 14px 32px;
+            border-radius: 99px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 2000;
+            box-shadow: var(--shadow-lg);
+        }
+        #toast.show { 
+            transform: translateX(-50%) translateY(0); 
+            opacity: 1; 
+            pointer-events: auto; 
+        }
+
+        .empty-state {
+            padding: 60px 20px;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+        .empty-state i {
+            width: 48px;
+            height: 48px;
+            opacity: 0.5;
+            margin-bottom: 16px;
+        }
+        .empty-state p {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div class="header-left">
+            <div class="clinic-label">UZM. DR. YELDA YAREN ŞENTÜRK</div>
+            <h1>Hasta Listesi</h1>
+            <div id="today-date-header" class="today-date">Tarih: -</div>
+        </div>
+
+        <div class="header-actions" style="display:flex; gap:12px;">
+            <a href="index.html" class="btn btn-outline" style="text-decoration:none;">
+                <i data-lucide="calendar"></i> Randevu Takvimi
+            </a>
+            <a href="dashboard.html" class="btn btn-outline" style="text-decoration:none;">
+                <i data-lucide="bar-chart-3"></i> Analizler
+            </a>
+        </div>
+    </header>
+
+    <div class="table-container">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Hasta Adı Soyadı</th>
+                    <th>İletişim Numarası</th>
+                    <th>Hizmet Türü</th>
+                    <th>Saat</th>
+                    <th style="text-align: right;">Stok Düşümü</th>
+                </tr>
+            </thead>
+            <tbody id="patient-list-body">
+                <!-- Data injected via JS -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Stock Deduction Modal -->
+<div id="material-modal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h2 class="modal-title">Malzeme Kullanımı</h2>
+            <button class="modal-close" onclick="closeMaterialModal()"><i data-lucide="x" style="width:16px; height:16px;"></i></button>
+        </div>
+        <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom: 20px;">
+            Hastaya uygulanan malzeme miktarlarını girerek ana stoktan düşüş yapın. Seçmediğiniz boş bırakılan kalemlerde işlem yapılmaz.
+        </p>
+        
+        <form id="material-form">
+            <input type="hidden" id="current-patient-id" value="">
+            
+            <div id="material-list-container">
+                <!-- Dynamically generated rows -->
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" onclick="closeMaterialModal()" style="flex:1;">İptal</button>
+                <button type="submit" class="btn-primary" style="flex:1; width: 100%;">Değişiklikleri Kaydet</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="toast">İşlem başarıyla tamamlandı.</div>
+
+<script>
+    const HIZMETLER = [
+        { id: 1, ad: 'Klinik Muayene', sure: 30, fiyat: 600, renk: '#0d9488' },
+        { id: 2, ad: 'Dermoskopi', sure: 30, fiyat: 450, renk: '#3b82f6' },
+        { id: 3, ad: 'Botoks Uygulaması', sure: 30, fiyat: 2500, renk: '#8b5cf6' },
+        { id: 4, ad: 'Lazer Tedavisi', sure: 30, fiyat: 1800, renk: '#ef4444' },
+        { id: 5, ad: 'Cilt Bakımı', sure: 30, fiyat: 1200, renk: '#f59e0b' }
+    ];
+
+    const STOCK_ITEMS = [
+        { id: 'igne', ad: 'İğne', birim: 'Adet' },
+        { id: 'botoks', ad: 'Botoks', birim: 'Ünite' },
+        { id: 'mezoterapi', ad: 'Mezoterapi', birim: 'cc' },
+        { id: 'eldiven', ad: 'Eldiven', birim: 'Kutu' },
+        { id: 'krem', ad: 'Krem', birim: 'Tüp' }
+    ];
+
+    let appointments = [];
+    let stock = {};
+    let todayStr = '';
+
+    function init() {
+        lucide.createIcons();
+        
+        const today = new Date();
+        todayStr = formatISODate(today);
+        document.getElementById('today-date-header').textContent = `Tarih: ${formatDate(today, true)}`;
+        
+        loadData();
+        renderPatients();
+    }
+
+    function loadData() {
+        const savedApt = localStorage.getItem('randevular');
+        if (savedApt) appointments = JSON.parse(savedApt);
+
+        const savedStock = localStorage.getItem('klinik_stok');
+        if (savedStock) {
+            stock = JSON.parse(savedStock);
+        } else {
+            STOCK_ITEMS.forEach(s => stock[s.id] = 100);
+            localStorage.setItem('klinik_stok', JSON.stringify(stock));
+        }
+    }
+
+    function renderPatients() {
+        const tbody = document.getElementById('patient-list-body');
+        tbody.innerHTML = '';
+
+        const todayPatients = appointments.filter(a => a.tarih === todayStr && a.durum === 'onaylandi')
+                                          .sort((a,b) => a.saat.localeCompare(b.saat));
+
+        if (todayPatients.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5">
+                        <div class="empty-state">
+                            <i data-lucide="user-x"></i>
+                            <p>Bugün için onaylanmış bir hasta kaydı bulunmuyor.</p>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            lucide.createIcons();
+            return;
+        }
+
+        todayPatients.forEach(p => {
+            const tr = document.createElement('tr');
+            const h = HIZMETLER.find(x => x.id == p.hizmetId);
+            
+            tr.innerHTML = `
+                <td>
+                    <div class="patient-name">${p.musteriAdi}</div>
+                </td>
+                <td>${p.telefon}</td>
+                <td><span class="service-badge">${h ? h.ad : 'Bilinmeyen Hizmet'}</span></td>
+                <td><span class="time-badge">${p.saat}</span></td>
+                <td style="text-align: right;">
+                    <button class="btn btn-outline" style="background:#f8fafc; font-size: 0.8rem; padding: 10px 16px;" onclick="openMaterialModal('${p.id}')">
+                        <i data-lucide="box" style="width: 16px; height: 16px;"></i> Malzeme
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+        lucide.createIcons();
+    }
+
+    function openMaterialModal(aptId) {
+        document.getElementById('current-patient-id').value = aptId;
+        const formContainer = document.getElementById('material-list-container');
+        formContainer.innerHTML = ''; // Reset fields
+        
+        STOCK_ITEMS.forEach(item => {
+            const currentStock = stock[item.id] || 0;
+            const row = document.createElement('div');
+            row.className = 'stock-row';
+            row.innerHTML = `
+                <div class="stock-info">
+                    <span class="stock-name">${item.ad}</span>
+                    <span class="stock-count">Klinik Stoku: <strong>${currentStock.toLocaleString('tr-TR')}</strong> ${item.birim}</span>
+                </div>
+                <div class="stock-actions">
+                    <input type="number" id="deduct-${item.id}" min="0" max="${currentStock}" placeholder="Miktar">
+                </div>
+            `;
+            formContainer.appendChild(row);
+        });
+
+        document.getElementById('material-modal').style.display = 'flex';
+        lucide.createIcons();
+    }
+
+    function closeMaterialModal() {
+        document.getElementById('material-modal').style.display = 'none';
+    }
+
+    document.getElementById('material-form').onsubmit = (e) => {
+        e.preventDefault();
+        
+        // Track changes to apply them safely at once if valid
+        let pendingDeductions = [];
+        let hasError = false;
+
+        STOCK_ITEMS.forEach(item => {
+            const inputE = document.getElementById(`deduct-${item.id}`);
+            if (inputE && inputE.value !== "") {
+                const val = parseFloat(inputE.value);
+                if (val > 0) {
+                    const currentStock = stock[item.id] || 0;
+                    if (val > currentStock) {
+                        alert(`Hata: Yeterli stok yok. (${item.ad} için en fazla ${currentStock} kullanım yapılabilir)`);
+                        hasError = true;
+                    } else {
+                        pendingDeductions.push({ id: item.id, val: val });
+                    }
+                }
+            }
+        });
+
+        if (hasError) return;
+
+        if (pendingDeductions.length === 0) {
+            alert('Lütfen en az bir malzeme için eksiltme değeri giriniz.');
+            return;
+        }
+
+        // Apply changes
+        pendingDeductions.forEach(pd => {
+            stock[pd.id] -= pd.val;
+        });
+
+        // Save
+        localStorage.setItem('klinik_stok', JSON.stringify(stock));
+        
+        closeMaterialModal();
+        showToast('Kullanılan malzemeler ana stoktan başarıyla düşüldü.');
+    };
+
+    let toastTimeout;
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg; 
+        t.classList.add('show');
+        if (toastTimeout) clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    function formatISODate(d) { 
+        return d.toISOString().split('T')[0]; 
+    }
+    
+    function formatDate(d, day = false) {
+        const opt = { day: 'numeric', month: 'long', year: 'numeric' };
+        if (day) opt.weekday = 'long';
+        return d.toLocaleDateString('tr-TR', opt);
+    }
+
+    window.onload = init;
+</script>
+
+</body>
+</html>

@@ -1,0 +1,2338 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uzm. Dr. Yelda Yaren Şentürk | Randevu Sistemi</title>
+    <!-- Outfit Font (Friendly & Clean) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest" defer></script>
+    <!-- Flatpickr (Modern Date Picker) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr" defer></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/tr.js" defer></script>
+    <style>
+        :root {
+            /* Clinical Light Theme Palette (Deep Emerald) */
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --cell-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --accent: #0a3d34;
+            /* Deep Emerald */
+            --accent-hover: #072b25;
+            --accent-light: #0a3d3410;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --success: #10b981;
+            --success-light: #d1fae5;
+            --warning: #f59e0b;
+            --warning-light: #fef3c7;
+            --danger: #ef4444;
+            --danger-light: #fee2e2;
+
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 48px;
+            --space-2xl: 80px;
+
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --radius-xl: 32px;
+
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.5;
+            overflow-x: hidden;
+            background-image:
+                radial-gradient(at 0% 0%, hsla(172, 85%, 30%, 0.05) 0, transparent 50%),
+                radial-gradient(at 50% 0%, hsla(210, 80%, 50%, 0.05) 0, transparent 50%),
+                radial-gradient(at 100% 0%, hsla(170, 70%, 40%, 0.05) 0, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            outline: none;
+            font-family: inherit;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        input,
+        select,
+        textarea {
+            font-family: inherit;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 12px;
+            border-radius: var(--radius-md);
+            width: 100%;
+            height: 48px;
+            /* Fixed height for consistency */
+            transition: all 0.2s;
+        }
+
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 40px;
+        }
+
+        /* Custom Scrollbar Global */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        textarea {
+            height: auto;
+            min-height: 80px;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px var(--accent-light);
+            outline: none;
+        }
+
+        /* Layout */
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: var(--space-md) var(--space-lg) 60px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            /* Pull layout up */
+            position: sticky;
+            top: 12px;
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 100;
+            padding: 14px 24px;
+            border-radius: var(--radius-lg);
+            border: 1px solid rgba(226, 232, 240, 0.6);
+            box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.07);
+        }
+
+        .header-left {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .header-center {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .header-left .clinic-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--accent);
+            margin-bottom: 1px;
+            opacity: 0.8;
+        }
+
+        .header-left h1 {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .header-left .today-date {
+            color: var(--text-secondary);
+            font-size: 0.78rem;
+            font-weight: 500;
+        }
+
+        /* Centered Week Toolbar */
+        .calendar-toolbar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0 0 16px;
+            /* Align top with sidebar */
+            margin-bottom: 12px;
+        }
+
+        .week-nav {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #ffffff;
+            padding: 8px 16px;
+            border-radius: 99px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-md);
+        }
+
+        .week-nav button {
+            background: var(--bg-color);
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            transition: all 0.2s;
+            border: 1px solid var(--border-color);
+        }
+
+        .week-nav button:hover {
+            background: var(--accent);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .current-week-label {
+            font-weight: 700;
+            min-width: 220px;
+            text-align: center;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            padding: 10px 28px;
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 14px -3px rgba(10, 61, 52, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-size: 0.82rem;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px -4px rgba(10, 61, 52, 0.35);
+        }
+
+        /* Compact Header Stats */
+        .stats-grid {
+            display: flex;
+            gap: 12px;
+            margin: 0;
+        }
+
+        .stat-card {
+            background: transparent;
+            padding: 6px 14px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid rgba(10, 61, 52, 0.08);
+            transition: all 0.2s ease;
+        }
+
+        .stat-card>div:last-child {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .stat-card:hover {
+            border-color: var(--accent);
+            background: var(--accent-light);
+            transform: translateY(-1px);
+        }
+
+        .stat-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background: #f1f5f9;
+            flex-shrink: 0;
+        }
+
+        .stat-icon.blue {
+            color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .stat-icon.emerald {
+            color: #10b981;
+            background: #ecfdf5;
+        }
+
+        .stat-icon.amber {
+            color: #f59e0b;
+            background: #fffbe6;
+        }
+
+        .stat-icon.accent {
+            color: var(--accent);
+            background: var(--accent-light);
+        }
+
+        .stat-label {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .stat-icon.emerald {
+            background: #f0fdf4;
+            color: #059669;
+        }
+
+        .stat-icon.amber {
+            background: #fffbeb;
+            color: #d97706;
+        }
+
+        .stat-icon.accent {
+            background: #f0fdf8;
+            color: var(--accent);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            margin-bottom: 2px;
+        }
+
+        .stat-value {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+
+        /* Main Content Grid */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            gap: 20px;
+            align-items: stretch;
+        }
+
+        /* Calendar Section - Transparent Wrapper */
+        .calendar-section {
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            overflow: visible;
+        }
+
+        .calendar-header-wrap {
+            display: flex;
+            align-items: stretch;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .calendar-header-sync {
+            width: 70px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .calendar-header-sync #btn-sync {
+            width: 44px;
+            height: 44px;
+            padding: 0;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        #btn-sync.loading svg {
+            animation: spin 0.8s linear infinite;
+        }
+
+        .calendar-header {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            flex: 1;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .day-header {
+            padding: 12px 8px;
+            text-align: center;
+            border-left: 1px solid #f1f5f9;
+        }
+
+        .day-header:first-child {
+            border-left: none;
+        }
+
+        .day-name {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 2px;
+            letter-spacing: 0.04em;
+        }
+
+        .day-date {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .calendar-body {
+            display: grid;
+            grid-template-columns: 80px repeat(7, 1fr);
+            height: 900px;
+            overflow-y: auto;
+            position: relative;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px -2px rgba(0, 0, 0, 0.05);
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .calendar-body::-webkit-scrollbar {
+            display: none;
+        }
+
+        .time-labels {
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #f1f5f9;
+            background: #fafbfc;
+        }
+
+        .time-label {
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #94a3b8;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .day-column {
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid #f1f5f9;
+            position: relative;
+            background: #ffffff;
+            min-height: 900px;
+            transition: background 0.2s;
+        }
+
+        .day-column.is-today {
+            background: #f0fdf8;
+        }
+
+        .calendar-day {
+            background: var(--card-bg);
+            border-left: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px;
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .calendar-day:hover {
+            background: #f8fffe;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.05);
+            z-index: 2;
+        }
+
+        .slot {
+            height: 50px;
+            border-bottom: 1px solid #f8fafc;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        .slot:hover {
+            background: #f0fdf8;
+        }
+
+        /* Appointment Cards */
+        .appointment-card {
+            position: absolute;
+            left: 4px;
+            right: 4px;
+            border-radius: 8px;
+            padding: 4px 6px;
+            font-size: 0.75rem;
+            overflow: hidden;
+            z-index: 10;
+            cursor: grab;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
+            border-left-width: 3px;
+            border-left-style: solid;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            user-select: none;
+        }
+
+        .appointment-card:active {
+            cursor: grabbing;
+        }
+
+        .appointment-card.dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+        }
+
+        .slot.drag-over {
+            background: #ecfdf5;
+            border: 2px dashed var(--accent);
+        }
+
+        .slot.drag-error {
+            background: #fef2f2;
+            border: 2px dashed var(--danger);
+            cursor: no-drop;
+        }
+
+        .appointment-card:hover {
+            transform: scale(1.02);
+            z-index: 20;
+            box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.12);
+        }
+
+        .appointment-card.onaylandi {
+            border-left-color: var(--success);
+            background: #ecfdf5;
+            color: #065f46;
+        }
+
+        .appointment-card.beklemede {
+            border-left-color: var(--warning);
+            background: #fffbeb;
+            color: #92400e;
+        }
+
+        .appointment-card.iptal {
+            border-left-color: var(--danger);
+            background: #fef2f2;
+            text-decoration: line-through;
+            color: #991b1b;
+            opacity: 0.5;
+        }
+
+        .apt-name {
+            font-weight: 700;
+            display: block;
+            line-height: 1.15;
+            margin-bottom: 1px;
+            width: 100%;
+            word-break: break-word;
+        }
+
+        .apt-service {
+            opacity: 0.7;
+            font-size: 0.6rem;
+            font-weight: 600;
+            display: block;
+            width: 100%;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+
+        /* Lunch Break */
+        .lunch-break {
+            height: 100px;
+            background: repeating-linear-gradient(-45deg,
+                    transparent,
+                    transparent 4px,
+                    #f1f5f9 4px,
+                    #f1f5f9 5px);
+            border-bottom: 1px solid #e2e8f0;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            pointer-events: none;
+            letter-spacing: 0.08em;
+            width: 100%;
+        }
+
+        /* Sidebar - Today's List */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .sidebar-card {
+            background: var(--card-bg);
+            padding: 18px;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .sidebar-title {
+            font-size: 0.95rem;
+            font-weight: 800;
+            margin-bottom: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-primary);
+        }
+
+        .program-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .program-item {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .program-item:hover {
+            transform: translateX(4px);
+            border-color: var(--accent-light);
+            box-shadow: 0 2px 10px -2px rgba(10, 61, 52, 0.1);
+        }
+
+        .program-item.is-past {
+            opacity: 0.4;
+            filter: grayscale(0.8);
+        }
+
+        .program-item.is-active {
+            border: 1.5px solid var(--accent);
+            background: #f0fdf8;
+            box-shadow: 0 2px 8px rgba(10, 61, 52, 0.08);
+        }
+
+        .program-time {
+            font-weight: 700;
+            min-width: 42px;
+            font-size: 0.8rem;
+            color: #0f172a;
+        }
+
+        .program-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .program-info {
+            flex: 1;
+        }
+
+        .program-name {
+            font-weight: 700;
+            font-size: 0.82rem;
+            display: block;
+            color: #0f172a;
+            line-height: 1.2;
+            word-break: break-word;
+        }
+
+        .program-service {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            font-weight: 600;
+        }
+
+        .sidebar-card .sidebar-footer {
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid #f1f5f9;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .sidebar-footer-row {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Bekleme Odası Styles */
+        .waiting-room-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .waiting-room-count {
+            background: var(--warning-light);
+            color: var(--warning);
+            padding: 2px 8px;
+            border-radius: 99px;
+            font-size: 0.7rem;
+            font-weight: 800;
+        }
+
+        .waiting-item {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .waiting-item:hover {
+            border-color: var(--warning);
+            transform: translateX(2px);
+            box-shadow: 0 4px 12px -4px rgba(245, 158, 11, 0.15);
+        }
+
+        .waiting-item .patient-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .waiting-item .patient-name {
+            font-weight: 800;
+            font-size: 0.85rem;
+            color: var(--text-primary);
+        }
+
+        .waiting-item .patient-details {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .waiting-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .btn-action {
+            flex: 1;
+            padding: 6px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: all 0.2s;
+        }
+
+        .btn-approve {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-approve:hover {
+            background: #059669;
+            box-shadow: 0 4px 8px -2px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-reject {
+            background: var(--bg-color);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-reject:hover {
+            background: var(--danger-light);
+            color: var(--danger);
+            border-color: var(--danger);
+        }
+
+        .waiting-date-tag {
+            font-size: 0.65rem;
+            font-weight: 800;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+
+        /* Modern Date Picker (Flatpickr) Custom Branding */
+        .flatpickr-calendar {
+            border-radius: var(--radius-md);
+            box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.12);
+            border: 1px solid var(--border-color);
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .flatpickr-day.selected,
+        .flatpickr-day.startRange,
+        .flatpickr-day.endRange {
+            background: var(--accent) !important;
+            border-color: var(--accent) !important;
+            color: #fff !important;
+        }
+
+        /* Today indicator: subtle dot instead of border circle */
+        .flatpickr-day.today {
+            border-color: transparent !important;
+            color: var(--accent) !important;
+            font-weight: 800;
+            position: relative;
+        }
+
+        .flatpickr-day.today::after {
+            content: '';
+            position: absolute;
+            bottom: 3px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            background: var(--accent);
+            border-radius: 50%;
+        }
+
+        /* When today is also selected: white text + white dot */
+        .flatpickr-day.today.selected,
+        .flatpickr-day.today.startRange,
+        .flatpickr-day.today.endRange {
+            background: var(--accent) !important;
+            border-color: var(--accent) !important;
+            color: #fff !important;
+        }
+
+        .flatpickr-day.today.selected::after,
+        .flatpickr-day.today.startRange::after,
+        .flatpickr-day.today.endRange::after {
+            background: rgba(255, 255, 255, 0.7);
+        }
+
+        .flatpickr-day:hover {
+            background: var(--accent-light) !important;
+        }
+
+        .flatpickr-current-month .flatpickr-monthDropdown-months {
+            font-weight: 800 !important;
+        }
+
+        .numInputWrapper span {
+            display: none;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.35);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 16px;
+        }
+
+        .modal {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 480px;
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            border: 1px solid var(--border-color);
+            position: relative;
+            box-shadow: 0 20px 40px -8px rgba(0, 0, 0, 0.18);
+            animation: modal-enter 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes modal-enter {
+            from {
+                transform: scale(0.95) translateY(12px);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Confirm Modal specific styles */
+        #confirm-modal .modal {
+            max-width: 400px;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .confirm-icon-wrap {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: #fef2f2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px auto;
+            color: var(--danger);
+        }
+
+        .confirm-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .confirm-text {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        .confirm-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .confirm-actions button {
+            flex: 1;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .modal-close {
+            background: #f1f5f9;
+            color: var(--text-secondary);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+
+        .modal-close:hover {
+            background: #e2e8f0;
+            color: var(--text-primary);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .form-error {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            background: #fef2f2;
+            color: var(--danger);
+            border: 1px solid #fecaca;
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 16px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 24px;
+        }
+
+        .btn {
+            padding: 11px 20px;
+            border-radius: var(--radius-sm);
+            font-weight: 700;
+            flex: 1;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.15s ease;
+        }
+
+        .btn-outline {
+            background: #f8fafc;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-outline:hover {
+            background: #e2e8f0;
+        }
+
+        .btn-danger {
+            background: #fef2f2;
+            color: var(--danger);
+            border: 1px solid #fecaca;
+        }
+
+        .btn-danger:hover {
+            background: #fee2e2;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        /* Optimized Stock UI Integration */
+        .stock-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 6px;
+        }
+
+        .stock-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stock-name {
+            font-weight: 700;
+            font-size: 0.88rem;
+        }
+
+        .stock-count {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .stock-actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .stock-actions input {
+            width: 60px;
+            height: 32px;
+            padding: 4px;
+            text-align: center;
+        }
+
+        /* Status Radios */
+        .status-radio-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 6px;
+        }
+
+        .status-radio {
+            flex: 1;
+            padding: 9px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .status-radio:hover {
+            border-color: #94a3b8;
+        }
+
+        .status-radio.active[data-value="onaylandi"] {
+            border-color: var(--success);
+            background: #ecfdf5;
+            color: #065f46;
+        }
+
+        .status-radio.active[data-value="beklemede"] {
+            border-color: var(--warning);
+            background: #fffbeb;
+            color: #92400e;
+        }
+
+        .status-radio.active[data-value="iptal"] {
+            border-color: var(--danger);
+            background: #fef2f2;
+            color: #991b1b;
+        }
+
+        /* Toast */
+        #toast {
+            position: fixed;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%) translateY(16px);
+            opacity: 0;
+            pointer-events: none;
+            background: var(--text-primary);
+            color: white;
+            padding: 12px 28px;
+            border-radius: 99px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 2000;
+            box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.2);
+        }
+
+        #toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            header {
+                flex-direction: column;
+                gap: 12px;
+                border-radius: var(--radius-md);
+                padding: 12px;
+                top: 8px;
+            }
+
+            .week-nav {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .main-layout {
+                display: flex;
+                flex-direction: column-reverse;
+            }
+
+            .calendar-body {
+                display: block;
+                overflow-x: auto;
+                height: 600px;
+            }
+
+            .calendar-header,
+            .calendar-body {
+                min-width: 800px;
+            }
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #cbd5e1;
+        }
+    </style>
+    <!-- Supabase JS & Auth -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <link rel="stylesheet" href="nav.css">
+    <script src="auth.js" defer></script>
+</head>
+
+<body id="index-page">
+    <div class="app-layout">
+        <div id="sidebar-placeholder"></div>
+        <main class="main-content">
+            <div class="container">
+                <header>
+                    <div class="header-left">
+                        <div class="clinic-label">UZM. DR. YELDA YAREN ŞENTÜRK</div>
+                        <h1>Randevu Sistemi</h1>
+                        <div id="today-date-header" class="today-date">27 Mart 2026, Cuma</div>
+                    </div>
+                    <div class="header-center">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon blue"><i data-lucide="calendar-check"
+                                        style="width:16px; height:16px;"></i></div>
+                                <div>
+                                    <div class="stat-label">Gün</div>
+                                    <div id="stat-today-count" class="stat-value">0</div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon emerald"><i data-lucide="calendar-range"
+                                        style="width:16px; height:16px;"></i></div>
+                                <div>
+                                    <div class="stat-label">Hafta</div>
+                                    <div id="stat-week-count" class="stat-value">0</div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon amber"><i data-lucide="percent"
+                                        style="width:16px; height:16px;"></i></div>
+                                <div>
+                                    <div class="stat-label">Doluluk Oranı</div>
+                                    <div id="stat-occupancy-rate" class="stat-value">0%</div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon accent"><i data-lucide="banknote"
+                                        style="width:16px; height:16px;"></i></div>
+                                <div>
+                                    <div class="stat-label">Haftalık Gelir</div>
+                                    <div id="stat-week-income" class="stat-value">0 TL</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="header-actions" style="display:flex; gap:8px;">
+                        <button class="btn btn-primary" onclick="openAptModal()">
+                            <i data-lucide="plus" style="width:14px; height:14px;"></i> RANDEVU
+                        </button>
+                    </div>
+                </header>
+
+                <div class="main-layout" style="justify-content: flex-start;">
+                    <div class="calendar-section" style="width: 100%;">
+                        <div class="calendar-toolbar">
+                            <div class="week-nav">
+                                <button onclick="changeWeek(-1)"><i data-lucide="chevron-left"
+                                        style="width:16px; height:16px;"></i></button>
+                                <span id="current-week-label" class="current-week-label">Bu Hafta: 23-29 Mart
+                                    2026</span>
+                                <button onclick="changeWeek(1)"><i data-lucide="chevron-right"
+                                        style="width:16px; height:16px;"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="calendar-header-wrap">
+                            <div class="calendar-header-sync">
+                                <button class="btn btn-outline" id="btn-sync" onclick="syncFromGoogleSheets()"
+                                    title="Google Tablodan Yenile">
+                                    <i data-lucide="refresh-cw" style="width:15px; height:15px;"></i>
+                                </button>
+                            </div>
+                            <div id="calendar-header" class="calendar-header">
+                                <!-- Days will be injected -->
+                            </div>
+                        </div>
+                        <div id="calendar-body" class="calendar-body">
+                            <div class="time-labels" id="time-labels">
+                                <!-- Times will be injected -->
+                            </div>
+                            <!-- Day columns will be injected -->
+                        </div>
+                    </div>
+
+                    <div class="sidebar">
+                        <!-- Bekleme Odası (Waiting Room) -->
+                        <div class="sidebar-card">
+                            <div class="waiting-room-header">
+                                <div class="sidebar-title" style="margin-bottom:0;">Bekleme Odası</div>
+                                <span id="waiting-room-count" class="waiting-room-count">0</span>
+                            </div>
+                            <div id="waiting-room-list" class="program-list">
+                                <!-- Pending appointments from Sheets or Manual will appear here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal -->
+                <div id="apt-modal" class="modal-overlay">
+                    <div class="modal">
+                        <div class="modal-header">
+                            <h2 id="modal-title" class="modal-title">Randevu Oluştur</h2>
+                            <button class="modal-close" onclick="closeAptModal()"><i data-lucide="x"
+                                    style="width:16px; height:16px;"></i></button>
+                        </div>
+                        <form id="apt-form">
+                            <input type="hidden" id="apt-id">
+                            <div class="form-group">
+                                <label>ADI SOYADI</label>
+                                <input type="text" id="cust-name" placeholder="Hasta Adı ve Soyadı" required>
+                            </div>
+                            <div class="form-group">
+                                <label>İletişim Numarası</label>
+                                <input type="tel" id="cust-phone" placeholder="+90 (___) ___ __ __" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Hizmet Tipi</label>
+                                <select id="apt-service" required onchange="updateServicePrice()">
+                                    <!-- Services injected -->
+                                </select>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Randevu Tarihi</label>
+                                    <input type="date" id="apt-date" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Seçilen Saat</label>
+                                    <select id="apt-time" required>
+                                        <!-- Times injected -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Notlar</label>
+                                <textarea id="apt-notes" rows="2"
+                                    placeholder="Hastaya dair tıbbi notlar veya hatırlatıcılar..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Randevu Durumu</label>
+                                <div class="status-radio-group">
+                                    <div class="status-radio active" data-value="onaylandi" onclick="setStatus(this)">
+                                        Onaylandı</div>
+                                    <div class="status-radio" data-value="beklemede" onclick="setStatus(this)">Beklemede
+                                    </div>
+                                    <div class="status-radio" data-value="iptal" onclick="setStatus(this)">İptal Edildi
+                                    </div>
+                                </div>
+                                <input type="hidden" id="apt-durum" value="onaylandi">
+                            </div>
+
+                            <div id="apt-error" class="form-error">
+                                <i data-lucide="alert-triangle" style="width:16px; height:16px;"></i>
+                                <span id="apt-error-msg"></span>
+                            </div>
+
+                            <div class="modal-actions">
+                                <button type="button" class="btn btn-outline" onclick="closeAptModal()">Kapat</button>
+                                <button type="button" id="btn-delete" class="btn btn-danger" style="display:none"
+                                    onclick="deleteAppointment()">Sil</button>
+                                <button type="submit" class="btn btn-primary">Kaydet</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <!-- Stock Management Modal Removed -->
+
+                <!-- Confirm Delete Modal -->
+                <div id="confirm-modal" class="modal-overlay" style="z-index:2100; display:none;">
+                    <div class="modal">
+                        <div class="confirm-icon-wrap">
+                            <i data-lucide="trash-2" style="width:32px; height:32px;"></i>
+                        </div>
+                        <div class="confirm-title">Randevuyu Silmek Üzeresiniz</div>
+                        <div class="confirm-text">Bu işlem kalıcıdır ve geri alınamaz. Randevuyu sistemden silmek
+                            istediğinize emin misiniz?</div>
+                        <div class="confirm-actions">
+                            <button class="btn btn-outline" onclick="closeConfirmModal()">Vazgeç</button>
+                            <button class="btn btn-danger" onclick="executeDelete()">Evet, Sil</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="toast">İşlem başarıyla tamamlandı.</div>
+
+                <script>
+                    // Configuration
+                    const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwPSOfJE332q-Ci1XOAfLtY6CBY0IzyB_HmpAJUgtPMoGzrFM_ND5RpHtzpzLX12-dM/exec";
+
+                    // Time slots
+                    const SHIFTS = Array.from({ length: 18 }, (_, i) => {
+                        const hour = Math.floor(i / 2) + 9;
+                        const min = (i % 2) * 30;
+                        return `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
+                    });
+
+                    const HIZMETLER = [
+                        { id: 1, ad: 'Klinik Muayene', sure: 30, fiyat: 600, renk: '#0d9488' },
+                        { id: 2, ad: 'Dermoskopi', sure: 30, fiyat: 450, renk: '#3b82f6' },
+                        { id: 3, ad: 'Botoks Uygulaması', sure: 30, fiyat: 2500, renk: '#8b5cf6' },
+                        { id: 4, ad: 'Lazer Tedavisi', sure: 30, fiyat: 1800, renk: '#ef4444' },
+                        { id: 5, ad: 'Cilt Bakımı', sure: 30, fiyat: 1200, renk: '#f59e0b' }
+                    ];
+
+                    let appointments = [];
+                    let stock = {};
+                    let currentWeekOffset = 0;
+
+                    let STOCK_ITEMS = [
+                        { id: 'igne', ad: 'İğne', birim: 'Adet' },
+                        { id: 'botoks', ad: 'Botoks', birim: 'Ünite' },
+                        { id: 'mezoterapi', ad: 'Mezoterapi', birim: 'cc' },
+                        { id: 'eldiven', ad: 'Eldiven', birim: 'Kutu' },
+                        { id: 'krem', ad: 'Krem', birim: 'Tüp' }
+                    ];
+
+                    // Global Error Handler to prevent white screen
+                    window.onerror = function (msg, url, lineNo, columnNo, error) {
+                        console.error("Global Error Caught:", msg, "at", url, ":", lineNo);
+                        return false; // Let browser log it too
+                    };
+
+
+
+                    async function syncFromGoogleSheets() {
+                        if (!GOOGLE_WEB_APP_URL) {
+                            console.log("Google Web App URL tanımlı değil.");
+                            return;
+                        }
+
+                        const btn = document.getElementById('btn-sync');
+                        if (btn) {
+                            btn.disabled = true;
+                            btn.classList.add('loading');
+                        }
+
+                        try {
+                            const response = await fetch(GOOGLE_WEB_APP_URL);
+                            const rawData = await response.json();
+
+                            if (rawData.status === "success" && rawData.data) {
+                                // Tablodaki verileri analiz et ve kaydet
+                                let newImports = 0;
+
+                                rawData.data.forEach(row => {
+                                    // Türkçe ve genel başlıkları eşleştirme
+                                    const ad = row["Ad Soyad"] || row["Ad"] || row["Müşteri Adı"] || row["İsim"] || "";
+                                    let tel = row["Telefon Numarası"] || row["Telefon"] || row["Tel"] || row["İletişim"] || "";
+                                    let tarihRaw = row["Tercih Edilen Tarih"] || row["Tarih"] || row["Randevu Tarihi"] || "";
+                                    let tarih = tarihRaw;
+                                    let saat = row["Saat"] || row["Randevu Saati"] || "";
+
+                                    // Eğer tarih içinde saat bilgisi de varsa (Örn: "2026-04-08 14:30") ayır
+                                    if (tarihRaw.includes && tarihRaw.includes(" ")) {
+                                        const parts = tarihRaw.split(" ");
+                                        tarih = parts[0];
+                                        if (!saat) saat = parts[1];
+                                    }
+
+                                    if (!saat || saat === "00:00") saat = "09:00"; // Varsayılan saat ata
+
+                                    const hizmetAd = row["İlgilendiği Tedavi"] || row["Hizmet"] || row["Hizmet Tipi"] || row["İşlem"] || "";
+                                    let durumRaw = row["Durum"] || "";
+                                    let notlar = row["Notlar"] || row["Not"] || row["Açıklama"] || "";
+                                    if (hizmetAd) {
+                                        notlar = notlar ? `İstek: ${hizmetAd}\n${notlar}` : `İstek: ${hizmetAd}`;
+                                    }
+                                    const sheetRowId = "gs_" + (row["_sheetRowIndex"] || uuid());
+
+                                    if (!ad || !tarih) return; // Eksik veri atla
+
+                                    // Tarih düzeltme (Eğer DD.MM.YYYY gelirse YYYY-MM-DD'ye çevir)
+                                    if (tarih.includes('.')) {
+                                        const parts = tarih.split('.');
+                                        if (parts.length === 3) tarih = `${parts[2]}-${parts[1]}-${parts[0]}`;
+                                    }
+
+                                    // Saat düzeltme (örn: "09:00:00" -> "09:00")
+                                    if (saat.length > 5) saat = saat.substring(0, 5);
+
+                                    // Durum normalize
+                                    let durum = "beklemede";
+                                    durumRaw = durumRaw.toString().toLowerCase();
+                                    if (durumRaw.includes("onay") || durumRaw.includes("tamam")) durum = "onaylandi";
+                                    if (durumRaw.includes("iptal")) durum = "iptal";
+
+                                    // Hizmet ID bul, yoksa 1 (Klinik Muayene) ata
+                                    let hId = 1;
+                                    const findHizmet = HIZMETLER.find(h => ad.toLowerCase().includes(h.ad.toLowerCase()) || (hizmetAd && h.ad.toLowerCase().includes(hizmetAd.toLowerCase())));
+                                    if (findHizmet) hId = findHizmet.id;
+
+                                    // Bu satır indexiyle önceden eklenmiş bir randevu var mı?
+                                    const existingIdx = appointments.findIndex(a => a.id === sheetRowId || (a.tarih === tarih && a.saat === saat && a.musteriAdi === ad));
+
+                                    const newData = {
+                                        id: existingIdx > -1 ? appointments[existingIdx].id : sheetRowId,
+                                        musteriAdi: ad,
+                                        telefon: tel,
+                                        hizmetId: hId,
+                                        tarih: tarih,
+                                        saat: saat,
+                                        durum: durum,
+                                        notlar: notlar,
+                                        created: new Date().toISOString()
+                                    };
+
+                                    if (existingIdx > -1) {
+                                        // ÖNEMLİ: Eğer mevcut randevu yerelde "onaylandi" ise ve Sheets'ten hala "beklemede" geliyorsa, 
+                                        // yerel onayı koru (Sheets güncellemesi henüz yansımamış olabilir).
+                                        const currentApt = appointments[existingIdx];
+                                        if (currentApt.durum === 'onaylandi' && newData.durum === 'beklemede') {
+                                            newData.durum = 'onaylandi';
+                                        }
+                                        appointments[existingIdx] = Object.assign(appointments[existingIdx], newData);
+                                    } else {
+                                        appointments.push(newData);
+                                        newImports++;
+                                    }
+                                });
+
+                                saveData();
+                                renderAll();
+                                
+                                // Permanently persist imports to Supabase
+                                if (newImports > 0) {
+                                    showToast(`${newImports} yeni kayıt Supabase'e aktarılıyor...`);
+                                    for (const apt of appointments) {
+                                        // Only save ones that came from Sheets (starts with gs_)
+                                        if (apt.id.startsWith('gs_')) {
+                                            window.db.saveAppointment(apt).catch(e => console.error("Sync save failed:", e));
+                                        }
+                                    }
+                                }
+                                
+                                showToast(`Google Sheets ile senkronize edildi. ${newImports > 0 ? newImports + " yeni kayıt." : ""}`);
+                            }
+                        } catch (error) {
+                            console.error("Senkronizasyon hatası:", error);
+                            showToast("Senkronizasyon başarısız oldu. Lütfen URL'yi kontrol edin.");
+                        } finally {
+                            if (btn) {
+                                btn.disabled = false;
+                                btn.classList.remove('loading');
+                            }
+                        }
+                    }
+
+                    function initUI() {
+                        // Time labels
+                        const labelsCont = document.getElementById('time-labels');
+                        SHIFTS.forEach(t => {
+                            if (t === '12:30') {
+                                const lunchLabel = document.createElement('div');
+                                lunchLabel.style.height = '100px';
+                                lunchLabel.style.background = '#f1f5f9';
+                                lunchLabel.style.display = 'flex';
+                                lunchLabel.style.alignItems = 'center';
+                                lunchLabel.style.justifyContent = 'center';
+                                lunchLabel.style.fontSize = '0.65rem';
+                                lunchLabel.style.fontWeight = '800';
+                                lunchLabel.style.color = '#94a3b8';
+                                lunchLabel.style.writingMode = 'vertical-rl';
+                                lunchLabel.style.transform = 'rotate(180deg)';
+                                lunchLabel.textContent = 'ÖĞLE ARASI';
+                                labelsCont.appendChild(lunchLabel);
+                            }
+                            if (t === '12:30' || t === '13:00') return; // Hide lunch labels
+
+                            const el = document.createElement('div');
+                            el.className = 'time-label';
+                            el.textContent = t;
+                            labelsCont.appendChild(el);
+                        });
+
+                        // Services
+                        const svcSel = document.getElementById('apt-service');
+                        HIZMETLER.forEach(h => {
+                            const opt = document.createElement('option');
+                            opt.value = h.id;
+                            opt.textContent = `${h.ad} (${h.fiyat.toLocaleString('tr-TR')} TL)`;
+                            svcSel.appendChild(opt);
+                        });
+
+                        // Time Select
+                        const timeSel = document.getElementById('apt-time');
+                        SHIFTS.forEach(t => {
+                            if (t === '12:30' || t === '13:00') return; // Hide lunch slots from dropdown
+                            const opt = document.createElement('option');
+                            opt.value = t;
+                            opt.textContent = t;
+                            timeSel.appendChild(opt);
+                        });
+
+                        // Initialize Flatpickr (Modern Date Picker)
+                        flatpickr("#apt-date", {
+                            locale: "tr",
+                            altInput: true,
+                            altFormat: "d-m-Y",
+                            dateFormat: "Y-m-d",
+                            disableMobile: "true",
+                            minDate: "today",
+                            onChange: function (selectedDates, dateStr, instance) {
+                                // Keep the underlying logic working with ISO dates
+                            }
+                        });
+
+                        setupForm();
+                    }
+
+                    async function loadData() {
+                        try {
+                            const inv = await window.db.getInventory();
+                            STOCK_ITEMS = inv.items.length > 0 ? inv.items : STOCK_ITEMS;
+                            stock = inv.stock;
+
+                            // 1. Fetch from Supabase
+                            const fetchedApts = await window.db.getAppointments();
+
+                            // 2. Fetch from LocalStorage (Old backups)
+                            let localApts = [];
+                            const saved = localStorage.getItem('randevular');
+                            if (saved) localApts = JSON.parse(saved);
+
+                            // 3. Merge Logic: Keep Supabase data, add local data that isn't already there
+                            const mergedMap = new Map();
+
+                            // Add local ones first
+                            localApts.forEach(a => mergedMap.set(a.id, a));
+
+                            // Overwrite/Add with Supabase ones (The ground truth)
+                            fetchedApts.forEach(a => mergedMap.set(a.id, a));
+
+                            // 4. Convert back to array (ground truth merged with local backups)
+                            appointments = Array.from(mergedMap.values());
+
+                            if (appointments.length === 0) {
+                                seedData();
+                                console.log("No appointments found, seeding dummy data.");
+                            }
+                        } catch (err) {
+                            console.error("loadData fatal error:", err);
+                            seedData();
+                        }
+                    }
+
+                    function seedData() {
+                        // System starts empty as requested.
+                        appointments = [];
+                        saveData();
+                    }
+
+                    function saveData() {
+                        localStorage.setItem('randevular', JSON.stringify(appointments));
+                    }
+
+                    function saveStock() {
+                        localStorage.setItem('klinik_stok', JSON.stringify(stock));
+                    }
+
+
+
+                    // Rendering
+                    function renderAll() {
+                        const monday = getMonday(new Date());
+                        monday.setDate(monday.getDate() + (currentWeekOffset * 7));
+                        const sunday = addDays(monday, 6);
+
+                        // Week Label
+                        document.getElementById('current-week-label').textContent = `${monday.getDate()} ${getMonthName(monday)} - ${sunday.getDate()} ${getMonthName(sunday)} ${sunday.getFullYear()}`;
+
+                        renderCalendar(monday);
+                        renderStats();
+                        renderSidebar();
+                        lucide.createIcons();
+                    }
+
+                    function renderCalendar(monday) {
+                        const header = document.getElementById('calendar-header');
+                        const body = document.getElementById('calendar-body');
+
+                        // Reset
+                        header.innerHTML = '';
+                        Array.from(body.children).slice(1).forEach(el => el.remove());
+
+                        const dayNames = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar'];
+                        const todayStr = formatISODate(new Date());
+
+                        for (let i = 0; i < 7; i++) {
+                            const day = addDays(monday, i);
+                            const dStr = formatISODate(day);
+                            const isToday = dStr === todayStr;
+
+                            // Header
+                            const h = document.createElement('div');
+                            h.className = 'day-header';
+                            h.innerHTML = `<div class="day-name">${dayNames[i]}</div><div class="day-date">${day.getDate()}</div>`;
+                            header.appendChild(h);
+
+                            // Column
+                            const col = document.createElement('div');
+                            col.className = `day-column ${isToday ? 'is-today' : ''}`;
+
+                            SHIFTS.forEach(t => {
+                                if (t === '12:30') {
+                                    const lunch = document.createElement('div');
+                                    lunch.className = 'lunch-break';
+                                    lunch.textContent = 'Öğle Arası';
+                                    col.appendChild(lunch);
+                                }
+                                if (t === '12:30' || t === '13:00') return; // Hide lunch slots
+
+                                const s = document.createElement('div');
+                                s.className = 'slot';
+                                s.onclick = () => openAptModal(null, dStr, t);
+
+                                // Drag and Drop events for slots
+                                s.ondragover = (e) => {
+                                    e.preventDefault();
+                                    // Check if this slot is 'blocked' (has an active appt that is NOT the one being dragged)
+                                    const aptId = e.dataTransfer.types.includes('text/plain') ? 'CHECK' : '';
+                                    // Note: Browser security prevents reading dataTransfer value in dragover, 
+                                    // so we do a general check for active appointments in this date/time.
+                                    const confirmedInSlot = appointments.filter(a => a.tarih === dStr && a.saat === t && a.durum === 'onaylandi');
+                                    const hasActive = confirmedInSlot.length >= 2;
+
+                                    if (hasActive) {
+                                        s.classList.add('drag-error');
+                                    } else {
+                                        s.classList.add('drag-over');
+                                    }
+                                };
+                                s.ondragleave = () => {
+                                    s.classList.remove('drag-over');
+                                    s.classList.remove('drag-error');
+                                };
+                                s.ondrop = (e) => {
+                                    e.preventDefault();
+                                    s.classList.remove('drag-over');
+                                    s.classList.remove('drag-error');
+                                    const aptId = e.dataTransfer.getData('text/plain');
+                                    handleDrop(aptId, dStr, t);
+                                };
+
+                                col.appendChild(s);
+                            });
+
+                            // Apps: Only show 'onaylandi' (Approved) appointments in the main calendar grid
+                            // Grubu zamana göre gruplayalım ki yan yana gösterebilelim
+                            const appsByTime = {};
+                            appointments.filter(a => a.tarih === dStr && a.durum === 'onaylandi').forEach(a => {
+                                if (!appsByTime[a.saat]) appsByTime[a.saat] = [];
+                                appsByTime[a.saat].push(a);
+                            });
+
+                            Object.keys(appsByTime).forEach(time => {
+                                const slotApps = appsByTime[time];
+                                slotApps.forEach((a, index) => {
+                                    const card = createAptCard(a, index, slotApps.length);
+                                    col.appendChild(card);
+                                });
+                            });
+
+                            body.appendChild(col);
+                        }
+                    }
+
+                    function createAptCard(a, index = 0, totalInSlot = 1) {
+                        const h = HIZMETLER.find(x => x.id == a.hizmetId) || HIZMETLER[0];
+                        const card = document.createElement('div');
+                        card.className = `appointment-card ${a.durum}`;
+                        card.draggable = true;
+
+                        const idx = SHIFTS.indexOf(a.saat);
+                        card.style.top = `${idx * 50 + 5}px`;
+                        card.style.height = `${(h.sure / 30) * 50 - 10}px`;
+                        
+                        // Yan yana gösterme mantığı
+                        if (totalInSlot > 1) {
+                            const widthPercent = 100 / totalInSlot;
+                            card.style.width = `calc(${widthPercent}% - 6px)`;
+                            card.style.left = `calc(${index * widthPercent}% + 3px)`;
+                        } else {
+                            card.style.width = `calc(100% - 8px)`;
+                            card.style.left = `4px`;
+                        }
+
+                        card.innerHTML = `
+                            <span class="apt-name">${a.musteriAdi}</span>
+                            <span class="apt-service">${h.ad}</span>
+                        `;
+
+                        // Kartın üzerine bırakma (drop) yapılabilmesi için gereken eventler
+                        // Bu sayede dolu olan (fakat kapasitesi olan) slotlara sürükleme yapılabilir
+                        card.ondragover = (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const confirmedInSlot = appointments.filter(x => x.tarih === a.tarih && x.saat === a.saat && x.durum === 'onaylandi');
+                            const hasActive = confirmedInSlot.length >= 2;
+                            if (hasActive) {
+                                card.classList.add('drag-error');
+                            } else {
+                                card.classList.add('drag-over');
+                            }
+                        };
+                        card.ondragleave = () => {
+                            card.classList.remove('drag-over');
+                            card.classList.remove('drag-error');
+                        };
+                        card.ondrop = (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            card.classList.remove('drag-over');
+                            card.classList.remove('drag-error');
+                            const aptId = e.dataTransfer.getData('text/plain');
+                            handleDrop(aptId, a.tarih, a.saat);
+                        };
+
+                        card.ondragstart = (e) => {
+                            e.dataTransfer.setData('text/plain', a.id);
+                            card.classList.add('dragging');
+                        };
+
+                        card.ondragend = () => {
+                            card.classList.remove('dragging');
+                        };
+
+                        card.onclick = (e) => { e.stopPropagation(); openAptModal(a); };
+                        return card;
+                    }
+
+                    function renderStats() {
+                        const todayStr = formatISODate(new Date());
+                        const tAppsAll = appointments.filter(a => a.tarih === todayStr && a.durum !== 'iptal');
+                        const tAppsConfirmed = tAppsAll.filter(a => a.durum === 'onaylandi');
+
+                        const monday = getMonday(new Date());
+                        monday.setDate(monday.getDate() + (currentWeekOffset * 7));
+                        const weekDates = Array.from({ length: 7 }, (_, i) => formatISODate(addDays(monday, i)));
+                        const wApps = appointments.filter(a => weekDates.includes(a.tarih) && a.durum !== 'iptal');
+                        const wAppsConfirmed = wApps.filter(a => a.durum === 'onaylandi');
+
+                        const weekIncome = wAppsConfirmed.reduce((s, a) => {
+                            const h = HIZMETLER.find(h => h.id == a.hizmetId);
+                            return s + (h ? h.fiyat : 0);
+                        }, 0);
+                        // Weekly Occupancy: 96 slots (16 per day * 6 days - Excluding Sunday)
+                        const occupancy = Math.round((wAppsConfirmed.length / 96) * 100);
+
+                        document.getElementById('stat-today-count').textContent = tAppsAll.length;
+                        document.getElementById('stat-week-count').textContent = wApps.length;
+                        document.getElementById('stat-occupancy-rate').textContent = `${occupancy}%`;
+                        document.getElementById('stat-week-income').textContent = `${weekIncome.toLocaleString('tr-TR')} TL`;
+                    }
+
+                    function renderSidebar() {
+                        const waitingList = document.getElementById('waiting-room-list');
+                        waitingList.innerHTML = '';
+
+                        // Bekleme Odası (Waiting Room) - ALL Pending ones
+                        const wApps = appointments.filter(a => a.durum === 'beklemede').sort((a, b) => {
+                            // Sort by date then time
+                            if (a.tarih !== b.tarih) return a.tarih.localeCompare(b.tarih);
+                            return a.saat.localeCompare(b.saat);
+                        });
+
+                        document.getElementById('waiting-room-count').textContent = wApps.length;
+
+                        if (wApps.length === 0) {
+                            waitingList.innerHTML = `
+                                <div class="empty-state" style="padding: 20px; text-align: center; color: var(--text-secondary);">
+                                    <p style="font-size: 0.85rem; font-style: italic;">Bekleyen randevu bulunmuyor.</p>
+                                </div>
+                            `;
+                        } else {
+                            wApps.forEach(a => {
+                                const h = HIZMETLER.find(x => x.id == a.hizmetId) || HIZMETLER[0];
+                                const item = document.createElement('div');
+                                item.className = 'waiting-item';
+                                
+                                // Format date for display
+                                const d = new Date(a.tarih);
+                                const dFormatted = `${d.getDate()} ${getMonthName(d)}`;
+                                
+                                item.innerHTML = `
+                                    <div class="patient-info" onclick="openAptModal(${JSON.stringify(a).replace(/"/g, '&quot;')})">
+                                        <div class="waiting-date-tag">${dFormatted} · ${a.saat}</div>
+                                        <span class="patient-name">${a.musteriAdi}</span>
+                                        <span class="patient-details">${h.ad}</span>
+                                    </div>
+                                    <div class="waiting-actions">
+                                        <button class="btn-action btn-approve" onclick="event.stopPropagation(); approveApt('${a.id}')">
+                                            <i data-lucide="check" style="width:14px;height:14px;"></i> Onayla
+                                        </button>
+                                        <button class="btn-action btn-reject" onclick="event.stopPropagation(); rejectApt('${a.id}')">
+                                            <i data-lucide="x" style="width:14px;height:14px;"></i>
+                                        </button>
+                                    </div>
+                                `;
+                                waitingList.appendChild(item);
+                            });
+                        }
+                        
+                        // Re-run lucide to catch new icons
+                        if (window.lucide) lucide.createIcons();
+                    }
+
+                    async function approveApt(id) {
+                        const apt = appointments.find(a => a.id === id);
+                        if (!apt) return;
+
+                        // Onaylama öncesi çakışma kontrolü: Hedef saatte zaten 2 onaylı randevu var mı?
+                        const confirmedInSlot = appointments.filter(a => 
+                            a.tarih === apt.tarih && a.saat === apt.saat && a.id != apt.id && a.durum === 'onaylandi'
+                        );
+                        
+                        if (confirmedInSlot.length >= 2) {
+                            showToast(`Hata: ${apt.saat} saatinde zaten en fazla (2) onaylı randevu bulunmaktadır.`, true);
+                            return;
+                        }
+                        
+                        apt.durum = 'onaylandi';
+                        showToast(`${apt.musteriAdi} randevusu onaylandı.`);
+                        renderAll();
+                        
+                        try {
+                            await window.db.saveAppointment(apt);
+                            
+                            // Google Sheets'ten gelen randevu ise, sayfadaki durumu da güncelle
+                            if (id.startsWith('gs_')) {
+                                const rowIndex = id.replace('gs_', '');
+                                await updateSheetStatus(rowIndex, 'Onaylandı');
+                            }
+                        } catch (err) {
+                            console.error("Approve error:", err);
+                        }
+                    }
+
+                    async function rejectApt(id) {
+                        const apt = appointments.find(a => a.id === id);
+                        if (!apt) return;
+                        
+                        apt.durum = 'iptal';
+                        showToast(`${apt.musteriAdi} randevusu reddedildi.`);
+                        renderAll();
+                        
+                        try {
+                            await window.db.saveAppointment(apt);
+                            
+                            // Google Sheets'ten gelen randevu ise, sayfadaki durumu da güncelle
+                            if (id.startsWith('gs_')) {
+                                const rowIndex = id.replace('gs_', '');
+                                await updateSheetStatus(rowIndex, 'İptal');
+                            }
+                        } catch (err) {
+                            console.error("Reject error:", err);
+                        }
+                    }
+
+                    async function updateSheetStatus(rowIndex, status) {
+                        if (!GOOGLE_WEB_APP_URL) return;
+                        
+                        try {
+                            // Google Apps Script'e POST gönder
+                            await fetch(GOOGLE_WEB_APP_URL, {
+                                method: 'POST',
+                                mode: 'no-cors',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    action: 'updateStatus',
+                                    rowIndex: rowIndex,
+                                    status: status
+                                })
+                            });
+                            console.log(`Google Sheets güncellendi: Satır ${rowIndex} -> ${status}`);
+                        } catch (err) {
+                            console.error("Google Sheets güncelleme hatası:", err);
+                        }
+                    }
+
+                    // Add back the missing stock populated part for existing apt
+                    function openAptModal(apt = null, date = null, time = null) {
+                        const m = document.getElementById('apt-modal');
+                        const f = document.getElementById('apt-form');
+                        const del = document.getElementById('btn-delete');
+                        const dateInput = document.getElementById('apt-date');
+                        const errBox = document.getElementById('apt-error');
+                        f.reset();
+                        errBox.style.display = 'none';
+
+                        // Remove any dynamically added buttons (like "New Appointment" shortcut)
+                        const oldDynamicBtn = m.querySelector('.modal-actions .btn-primary[style*="background: var(--success)"]');
+                        if (oldDynamicBtn) oldDynamicBtn.remove();
+
+                        if (apt) {
+                            document.getElementById('modal-title').textContent = 'Randevu Bilgisi';
+                            document.getElementById('apt-id').value = apt.id;
+                            document.getElementById('cust-name').value = apt.musteriAdi;
+                            document.getElementById('cust-phone').value = apt.telefon;
+                            document.getElementById('apt-service').value = apt.hizmetId;
+
+                            const targetDate = apt.tarih;
+                            if (dateInput._flatpickr) dateInput._flatpickr.setDate(targetDate);
+                            else dateInput.value = targetDate;
+
+                            document.getElementById('apt-time').value = apt.saat;
+                            document.getElementById('apt-notes').value = apt.notlar;
+                            document.getElementById('apt-durum').value = apt.durum;
+                            updateStatusUI(apt.durum);
+
+                            del.style.display = 'block';
+                        } else {
+                            document.getElementById('modal-title').textContent = 'Randevu Oluştur';
+                            document.getElementById('apt-id').value = '';
+
+                            const targetDate = date || formatISODate(new Date());
+                            if (dateInput._flatpickr) dateInput._flatpickr.setDate(targetDate);
+                            else dateInput.value = targetDate;
+
+                            document.getElementById('apt-time').value = time || '09:00';
+                            document.getElementById('apt-durum').value = 'beklemede';
+                            updateStatusUI('beklemede');
+
+                            del.style.display = 'none';
+                        }
+                        m.style.display = 'flex';
+                    }
+
+                    // Stock management functions moved to stok-yonetimi.html
+
+                    function closeAptModal() { document.getElementById('apt-modal').style.display = 'none'; }
+
+                    function setStatus(el) {
+                        const val = el.getAttribute('data-value');
+                        document.getElementById('apt-durum').value = val;
+                        updateStatusUI(val);
+                    }
+
+                    function updateStatusUI(val) {
+                        document.querySelectorAll('.status-radio').forEach(r => {
+                            r.classList.remove('active');
+                            if (r.getAttribute('data-value') === val) r.classList.add('active');
+                        });
+                    }
+
+                    function setupForm() {
+                        document.getElementById('apt-form').onsubmit = async (e) => {
+                            e.preventDefault();
+                            const id = document.getElementById('apt-id').value;
+                            const data = {
+                                id: id || uuid(),
+                                musteriAdi: document.getElementById('cust-name').value,
+                                telefon: document.getElementById('cust-phone').value,
+                                hizmetId: document.getElementById('apt-service').value,
+                                tarih: document.getElementById('apt-date').value,
+                                saat: document.getElementById('apt-time').value,
+                                notlar: document.getElementById('apt-notes').value,
+                                durum: document.getElementById('apt-durum').value,
+                                created: new Date().toISOString()
+                            };
+
+                            // Çakışma Kontrolü: Eğer bu randevu 'onaylandi' ise, o saatte zaten 2 tane 'onaylandi' var mı kontrol et
+                            const confirmedInSlot = appointments.filter(a => 
+                                a.tarih === data.tarih && a.saat === data.saat && a.id != data.id && a.durum === 'onaylandi'
+                            );
+                            const conflict = data.durum === 'onaylandi' && confirmedInSlot.length >= 2;
+
+                            if (conflict) {
+                                const errBox = document.getElementById('apt-error');
+                                document.getElementById('apt-error-msg').textContent = 'Bu saatte zaten bir randevu bulunmaktadır.';
+                                errBox.style.display = 'flex';
+                                // Scroll down slightly inside if modal overflows
+                                errBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                                return;
+                            } else {
+                                document.getElementById('apt-error').style.display = 'none';
+                            }
+
+                            if (id) {
+                                const idx = appointments.findIndex(a => a.id === id);
+                                if (idx > -1) appointments[idx] = data;
+                            } else {
+                                appointments.push(data);
+                            }
+
+                            // Optimistic Update
+                            renderAll();
+                            closeAptModal();
+                            showToast('Randevu kaydediliyor...');
+
+                            try {
+                                await window.db.saveAppointment(data);
+                                showToast('Randevu başarıyla kaydedildi.');
+                            } catch (e) {
+                                // Rollback if needed (for simplicity, we just reload from DB if error)
+                                await loadData();
+                                renderAll();
+                                showToast('Hata: Kayıt yapılamadı!', true);
+                            }
+                        };
+                    }
+
+                    function deleteAppointment() {
+                        document.getElementById('confirm-modal').style.display = 'flex';
+                    }
+
+                    function closeConfirmModal() {
+                        document.getElementById('confirm-modal').style.display = 'none';
+                    }
+
+                    async function executeDelete() {
+                        const id = document.getElementById('apt-id').value;
+                        if (!id) return;
+
+                        const oldApts = [...appointments];
+                        appointments = appointments.filter(a => a.id !== id);
+
+                        // Optimistic Update
+                        renderAll();
+                        saveData(); // Ensure localStorage is updated
+                        closeConfirmModal();
+                        closeAptModal();
+                        showToast('Randevu siliniyor...');
+
+                        try {
+                            // Always call deleteAppointment - db.deleteAppointment handles cache even if Supabase delete is skipped/fails
+                            await window.db.deleteAppointment(id);
+                            showToast('Randevu başarıyla silindi.');
+                        } catch (e) {
+                            // Rollback
+                            appointments = oldApts;
+                            saveData();
+                            renderAll();
+                            showToast('Hata: Silme işlemi başarısız!', true);
+                        }
+                    }
+
+                    async function handleDrop(id, date, time) {
+                        // id string olarak gelebilir, a.id ise number olabilir. Gevşek karşılaştırma (==) kullanılmalı.
+                        const apt = appointments.find(a => a.id == id);
+                        if (!apt) return;
+
+                        // Çakışma Kontrolü: Eğer taşınan randevu 'onaylandi' ise, hedefte zaten 2 tane 'onaylandi' var mı?
+                        const confirmedInSlot = appointments.filter(a =>
+                            a.tarih === date &&
+                            a.saat === time &&
+                            a.id != id &&
+                            a.durum === 'onaylandi'
+                        );
+                        const conflict = apt.durum === 'onaylandi' && confirmedInSlot.length >= 2;
+
+                        if (conflict) {
+                            showToast('Hata: Bu saatte zaten bir randevu bulunmaktadır.');
+                            return;
+                        }
+
+                        // Store old state for rollback
+                        const oldDate = apt.tarih;
+                        const oldTime = apt.saat;
+
+                        // Optimistic Update
+                        apt.tarih = date;
+                        apt.saat = time;
+                        renderAll(); // Instant feedback
+                        showToast('Randevu taşınıyor...');
+
+                        try {
+                            await window.db.saveAppointment(apt);
+                            // saveData(); // Local data is now handled by auth.js caching
+                            showToast('Randevu başarıyla taşındı.');
+                        } catch (e) {
+                            // Rollback on failure
+                            apt.tarih = oldDate;
+                            apt.saat = oldTime;
+                            showToast('Hata: Taşıma kaydedilemedi!', true);
+                            renderAll();
+                        }
+                    }
+
+                    function changeWeek(dir) { currentWeekOffset += dir; renderAll(); }
+                    let toastTimeout;
+                    function showToast(msg) {
+                        const t = document.getElementById('toast');
+                        t.textContent = msg;
+                        t.classList.add('show');
+                        if (toastTimeout) clearTimeout(toastTimeout);
+                        toastTimeout = setTimeout(() => t.classList.remove('show'), 3000);
+                    }
+
+                    // Utils
+                    function getMonday(d) {
+                        d = new Date(d);
+                        const day = d.getDay();
+                        const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+                        return new Date(d.setDate(diff));
+                    }
+                    function addDays(d, n) { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
+                    function formatISODate(d) {
+                        const y = d.getFullYear();
+                        const m = String(d.getMonth() + 1).padStart(2, '0');
+                        const day = String(d.getDate()).padStart(2, '0');
+                        return `${y}-${m}-${day}`;
+                    }
+                    function formatDate(d, day = false) {
+                        const opt = { day: 'numeric', month: 'long', year: 'numeric' };
+                        if (day) opt.weekday = 'long';
+                        return d.toLocaleDateString('tr-TR', opt);
+                    }
+                    function getMonthName(d) { return d.toLocaleDateString('tr-TR', { month: 'long' }); }
+                    function uuid() { return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => (c === 'x' ? (Math.random() * 16 | 0) : (Math.random() * 16 | 0 & 3 | 8)).toString(16)); }
+
+                    async function init() {
+                        initUI();
+                        await loadData();
+                        renderAll();
+
+                        // Header date
+                        const today = new Date();
+                        const dateEl = document.getElementById('today-date-header');
+                        if (dateEl) dateEl.textContent = formatDate(today, true);
+                    }
+
+                    document.addEventListener('DOMContentLoaded', init);
+                </script>
+        </main>
+    </div>
+
+</body>
+
+</html>

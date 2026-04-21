@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yönetici Paneli | Klinik Yönetim Sistemi</title>
+    <!-- Outfit Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="nav.css">
+    
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --accent: #0a3d34;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        body { font-family: 'Outfit', sans-serif; background: var(--bg-color); color: var(--text-primary); }
+        .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
+        
+        header { margin-bottom: 32px; }
+        header h1 { font-size: 1.5rem; font-weight: 800; }
+        
+        .admin-notice {
+            background: #fffbeb; border: 1px solid #fef3c7; color: #92400e;
+            padding: 16px; border-radius: 12px; margin-bottom: 24px;
+            font-size: 0.9rem; display: flex; gap: 12px; align-items: center;
+        }
+
+        .user-table {
+            width: 100%; border-collapse: collapse; background: white;
+            border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        .user-table th { background: var(--accent); color: white; padding: 16px; text-align: left; font-size: 0.85rem; }
+        .user-table td { padding: 16px; border-bottom: 1px solid var(--border-color); font-size: 0.9rem; }
+        
+        .status-badge {
+            padding: 4px 10px; border-radius: 99px; font-size: 0.75rem; font-weight: 700;
+        }
+        .status-pending { background: #fffbeb; color: #92400e; }
+        .status-approved { background: #f0fdf4; color: #166534; }
+        .status-rejected { background: #fef2f2; color: #991b1b; }
+
+        .btn {
+            padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 700;
+            cursor: pointer; border: none; transition: all 0.2s;
+        }
+        .btn-approve { background: var(--success); color: white; }
+        .btn-reject { background: var(--danger); color: white; }
+        .btn-approve:hover { opacity: 0.9; }
+
+        #toast {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: #1e293b; color: white; padding: 12px 24px; border-radius: 99px;
+            display: none; z-index: 1000;
+        }
+    </style>
+</head>
+<body id="admin-page">
+    <div class="app-layout">
+        <div id="sidebar-placeholder"></div>
+        <main class="main-content">
+            <div class="container">
+                <header>
+                    <h1>Kullanıcı Yönetimi</h1>
+                    <p style="color: var(--text-secondary);">Yeni kayıt olan kliniklerin onay süreçlerini buradan yönetebilirsiniz.</p>
+                </header>
+
+                <div class="admin-notice">
+                    <i data-lucide="info"></i>
+                    <span>Sadece 'approved' (onaylı) statüsündeki kullanıcılar sisteme giriş yapabilir.</span>
+                </div>
+
+                <table class="user-table">
+                    <thead>
+                        <tr>
+                            <th>Klinik / Doktor Adı</th>
+                            <th>Kayıt Tarihi</th>
+                            <th>Durum</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-list-body">
+                        <!-- JS ile dolacak -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast"></div>
+
+    <script src="auth.js" defer></script>
+    <script>
+        async function loadUsers() {
+            const client = window.supabaseClient;
+            if (!client) return;
+
+            const body = document.getElementById('user-list-body');
+            body.innerHTML = '<tr><td colspan="4" style="text-align:center;">Yükleniyor...</td></tr>';
+
+            const { data: profiles, error } = await client
+                .from('profiles')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            console.log('Profiles Data:', profiles); console.error('Supabase Error:', error); if (error) {
+                showToast('Hata: ' + error.message);
+                return;
+            }
+
+            body.innerHTML = '';
+            profiles.forEach(p => {
+                const tr = document.createElement('tr');
+                const date = p.created_at ? new Date(p.created_at).toLocaleDateString('tr-TR') : '-';
+                const statusClass = 'status-' + (p.status || 'pending');
+                const statusLabel = p.status === 'pending' ? 'Onay Bekliyor' : p.status === 'approved' ? 'Onaylı' : 'Reddedildi';
+
+                tr.innerHTML = `
+                    <td style="font-weight:700;">${p.clinic_name || 'İsimsiz Klinik'}</td>
+                    <td>${date}</td>
+                    <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
+                    <td>
+                        <div style="display:flex;gap:8px;">
+                            ${p.status !== 'approved' ? `<button class="btn btn-approve" onclick="updateStatus('${p.id}', 'approved')">Onayla</button>` : ''}
+                            ${p.status !== 'rejected' ? `<button class="btn btn-reject" onclick="updateStatus('${p.id}', 'rejected')">Reddet</button>` : ''}
+                        </div>
+                    </td>`;
+                body.appendChild(tr);
+            });
+        }
+
+        async function updateStatus(id, status) {
+            const { error } = await window.supabaseClient
+                .from('profiles')
+                .update({ status: status })
+                .eq('id', id);
+
+            if (error) { showToast('Hata: ' + error.message); }
+            else { showToast('Durum güncellendi.'); loadUsers(); }
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // authReady bekle - admin kontrolu APP_USER.role ile yap
+            const user = await window.authReady;
+            if (!user || user.role !== 'admin') {
+                window.location.replace('index.html');
+                return;
+            }
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            loadUsers();
+        });
+    </script>
+</body>
+</html>

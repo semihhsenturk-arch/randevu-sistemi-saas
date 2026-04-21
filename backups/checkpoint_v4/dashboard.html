@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klinik Analiz Paneli | Uzm. Dr. Yelda Yaren Şentürk</title>
+    <!-- Outfit Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Flatpickr (Modern Date Picker) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/tr.js"></script>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --accent: #0a3d34;
+            --accent-hover: #072b25;
+            --accent-light: rgba(10, 61, 52, 0.08);
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.04);
+            --shadow-md: 0 2px 8px -2px rgb(0 0 0 / 0.08);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.5;
+            padding: 16px 24px 60px;
+            background-image:
+                radial-gradient(at 0% 0%, hsla(172, 85%, 30%, 0.05) 0, transparent 50%),
+                radial-gradient(at 50% 0%, hsla(210, 80%, 50%, 0.05) 0, transparent 50%),
+                radial-gradient(at 100% 0%, hsla(170, 70%, 40%, 0.05) 0, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            position: sticky;
+            top: 12px;
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 100;
+            padding: 14px 24px;
+            border-radius: var(--radius-lg);
+            border: 1px solid rgba(226, 232, 240, 0.6);
+            box-shadow: 0 4px 24px -4px rgba(0,0,0,0.07);
+        }
+
+        .header-left .clinic-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--accent);
+            margin-bottom: 1px;
+            opacity: 0.8;
+        }
+        .header-left h1 { font-size: 1.25rem; font-weight: 800; color: var(--text-primary); }
+        .header-left .today-date { color: var(--text-secondary); font-size: 0.78rem; font-weight: 500; }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: var(--radius-sm);
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.15s ease;
+            border: 1px solid var(--border-color);
+            background: #f8fafc;
+            color: var(--text-primary);
+            font-size: 0.82rem;
+            font-family: inherit;
+        }
+        .btn:hover { background: #e2e8f0; }
+        .btn-primary { background: var(--accent); color: white; border: none; box-shadow: 0 4px 14px -3px rgba(10, 61, 52, 0.3); }
+        .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+
+        /* Filters */
+        .filters {
+            background: white;
+            padding: 14px 20px;
+            border-radius: var(--radius-md);
+            margin-bottom: 16px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+
+        .filter-group { flex: 1; position: relative; }
+        .filter-group label {
+            display: block;
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        
+        .filter-group input[type="date"] {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 0.85rem;
+            height: 40px;
+            color: var(--text-primary);
+            background: #f8fafc;
+            transition: all 0.15s;
+        }
+        .filter-group input[type="date"]:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+            outline: none;
+            background: #fff;
+        }
+
+        .filter-divider {
+            width: 1px;
+            height: 36px;
+            background: #e2e8f0;
+            flex-shrink: 0;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 18px 20px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-icon {
+            width: 42px; height: 42px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .stat-icon.blue { background: #eff6ff; color: #3b82f6; }
+        .stat-icon.emerald { background: #f0fdf4; color: #059669; }
+        .stat-icon.amber { background: #fffbeb; color: #d97706; }
+        .stat-icon.violet { background: #f5f3ff; color: #8b5cf6; }
+
+        .stat-label { font-size: 0.72rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 2px; }
+        .stat-value { font-size: 1.4rem; font-weight: 800; color: var(--text-primary); line-height: 1.2; }
+
+        /* Charts Section */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 24px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .chart-title {
+            font-size: 0.95rem;
+            font-weight: 800;
+            margin-bottom: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .charts-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            header { flex-direction: column; align-items: flex-start; gap: 14px; }
+            .filters { flex-direction: column; }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+
+        /* Modern Date Picker (Flatpickr) Custom Branding */
+        .flatpickr-calendar {
+            border-radius: var(--radius-md);
+            box-shadow: 0 8px 24px -4px rgba(0,0,0,0.12);
+            border: 1px solid var(--border-color);
+            font-family: 'Outfit', sans-serif;
+        }
+        .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange {
+            background: var(--accent) !important;
+            border-color: var(--accent) !important;
+            color: #fff !important;
+        }
+        /* Today indicator: subtle dot instead of border circle */
+        .flatpickr-day.today {
+            border-color: transparent !important;
+            color: var(--accent) !important;
+            font-weight: 800;
+            position: relative;
+        }
+        .flatpickr-day.today::after {
+            content: '';
+            position: absolute;
+            bottom: 3px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            background: var(--accent);
+            border-radius: 50%;
+        }
+        /* When today is also selected: white text + white dot */
+        .flatpickr-day.today.selected,
+        .flatpickr-day.today.startRange,
+        .flatpickr-day.today.endRange {
+            background: var(--accent) !important;
+            border-color: var(--accent) !important;
+            color: #fff !important;
+        }
+        .flatpickr-day.today.selected::after,
+        .flatpickr-day.today.startRange::after,
+        .flatpickr-day.today.endRange::after {
+            background: rgba(255,255,255,0.7);
+        }
+        .flatpickr-day:hover { background: var(--accent-light) !important; }
+        .flatpickr-current-month .flatpickr-monthDropdown-months { font-weight: 800 !important; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div class="header-left">
+            <div class="clinic-label">UZM. DR. YELDA YAREN ŞENTÜRK</div>
+            <h1>Klinik Analiz Paneli</h1>
+        </div>
+        <div class="header-actions" style="display:flex; gap:8px;">
+            <a href="stok-yonetimi.html" class="btn">
+                <i data-lucide="warehouse" style="width:14px; height:14px; color:#d97706;"></i> Stok Yönetimi
+            </a>
+            <a href="hasta-listesi.html" class="btn">
+                <i data-lucide="contact" style="width:14px; height:14px; color:#3b82f6;"></i> Hasta Listesi
+            </a>
+            <a href="index.html" class="btn">
+                <i data-lucide="calendar-clock" style="width:14px; height:14px; color:#059669;"></i> Randevu Takvimi
+            </a>
+        </div>
+    </header>
+
+    <div class="filters">
+        <div class="filter-group">
+            <label>Başlangıç Tarihi</label>
+            <input type="date" id="start-date">
+        </div>
+        <div class="filter-divider"></div>
+        <div class="filter-group">
+            <label>Bitiş Tarihi</label>
+            <input type="date" id="end-date">
+        </div>
+        <button class="btn btn-primary" onclick="updateDashboard()" style="height:40px; padding: 0 20px; font-size: 0.82rem; white-space: nowrap;">
+            <i data-lucide="refresh-cw" style="width:14px; height:14px;"></i> Güncelle
+        </button>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon blue"><i data-lucide="calendar-check" style="width:20px; height:20px;"></i></div>
+            <div>
+                <div class="stat-label">Toplam Hizmet</div>
+                <div id="total-apt" class="stat-value">0</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon emerald"><i data-lucide="banknote" style="width:20px; height:20px;"></i></div>
+            <div>
+                <div class="stat-label">Toplam Gelir</div>
+                <div id="total-revenue" class="stat-value">0 TL</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon amber"><i data-lucide="star" style="width:20px; height:20px;"></i></div>
+            <div>
+                <div class="stat-label">En Çok Tercih Edilen</div>
+                <div id="top-service" class="stat-value">-</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon violet"><i data-lucide="trending-up" style="width:20px; height:20px;"></i></div>
+            <div>
+                <div class="stat-label">Ortalama Gelir</div>
+                <div id="avg-revenue" class="stat-value">0 TL</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="charts-grid">
+        <div class="chart-container">
+            <div class="chart-title">Hizmet Tipleri Dağılımı</div>
+            <div style="height: 350px;">
+                <canvas id="serviceChart"></canvas>
+            </div>
+        </div>
+        <div class="chart-container">
+            <div class="chart-title">Gelir Paylaşımı</div>
+            <div style="height: 350px;">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Extra Occupancy Infographic at Bottom -->
+    <div class="chart-container" style="margin-top: 32px; text-align: center;">
+        <div class="chart-title" style="justify-content: center; margin-bottom: 8px;">Genel Doluluk Oranı</div>
+        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 24px;">Seçilen tarih aralığındaki toplam klinik kapasite kullanımı</p>
+        <div style="position: relative; height: 300px; max-width: 500px; margin: 0 auto;">
+            <canvas id="occupancyChart"></canvas>
+            <div id="occupancy-label" style="position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%); font-size: 2.5rem; font-weight: 800; color: var(--accent);">0%</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const HIZMETLER = [
+        { id: 1, ad: 'Klinik Muayene', fiyat: 600, renk: '#0a3d34' },
+        { id: 2, ad: 'Dermoskopi', fiyat: 450, renk: '#14b8a6' },
+        { id: 3, ad: 'Botoks Uygulaması', fiyat: 2500, renk: '#0d9488' },
+        { id: 4, ad: 'Lazer Tedavisi', fiyat: 1800, renk: '#ef4444' },
+        { id: 5, ad: 'Cilt Bakımı', fiyat: 1200, renk: '#f59e0b' }
+    ];
+
+    let serviceChart, revenueChart, occupancyChart;
+    let startPicker, endPicker;
+
+    function init() {
+        lucide.createIcons();
+        
+        // Use standard date objects for default values
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        
+        // Initialize Flatpickr for Start and End dates
+        startPicker = flatpickr("#start-date", {
+            locale: "tr",
+            altInput: true,
+            altFormat: "d-m-Y",
+            dateFormat: "Y-m-d",
+            defaultDate: startOfMonth,
+            onChange: function() { updateDashboard(); } // Explicit call
+        });
+        
+        endPicker = flatpickr("#end-date", {
+            locale: "tr",
+            altInput: true,
+            altFormat: "d-m-Y",
+            dateFormat: "Y-m-d",
+            defaultDate: now,
+            onChange: function() { updateDashboard(); } // Explicit call
+        });
+
+        updateDashboard();
+    }
+
+    function updateDashboard() {
+        if (!startPicker || !endPicker) return;
+
+        const start = startPicker.input.value;
+        const end = endPicker.input.value;
+        
+        if (!start || !end) return;
+
+        const allApts = JSON.parse(localStorage.getItem('randevular') || "[]");
+        
+        // Filter: Approved and within date range
+        const filtered = allApts.filter(a => {
+            return a.durum === 'onaylandi' && a.tarih >= start && a.tarih <= end;
+        });
+
+        calculateStats(filtered);
+        
+        // Calculate total possible slots in date range (16 slots per day)
+        const d1 = new Date(start);
+        const d2 = new Date(end);
+        const diffDays = Math.ceil((d2 - d1) / (1000 * 60 * 60 * 24)) + 1;
+        const totalCapacity = diffDays * 16;
+        const occupancyRate = totalCapacity > 0 ? Math.round((filtered.length / totalCapacity) * 100) : 0;
+
+        renderCharts(filtered, occupancyRate);
+    }
+
+    function calculateStats(data) {
+        const totalApts = data.length;
+        let totalRevenue = 0;
+        const counts = {};
+
+        data.forEach(a => {
+            const svc = HIZMETLER.find(h => h.id == a.hizmetId);
+            totalRevenue += (svc?.fiyat || 0);
+            counts[svc?.ad] = (counts[svc?.ad] || 0) + 1;
+        });
+
+        // Top Service
+        let topSvc = "-";
+        let maxCount = 0;
+        for (const [name, count] of Object.entries(counts)) {
+            if (count > maxCount) { maxCount = count; topSvc = name; }
+        }
+
+        document.getElementById('total-apt').textContent = totalApts;
+        document.getElementById('total-revenue').textContent = `${totalRevenue.toLocaleString('tr-TR')} TL`;
+        document.getElementById('top-service').textContent = topSvc;
+        document.getElementById('avg-revenue').textContent = totalApts > 0 
+            ? `${Math.round(totalRevenue / totalApts).toLocaleString('tr-TR')} TL` : "0 TL";
+    }
+
+    function renderCharts(data, occupancyRate) {
+        const labels = HIZMETLER.map(h => h.ad);
+        const countsData = labels.map(label => data.filter(a => HIZMETLER.find(h => h.id == a.hizmetId)?.ad === label).length);
+        const revenueData = labels.map(label => data.filter(a => HIZMETLER.find(h => h.id == a.hizmetId)?.ad === label).reduce((sum, a) => sum + (HIZMETLER.find(h => h.id == a.hizmetId)?.fiyat || 0), 0));
+
+        // Destroy old charts if they exist
+        if (serviceChart) serviceChart.destroy();
+        if (revenueChart) revenueChart.destroy();
+        if (occupancyChart) occupancyChart.destroy();
+
+        // Bar Chart - Service Counts & Revenue
+        const ctxS = document.getElementById('serviceChart').getContext('2d');
+        serviceChart = new Chart(ctxS, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Toplam Gelir (TL)',
+                    data: revenueData,
+                    backgroundColor: HIZMETLER.map(h => h.renk + '40'),
+                    borderColor: HIZMETLER.map(h => h.renk),
+                    borderWidth: 2,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                maintainAspectRatio: false,
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const svc = labels[context.dataIndex];
+                                const qty = countsData[context.dataIndex];
+                                const rev = revenueData[context.dataIndex];
+                                return ` ${qty} Adet | ${rev.toLocaleString('tr-TR')} TL`;
+                            }
+                        }
+                    }
+                },
+                scales: { 
+                    x: { 
+                        beginAtZero: true, 
+                        grid: { display: false },
+                        ticks: {
+                            callback: function(value) { return value.toLocaleString('tr-TR') + ' TL'; }
+                        }
+                    } 
+                }
+            }
+        });
+
+        // Occupancy Gauge
+        const ctxO = document.getElementById('occupancyChart').getContext('2d');
+        document.getElementById('occupancy-label').textContent = `${occupancyRate}%`;
+        occupancyChart = new Chart(ctxO, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [occupancyRate, 100 - occupancyRate],
+                    backgroundColor: [varColor(occupancyRate), '#f1f5f9'],
+                    borderWidth: 0,
+                    circumference: 240,
+                    rotation: 240,
+                    cutout: '85%',
+                    borderRadius: 10
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { enabled: false } }
+            }
+        });
+
+        function varColor(val) {
+            if (val > 80) return '#0d9488';
+            if (val > 40) return '#f59e0b';
+            return '#ef4444';
+        }
+
+        // Doughnut Chart - Revenue Share
+        const ctxR = document.getElementById('revenueChart').getContext('2d');
+        revenueChart = new Chart(ctxR, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: revenueData,
+                    backgroundColor: HIZMETLER.map(h => h.renk),
+                    hoverOffset: 15,
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { usePointStyle: true, font: { size: 10, weight: 'bold' } } }
+                },
+                cutout: '65%'
+            }
+        });
+    }
+
+    window.onload = init;
+</script>
+
+</body>
+</html>

@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klinik Analiz Paneli | Uzm. Dr. Yelda Yaren Şentürk</title>
+    <!-- Outfit Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Flatpickr (Modern Date Picker) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/tr.js"></script>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --accent: #0d9488;
+            --accent-hover: #14b8a6;
+            --accent-light: #0d948810;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --radius-xl: 32px;
+            
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.5;
+            padding: 24px;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .header-left h1 { font-size: 1.8rem; font-weight: 800; color: var(--text-primary); }
+        .header-left p { color: var(--text-secondary); font-size: 0.9rem; }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+            border: 1px solid var(--border-color);
+            background: white;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+        .btn:hover { background: #f1f5f9; transform: translateY(-1px); }
+        .btn-primary { background: var(--accent); color: white; border: none; }
+        .btn-primary:hover { background: var(--accent-hover); }
+
+        /* Filters */
+        .filters {
+            background: white;
+            padding: 24px;
+            border-radius: var(--radius-lg);
+            margin-bottom: 32px;
+            display: flex;
+            gap: 20px;
+            align-items: flex-end;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+
+        .filter-group { flex: 1; }
+        .filter-group label { display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 8px; }
+        
+        input[type="date"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-family: inherit;
+            font-weight: 600;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 24px;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-label { font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; }
+        .stat-value { font-size: 1.8rem; font-weight: 800; color: var(--text-primary); }
+        .stat-trend { font-size: 0.8rem; font-weight: 600; color: var(--accent); }
+
+        /* Charts Section */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 32px;
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-md);
+        }
+
+        .chart-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .charts-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            header { flex-direction: column; align-items: flex-start; gap: 20px; }
+            .filters { flex-direction: column; }
+        }
+
+        /* Modern Date Picker (Flatpickr) Custom Branding */
+        .flatpickr-calendar {
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+            font-family: 'Outfit', sans-serif;
+        }
+        .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange {
+            background: var(--accent) !important;
+            border-color: var(--accent) !important;
+        }
+        .flatpickr-day.today { border-color: var(--accent) !important; color: var(--accent); }
+        .flatpickr-day:hover { background: var(--accent-light) !important; }
+        .flatpickr-current-month .flatpickr-monthDropdown-months { font-weight: 800 !important; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div class="header-left">
+            <h1>Klinik Analiz Paneli</h1>
+        </div>
+        <a href="index.html" class="btn">
+            <i data-lucide="calendar"></i> Takvime Dön
+        </a>
+    </header>
+
+    <div class="filters">
+        <div class="filter-group">
+            <label>Başlangıç Tarihi</label>
+            <input type="date" id="start-date">
+        </div>
+        <div class="filter-group">
+            <label>Bitiş Tarihi</label>
+            <input type="date" id="end-date">
+        </div>
+        <button class="btn btn-primary" onclick="updateDashboard()" style="height:48px;">
+            <i data-lucide="refresh-cw"></i> Verileri Güncelle
+        </button>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <span class="stat-label">Toplam Hizmet</span>
+            <span id="total-apt" class="stat-value">0</span>
+            <span class="stat-trend">Tamamlanan</span>
+        </div>
+        <div class="stat-card" style="border-bottom: 4px solid var(--accent);">
+            <span class="stat-label">Toplam Gelir</span>
+            <span id="total-revenue" class="stat-value">0 TL</span>
+            <span class="stat-trend" style="color:var(--accent);">Net Kazanç</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">En Çok Tercih Edilen</span>
+            <span id="top-service" class="stat-value">-</span>
+            <span class="stat-trend">Popüler Hizmet</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Ortalama Gelir</span>
+            <span id="avg-revenue" class="stat-value">0 TL</span>
+            <span class="stat-trend">Randevu Başı</span>
+        </div>
+    </div>
+
+    <div class="charts-grid">
+        <div class="chart-container">
+            <div class="chart-title">Hizmet Tipleri Dağılımı</div>
+            <div style="height: 350px;">
+                <canvas id="serviceChart"></canvas>
+            </div>
+        </div>
+        <div class="chart-container">
+            <div class="chart-title">Gelir Paylaşımı</div>
+            <div style="height: 350px;">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Extra Occupancy Infographic at Bottom -->
+    <div class="chart-container" style="margin-top: 32px; text-align: center;">
+        <div class="chart-title" style="justify-content: center; margin-bottom: 8px;">Genel Doluluk Oranı</div>
+        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 24px;">Seçilen tarih aralığındaki toplam klinik kapasite kullanımı</p>
+        <div style="position: relative; height: 300px; max-width: 500px; margin: 0 auto;">
+            <canvas id="occupancyChart"></canvas>
+            <div id="occupancy-label" style="position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%); font-size: 2.5rem; font-weight: 800; color: var(--accent);">0%</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const HIZMETLER = [
+        { id: 1, ad: 'Klinik Muayene', fiyat: 600, renk: '#0d9488' },
+        { id: 2, ad: 'Dermoskopi', fiyat: 450, renk: '#3b82f6' },
+        { id: 3, ad: 'Botoks Uygulaması', fiyat: 2500, renk: '#8b5cf6' },
+        { id: 4, ad: 'Lazer Tedavisi', fiyat: 1800, renk: '#ef4444' },
+        { id: 5, ad: 'Cilt Bakımı', fiyat: 1200, renk: '#f59e0b' }
+    ];
+
+    let serviceChart, revenueChart, occupancyChart;
+
+    function init() {
+        lucide.createIcons();
+        
+        // Use standard date objects for default values
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        
+        // Initialize Flatpickr for Start and End dates
+        flatpickr("#start-date", {
+            locale: "tr",
+            altInput: true,
+            altFormat: "d-m-Y",
+            dateFormat: "Y-m-d",
+            defaultDate: startOfMonth,
+            onChange: updateDashboard // Auto-update when date changes
+        });
+        
+        flatpickr("#end-date", {
+            locale: "tr",
+            altInput: true,
+            altFormat: "d-m-Y",
+            dateFormat: "Y-m-d",
+            defaultDate: now,
+            onChange: updateDashboard // Auto-update when date changes
+        });
+
+        updateDashboard();
+    }
+
+    function updateDashboard() {
+        const start = document.getElementById('start-date').value;
+        const end = document.getElementById('end-date').value;
+        
+        const allApts = JSON.parse(localStorage.getItem('randevular') || "[]");
+        
+        // Filter: Approved and within date range
+        const filtered = allApts.filter(a => {
+            return a.durum === 'onaylandi' && a.tarih >= start && a.tarih <= end;
+        });
+
+        calculateStats(filtered);
+        
+        // Calculate total possible slots in date range (16 slots per day)
+        const d1 = new Date(start);
+        const d2 = new Date(end);
+        const diff = Math.ceil((d2 - d1) / (1000 * 60 * 60 * 24)) + 1;
+        const totalCapacity = diff * 16;
+        const occupancyRate = totalCapacity > 0 ? Math.round((filtered.length / totalCapacity) * 100) : 0;
+
+        renderCharts(filtered, occupancyRate);
+    }
+
+    function calculateStats(data) {
+        const totalApts = data.length;
+        let totalRevenue = 0;
+        const counts = {};
+
+        data.forEach(a => {
+            const svc = HIZMETLER.find(h => h.id == a.hizmetId);
+            totalRevenue += (svc?.fiyat || 0);
+            counts[svc?.ad] = (counts[svc?.ad] || 0) + 1;
+        });
+
+        // Top Service
+        let topSvc = "-";
+        let maxCount = 0;
+        for (const [name, count] of Object.entries(counts)) {
+            if (count > maxCount) { maxCount = count; topSvc = name; }
+        }
+
+        document.getElementById('total-apt').textContent = totalApts;
+        document.getElementById('total-revenue').textContent = `${totalRevenue.toLocaleString('tr-TR')} TL`;
+        document.getElementById('top-service').textContent = topSvc;
+        document.getElementById('avg-revenue').textContent = totalApts > 0 
+            ? `${Math.round(totalRevenue / totalApts).toLocaleString('tr-TR')} TL` : "0 TL";
+    }
+
+    function renderCharts(data, occupancyRate) {
+        const labels = HIZMETLER.map(h => h.ad);
+        const countsData = labels.map(label => data.filter(a => HIZMETLER.find(h => h.id == a.hizmetId)?.ad === label).length);
+        const revenueData = labels.map(label => data.filter(a => HIZMETLER.find(h => h.id == a.hizmetId)?.ad === label).reduce((sum, a) => sum + (HIZMETLER.find(h => h.id == a.hizmetId)?.fiyat || 0), 0));
+
+        // Destroy old charts if they exist
+        if (serviceChart) serviceChart.destroy();
+        if (revenueChart) revenueChart.destroy();
+        if (occupancyChart) occupancyChart.destroy();
+
+        // Bar Chart - Service Counts & Revenue
+        const ctxS = document.getElementById('serviceChart').getContext('2d');
+        serviceChart = new Chart(ctxS, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Toplam Gelir (TL)',
+                    data: revenueData,
+                    backgroundColor: HIZMETLER.map(h => h.renk + '40'),
+                    borderColor: HIZMETLER.map(h => h.renk),
+                    borderWidth: 2,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                maintainAspectRatio: false,
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const svc = labels[context.dataIndex];
+                                const qty = countsData[context.dataIndex];
+                                const rev = revenueData[context.dataIndex];
+                                return ` ${qty} Adet | ${rev.toLocaleString('tr-TR')} TL`;
+                            }
+                        }
+                    }
+                },
+                scales: { 
+                    x: { 
+                        beginAtZero: true, 
+                        grid: { display: false },
+                        ticks: {
+                            callback: function(value) { return value.toLocaleString('tr-TR') + ' TL'; }
+                        }
+                    } 
+                }
+            }
+        });
+
+        // Occupancy Gauge
+        const ctxO = document.getElementById('occupancyChart').getContext('2d');
+        document.getElementById('occupancy-label').textContent = `${occupancyRate}%`;
+        occupancyChart = new Chart(ctxO, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [occupancyRate, 100 - occupancyRate],
+                    backgroundColor: [varColor(occupancyRate), '#f1f5f9'],
+                    borderWidth: 0,
+                    circumference: 240,
+                    rotation: 240,
+                    cutout: '85%',
+                    borderRadius: 10
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { enabled: false } }
+            }
+        });
+
+        function varColor(val) {
+            if (val > 80) return '#0d9488';
+            if (val > 40) return '#f59e0b';
+            return '#ef4444';
+        }
+
+        // Doughnut Chart - Revenue Share
+        const ctxR = document.getElementById('revenueChart').getContext('2d');
+        revenueChart = new Chart(ctxR, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: revenueData,
+                    backgroundColor: HIZMETLER.map(h => h.renk),
+                    hoverOffset: 15,
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { usePointStyle: true, font: { size: 10, weight: 'bold' } } }
+                },
+                cutout: '65%'
+            }
+        });
+    }
+
+    window.onload = init;
+</script>
+
+</body>
+</html>

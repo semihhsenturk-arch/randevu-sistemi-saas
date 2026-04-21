@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sisteme Giriş | Uzm. Dr. Yelda Yaren Şentürk</title>
+    <!-- Outfit Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --card-bg: #ffffff;
+            --border-color: #f1f5f9;
+            --accent: #2c3e50; /* Elegant Dark Slate */
+            --accent-hover: #1a252f;
+            --accent-light: #f8fafc;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --danger: #e11d48;
+            --danger-light: #fff1f2;
+            
+            --radius-md: 10px;
+            --radius-lg: 16px;
+            
+            --shadow-subtle: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+            --shadow-premium: 0 10px 15px -3px rgb(0 0 0 / 0.04), 0 4px 6px -4px rgb(0 0 0 / 0.04);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image: 
+                radial-gradient(circle at 50% 50%, #f9fafb 0%, #ffffff 100%);
+            padding: 24px;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 16px;
+            animation: fade-in 0.8s ease-out;
+        }
+
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .login-icon-wrap {
+            width: 56px;
+            height: 56px;
+            background: var(--accent-light);
+            color: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px auto;
+            border: 1px solid var(--border-color);
+        }
+
+        .login-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .login-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            opacity: 0.8;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        /* Fix Lucide Icon Positioning */
+        .input-wrap .lucide {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            width: 18px;
+            height: 18px;
+            pointer-events: none;
+            transition: color 0.3s ease;
+        }
+
+        input {
+            width: 100%;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            color: var(--text-primary);
+            padding: 12px 16px 12px 48px;
+            border-radius: var(--radius-md);
+            height: 52px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: all 0.25s ease;
+        }
+
+        input:focus {
+            border-color: #cbd5e1;
+            background: #ffffff;
+            outline: none;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+        }
+
+        input:focus + .lucide {
+            color: var(--text-primary);
+        }
+
+        .btn-primary {
+            width: 100%;
+            background: var(--accent);
+            color: white;
+            padding: 16px;
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 8px;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-premium);
+        }
+
+        .btn-primary:active {
+            transform: translateY(1px);
+        }
+
+        .error-message {
+            display: none;
+            background: var(--danger-light);
+            color: var(--danger);
+            padding: 14px;
+            border-radius: var(--radius-md);
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 24px;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid rgba(225, 29, 72, 0.1);
+        }
+
+        .error-message.show {
+            display: flex;
+        }
+
+        /* Loading spinner */
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+        }
+        .loading-spinner {
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+        .btn-primary.loading .loading-spinner { display: block; }
+        .btn-primary.loading .btn-text { display: none; }
+        .btn-primary.loading { pointer-events: none; opacity: 0.8; }
+
+        .clinic-footer {
+            position: absolute;
+            bottom: 32px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-align: center;
+            width: 100%;
+            left: 0;
+            opacity: 0.6;
+            letter-spacing: 0.02em;
+        }
+        
+    </style>
+</head>
+<body id="login-page">
+    <div class="login-container">
+        <div class="login-header">
+            <div class="login-icon-wrap">
+                <i data-lucide="lock" style="width: 24px; height: 24px;"></i>
+            </div>
+            <h1 class="login-title">Klinik Yönetimi</h1>
+            <p class="login-subtitle">Devam etmek için giriş yapın</p>
+        </div>
+
+        <div id="errorMessage" class="error-message">
+            <i data-lucide="alert-circle" style="width: 18px; height: 18px;"></i>
+            <span id="errorText">E-posta veya şifre hatalı.</span>
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">E-POSTA</label>
+                <div class="input-wrap">
+                    <input type="email" id="email" required placeholder="ornek@klinik.com" autocomplete="email">
+                    <i data-lucide="mail"></i>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">ŞİFRE</label>
+                <div class="input-wrap">
+                    <input type="password" id="password" required placeholder="••••••••" autocomplete="current-password">
+                    <i data-lucide="key-round"></i>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary" id="loginBtn">
+                <span class="btn-text">Sisteme Giriş</span>
+                <i data-lucide="loader-2" class="loading-spinner"></i>
+            </button>
+        </form>
+    </div>
+
+    <div class="clinic-footer">© 2026 Uzm. Dr. Yelda Yaren Şentürk | Klinik Yönetim Sistemi</div>
+
+    <script src="auth.js" defer></script>
+    <script>
+        // Init icons after DOM load
+        document.addEventListener('DOMContentLoaded', () => {
+             if (typeof lucide !== 'undefined') lucide.createIcons();
+        });
+    </script>
+</body>
+</html>
