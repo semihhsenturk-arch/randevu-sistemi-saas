@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth, UserProfile } from "@/hooks/use-auth";
 import { supabase } from "@/lib/supabase";
+import { getCacheSync, CACHE_KEYS } from "@/hooks/use-database";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -21,31 +22,41 @@ export default function AdminUsersPage() {
   const { profile, isLoading } = useAuth();
   const router = useRouter();
   const [users, setUsers] = useState<UserProfile[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [userToReject, setUserToReject] = useState<UserProfile | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (!isLoading) {
-      if (profile?.role !== "admin") {
-        router.push("/");
+      if (!profile || profile.role !== 'admin') {
+        router.push('/dashboard');
       } else {
+        // Load from cache first
+        const cached = getCacheSync<UserProfile[]>(CACHE_KEYS.ADMIN_USERS);
+        if (cached) setUsers(cached);
+        
         fetchUsers();
       }
     }
   }, [profile, isLoading, router]);
 
   const fetchUsers = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    if (!error && data) {
-      setUsers(data as UserProfile[]);
+      if (!error && data) {
+        setUsers(data as UserProfile[]);
+        // Update cache
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(CACHE_KEYS.ADMIN_USERS, JSON.stringify(data));
+        }
+      }
+    } catch (e) {
+      console.error("Admin fetch users failed:", e);
     }
-    setLoading(false);
   };
 
   const toggleApproval = async (id: string, currentStatus: boolean) => {
@@ -98,11 +109,8 @@ export default function AdminUsersPage() {
             Sisteme yeni kayıt olan klinikleri buradan onaylayarak erişim verebilirsiniz.
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-0">
-          {loading ? (
-            <div className="p-8 text-center text-slate-500">Kullanıcılar yükleniyor...</div>
-          ) : (
-            <Table>
+        <CardContent className="p-0 relative min-h-[200px]">
+          <Table>
               <TableHeader className="bg-slate-50">
                 <TableRow>
                   <TableHead className="font-semibold text-slate-700">Klinik Adı / Ünvan</TableHead>
@@ -170,7 +178,6 @@ export default function AdminUsersPage() {
                 )}
               </TableBody>
             </Table>
-          )}
         </CardContent>
       </Card>
 

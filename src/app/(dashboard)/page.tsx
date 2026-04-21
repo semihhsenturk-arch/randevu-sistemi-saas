@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { format, addDays, startOfWeek, parseISO, isValid } from "date-fns";
 import { tr } from "date-fns/locale/tr";
 import { DatePicker } from "@/components/ui/date-picker";
-import { useDatabase, Appointment } from "@/hooks/use-database";
+import { useDatabase, Appointment, CACHE_KEYS, getCacheSync } from "@/hooks/use-database";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -86,8 +86,12 @@ export default function CalendarPage() {
   const sensors = useSensors(mouseSensor, touchSensor);
 
   useEffect(() => {
+    // Load from cache first for instant feedback
+    const cached = getCacheSync<Appointment[]>(CACHE_KEYS.APPOINTMENTS);
+    if (cached) setAppointments(cached);
+    
     loadData();
-  }, []);
+  }, [getAppointments]);
 
   const loadData = async () => {
     try {
@@ -301,7 +305,7 @@ export default function CalendarPage() {
   const draggedApt = activeDragId ? appointments.find(a => a.id === activeDragId) : null;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 relative">
       <CalendarHeader 
         monday={monday} 
         sunday={sunday} 

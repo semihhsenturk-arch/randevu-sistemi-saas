@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useDatabase, InventoryItem } from "@/hooks/use-database";
+import { useDatabase, InventoryItem, getCacheSync, CACHE_KEYS } from "@/hooks/use-database";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +17,7 @@ export default function StockManagementPage() {
   const { getInventory, saveInventoryItem, deleteInventoryItem } = useDatabase();
   const [inventory, setInventory] = useState<{ stock: Record<string, number>; items: InventoryItem[] }>({ stock: {}, items: [] });
   const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(false);
   
   const [modalOpen, setModalOpen] = useState(false);
   const [newItem, setNewItem] = useState<{ ad: string, birim: string, kritik: number, baslangic: number }>({ ad: "", birim: "Adet", kritik: 10, baslangic: 0 });
@@ -26,12 +27,20 @@ export default function StockManagementPage() {
   const [adjustAmounts, setAdjustAmounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
+    // Load from cache first
+    const cached = getCacheSync<{ stock: Record<string, number>; items: InventoryItem[] }>(CACHE_KEYS.INVENTORY);
+    if (cached) setInventory(cached);
+    
     loadData();
-  }, []);
+  }, [getInventory]);
 
   const loadData = async () => {
-    const data = await getInventory();
-    setInventory(data);
+    try {
+      const data = await getInventory();
+      setInventory(data);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const handleStockAdjust = async (item: InventoryItem, delta: number) => {
@@ -160,7 +169,7 @@ export default function StockManagementPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden">
+      <div className="bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden relative min-h-[400px]">
         <table className="w-full">
             <thead>
                 <tr className="bg-gradient-to-r from-[#0c4a40] to-[#177567] text-white">

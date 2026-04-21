@@ -55,59 +55,59 @@ export function CalendarHeader({
         </div>
 
         <div className="hidden lg:flex items-center gap-3">
-          <div className="flex gap-3">
+          <div className="flex gap-4">
             {/* Günlük Randevu */}
-            <div className="flex items-center gap-3 px-3 py-1.5 rounded-xl border border-slate-100 hover:border-[#0a3d3420] hover:bg-[#0a3d3405] transition-all group">
-              <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-                <CalendarCheck className="w-4 h-4" />
+            <div className="flex items-center gap-3.5 px-4 py-2 rounded-2xl border border-slate-100 hover:border-[#0a3d3420] hover:bg-[#0a3d3405] transition-all group shadow-sm bg-slate-50/20">
+              <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-blue-50 text-blue-600 shadow-sm">
+                <CalendarCheck className="w-5 h-5" />
               </div>
               <div>
-                <div className="text-[0.65rem] font-bold text-slate-500 uppercase leading-none mb-1">Bugün</div>
-                <div className="text-sm font-extrabold text-[#1e293b]">{stats.todayCount}</div>
+                <div className="text-[0.72rem] font-bold text-slate-500 uppercase tracking-wider leading-none mb-1.5">Bugün</div>
+                <div className="text-lg font-black text-[#1e293b]">{stats.todayCount}</div>
               </div>
             </div>
             
             {/* Haftalık Randevu */}
-            <div className="flex items-center gap-3 px-3 py-1.5 rounded-xl border border-slate-100 hover:border-[#0a3d3420] hover:bg-[#0a3d3405] transition-all group">
-              <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
-                <CalendarRange className="w-4 h-4" />
+            <div className="flex items-center gap-3.5 px-4 py-2 rounded-2xl border border-slate-100 hover:border-[#0a3d3420] hover:bg-[#0a3d3405] transition-all group shadow-sm bg-slate-50/20">
+              <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 shadow-sm">
+                <CalendarRange className="w-5 h-5" />
               </div>
               <div>
-                <div className="text-[0.65rem] font-bold text-slate-500 uppercase leading-none mb-1">Hafta</div>
-                <div className="text-sm font-extrabold text-[#1e293b]">{stats.weekCount}</div>
+                <div className="text-[0.72rem] font-bold text-slate-500 uppercase tracking-wider leading-none mb-1.5">Hafta</div>
+                <div className="text-lg font-black text-[#1e293b]">{stats.weekCount}</div>
               </div>
             </div>
 
             {/* Doluluk */}
-            <div className="flex items-center gap-3 px-3 py-1.5 rounded-xl border border-slate-100 hover:border-[#0a3d3420] hover:bg-[#0a3d3405] transition-all group">
-              <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-amber-50 text-amber-600">
-                <Percent className="w-4 h-4" />
+            <div className="flex items-center gap-3.5 px-4 py-2 rounded-2xl border border-slate-100 hover:border-[#0a3d3420] hover:bg-[#0a3d3405] transition-all group shadow-sm bg-slate-50/20">
+              <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-amber-50 text-amber-600 shadow-sm">
+                <Percent className="w-5 h-5" />
               </div>
               <div>
-                <div className="text-[0.65rem] font-bold text-slate-500 uppercase leading-none mb-1">Doluluk</div>
-                <div className="text-sm font-extrabold text-[#1e293b]">{stats.occupancy}%</div>
+                <div className="text-[0.72rem] font-bold text-slate-500 uppercase tracking-wider leading-none mb-1.5">Doluluk</div>
+                <div className="text-lg font-black text-[#1e293b]">{stats.occupancy}%</div>
               </div>
             </div>
 
             {/* Gelir */}
-            <div className="flex items-center gap-3 px-3 py-1.5 rounded-xl border border-slate-100 hover:border-[#0a3d3420] hover:bg-[#0a3d3405] transition-all group">
-              <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#0a3d3408] text-[#0a3d34]">
-                <Banknote className="w-4 h-4" />
+            <div className="flex items-center gap-3.5 px-4 py-2 rounded-2xl border border-slate-100 hover:border-[#0a3d3420] hover:bg-[#0a3d3405] transition-all group shadow-sm bg-slate-50/20">
+              <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#0a3d3408] text-[#0a3d34] shadow-sm">
+                <Banknote className="w-5 h-5" />
               </div>
               <div>
-                <div className="text-[0.65rem] font-bold text-slate-500 uppercase leading-none mb-1">Gelir</div>
-                <div className="text-sm font-extrabold text-[#1e293b]">{stats.income} TL</div>
+                <div className="text-[0.72rem] font-bold text-slate-500 uppercase tracking-wider leading-none mb-1.5">Gelir</div>
+                <div className="text-lg font-black text-[#1e293b]">{stats.income} TL</div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center">
           <Button 
             onClick={() => onNewAppointment(format(new Date(), "yyyy-MM-dd"), "09:00")}
-            className="bg-[#0a3d34] hover:bg-[#072b25] text-white p-[10px_24px] rounded-lg font-bold text-[0.82rem] uppercase tracking-[0.04em] shadow-[0_4px_14px_-3px_rgba(10,61,52,0.3)] transition-all hover:-translate-y-[2px]"
+            className="bg-[#0a3d34] hover:bg-[#072b25] text-white p-[14px_32px] rounded-xl font-bold text-[1rem] uppercase tracking-[0.05em] shadow-[0_6px_20px_-4px_rgba(10,61,52,0.4)] transition-all hover:-translate-y-[2px] active:scale-95 h-auto"
           >
-            <Plus className="w-4 h-4 mr-2" />
+            <Plus className="w-5 h-5 mr-2" />
             RANDEVU
           </Button>
         </div>

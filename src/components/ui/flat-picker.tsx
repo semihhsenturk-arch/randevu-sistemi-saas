@@ -55,6 +55,7 @@ export function FlatPicker({ value, onChange, placeholder, className, options }:
         "w-full px-3.5 py-2.5 border border-slate-200 rounded-xl font-semibold text-[0.9rem] text-slate-900 bg-white focus:outline-none focus:border-[#0a3d34] focus:ring-3 focus:ring-[#0a3d34]/10 transition-all text-center h-11",
         className
       )}
+      style={{ display: 'none' }} // Explicitly hide the original input
     />
   )
 }

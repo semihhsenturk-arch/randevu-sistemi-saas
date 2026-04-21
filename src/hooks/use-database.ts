@@ -27,13 +27,15 @@ export type InventoryItem = {
   kritik_stok: number;
 };
 
-const CACHE_KEYS = {
+export const CACHE_KEYS = {
   APPOINTMENTS: "cache_appointments",
   PROFILES: "cache_patient_profiles",
   INVENTORY: "cache_inventory",
+  ADMIN_USERS: "cache_admin_users",
 };
 
-function getCache<T>(key: string): T | null {
+export function getCacheSync<T>(key: string): T | null {
+  if (typeof window === "undefined") return null;
   try {
     const data = localStorage.getItem(key);
     return data ? JSON.parse(data) : null;
@@ -42,75 +44,26 @@ function getCache<T>(key: string): T | null {
   }
 }
 
+// Internal version
+function getCache<T>(key: string): T | null {
+  return getCacheSync<T>(key);
+}
+
 function setCache(key: string, data: any) {
   try {
     localStorage.setItem(key, JSON.stringify(data));
   } catch (e) {}
 }
 
-// Helper: get user ID from local session (no network call)
-async function getUserId(): Promise<string | null> {
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
-    return session?.user?.id || null;
-  } catch {
-    return null;
-  }
-}
+import { useAuth } from "@/hooks/use-auth";
 
 export function useDatabase() {
+  const { user } = useAuth();
+  const userId = user?.id;
 
   // ─── Appointments ──────────────────────────────────────────────
 
-  const getAppointments = useCallback(async (): Promise<Appointment[]> => {
-    const cached = getCache<Appointment[]>(CACHE_KEYS.APPOINTMENTS);
-
-    // Background fetch function
-    const fetchFresh = async (): Promise<Appointment[] | null> => {
-      try {
-        const userId = await getUserId();
-        if (!userId) return null;
-
-        const { data, error } = await supabase
-          .from("appointments")
-          .select("*")
-          .eq("user_id", userId)
-          .order("tarih", { ascending: true })
-          .order("saat", { ascending: true });
-
-        if (!error && data) {
-          const mapped: Appointment[] = data.map((d: any) => ({
-            id: d.id,
-            musteriAdi: d.musteri_adi,
-            telefon: d.telefon,
-            hizmetId: d.hizmet_id,
-            tarih: d.tarih,
-            saat: d.saat,
-            durum: d.durum,
-            notlar: d.notlar,
-          }));
-          setCache(CACHE_KEYS.APPOINTMENTS, mapped);
-          return mapped;
-        }
-        return null;
-      } catch {
-        return null;
-      }
-    };
-
-    // SWR: Cache varsa hemen dön, arka planda güncelle
-    if (cached && cached.length > 0) {
-      fetchFresh(); // fire-and-forget background revalidation
-      return cached;
-    }
-
-    // Cache yoksa sunucuyu bekle
-    const fresh = await fetchFresh();
-    return fresh || [];
-  }, []);
-
   const fetchFreshAppointments = useCallback(async (): Promise<Appointment[]> => {
-    const userId = await getUserId();
     if (!userId) return getCache<Appointment[]>(CACHE_KEYS.APPOINTMENTS) || [];
 
     const { data, error } = await supabase
@@ -135,10 +88,20 @@ export function useDatabase() {
       return mapped;
     }
     return getCache<Appointment[]>(CACHE_KEYS.APPOINTMENTS) || [];
-  }, []);
+  }, [userId]);
+
+  const getAppointments = useCallback(async (): Promise<Appointment[]> => {
+    try {
+      const fresh = await fetchFreshAppointments();
+      if (fresh && fresh.length > 0) return fresh;
+    } catch (e) {
+      console.warn("fetchFreshAppointments failed, falling back to cache", e);
+    }
+    
+    return getCache<Appointment[]>(CACHE_KEYS.APPOINTMENTS) || [];
+  }, [fetchFreshAppointments]);
 
   const saveAppointment = useCallback(async (apt: Appointment) => {
-    const userId = await getUserId();
     if (!userId) throw new Error("Oturum kapatılmış, lütfen tekrar giriş yapın.");
 
     const payload: any = {
@@ -183,10 +146,9 @@ export function useDatabase() {
     setCache(CACHE_KEYS.APPOINTMENTS, cached);
 
     return updatedApt;
-  }, []);
+  }, [userId]);
 
   const deleteAppointment = useCallback(async (id: string) => {
-    const userId = await getUserId();
     if (!userId) return;
     const { error } = await supabase.from("appointments").delete().eq("id", id).eq("user_id", userId);
     if (error) throw error;
@@ -194,24 +156,20 @@ export function useDatabase() {
     const cached = getCache<Appointment[]>(CACHE_KEYS.APPOINTMENTS) || [];
     const filtered = cached.filter((a) => a.id !== id);
     setCache(CACHE_KEYS.APPOINTMENTS, filtered);
-  }, []);
+  }, [userId]);
 
   // ─── Patient Profiles ──────────────────────────────────────────
 
   const getPatientProfiles = useCallback(async () => {
-    const cached = getCache<Record<string, Omit<PatientProfile, "patient_name">>>(CACHE_KEYS.PROFILES);
+    try {
+      if (!userId) return getCache<Record<string, Omit<PatientProfile, "patient_name">>>(CACHE_KEYS.PROFILES) || {};
 
-    const fetchFresh = async () => {
-      try {
-        const userId = await getUserId();
-        if (!userId) return null;
+      const { data, error } = await supabase
+        .from("patient_profiles")
+        .select("*")
+        .eq("user_id", userId);
 
-        const { data, error } = await supabase
-          .from("patient_profiles")
-          .select("*")
-          .eq("user_id", userId);
-        if (error) return null;
-
+      if (!error && data) {
         const profiles: Record<string, Omit<PatientProfile, "patient_name">> = {};
         data.forEach((p: any) => {
           profiles[p.patient_name] = {
@@ -222,23 +180,15 @@ export function useDatabase() {
         });
         setCache(CACHE_KEYS.PROFILES, profiles);
         return profiles;
-      } catch {
-        return null;
       }
-    };
-
-    // SWR: Cache varsa hemen dön
-    if (cached && Object.keys(cached).length > 0) {
-      fetchFresh();
-      return cached;
+    } catch (e) {
+      console.warn("fetchFreshProfiles failed, falling back to cache", e);
     }
 
-    const fresh = await fetchFresh();
-    return fresh || {};
-  }, []);
+    return getCache<Record<string, Omit<PatientProfile, "patient_name">>>(CACHE_KEYS.PROFILES) || {};
+  }, [userId]);
 
   const savePatientProfile = useCallback(async (name: string, profile: Omit<PatientProfile, "patient_name">) => {
-    const userId = await getUserId();
     if (!userId) return;
 
     const { data: existing } = await supabase
@@ -264,24 +214,20 @@ export function useDatabase() {
       cached[name] = profile;
       setCache(CACHE_KEYS.PROFILES, cached);
     }
-  }, []);
+  }, [userId]);
 
   // ─── Inventory ─────────────────────────────────────────────────
 
   const getInventory = useCallback(async () => {
-    const cached = getCache<{ stock: Record<string, number>; items: InventoryItem[] }>(CACHE_KEYS.INVENTORY);
+    try {
+      if (!userId) return getCache<{ stock: Record<string, number>; items: InventoryItem[] }>(CACHE_KEYS.INVENTORY) || { stock: {}, items: [] };
 
-    const fetchFresh = async () => {
-      try {
-        const userId = await getUserId();
-        if (!userId) return null;
+      const { data, error } = await supabase
+        .from("inventory")
+        .select("*")
+        .eq("user_id", userId);
 
-        const { data, error } = await supabase
-          .from("inventory")
-          .select("*")
-          .eq("user_id", userId);
-        if (error) return null;
-
+      if (!error && data) {
         const stock: Record<string, number> = {};
         const items: InventoryItem[] = data.map((d: any) => {
           stock[d.item_id] = parseFloat(d.quantity);
@@ -295,23 +241,15 @@ export function useDatabase() {
         const result = { stock, items };
         setCache(CACHE_KEYS.INVENTORY, result);
         return result;
-      } catch {
-        return null;
       }
-    };
-
-    // SWR: Cache varsa hemen dön
-    if (cached && cached.items.length > 0) {
-      fetchFresh();
-      return cached;
+    } catch (e) {
+      console.warn("fetchFreshInventory failed, falling back to cache", e);
     }
 
-    const fresh = await fetchFresh();
-    return fresh || { stock: {}, items: [] };
-  }, []);
+    return getCache<{ stock: Record<string, number>; items: InventoryItem[] }>(CACHE_KEYS.INVENTORY) || { stock: {}, items: [] };
+  }, [userId]);
 
   const saveInventoryItem = useCallback(async (item: InventoryItem, quantity: number) => {
-    const userId = await getUserId();
     if (!userId) return;
 
     const { data: existing } = await supabase
@@ -344,10 +282,9 @@ export function useDatabase() {
       }
       setCache(CACHE_KEYS.INVENTORY, cached);
     }
-  }, []);
+  }, [userId]);
 
   const deleteInventoryItem = useCallback(async (itemId: string) => {
-    const userId = await getUserId();
     if (!userId) return;
     const { error } = await supabase.from("inventory").delete().eq("item_id", itemId).eq("user_id", userId);
     if (error) throw error;
@@ -358,7 +295,7 @@ export function useDatabase() {
       delete cached.stock[itemId];
       setCache(CACHE_KEYS.INVENTORY, cached);
     }
-  }, []);
+  }, [userId]);
 
   return {
     getAppointments,

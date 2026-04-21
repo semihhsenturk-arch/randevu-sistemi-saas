@@ -96,36 +96,37 @@ export default function DashboardAnalyticsPage() {
   };
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col gap-2">
       <header className="flex justify-between items-center bg-white/88 backdrop-blur-[20px] p-[14px_24px] rounded-[20px] border border-slate-200/60 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.07)] sticky top-3 z-[40] mb-6">
         <div className="flex flex-col gap-[2px]">
           <span className="text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[#0a3d34] opacity-80 mb-[1px]">{(profile?.clinic_name || "Klinik").toUpperCase()}</span>
-          <h1 className="text-[1.25rem] font-extrabold text-[#1e293b]">Klinik Analiz Paneli</h1>
+          <h1 className="text-[1.25rem] font-extrabold text-[#1e293b]">Analiz Paneli</h1>
           <div className="text-[0.78rem] font-medium text-[#64748b]">
             {format(new Date(), "d MMMM yyyy, eeee", { locale: tr })}
           </div>
         </div>
       </header>
 
-      {/* Modern Filters matched exactly to dashboard.html */}
-      <div className="bg-white/50 backdrop-blur-sm px-6 py-4 rounded-2xl mb-8 flex flex-col md:flex-row gap-8 justify-center items-center shadow-sm border border-dashed border-slate-200">
-        <div className="flex flex-col items-center gap-2 min-w-[220px]">
-           <label className="text-[0.65rem] font-bold uppercase tracking-[0.1em] text-slate-500">Başlangıç Tarihi</label>
-           <FlatPicker 
-             value={startDate} 
-             onChange={(val) => setStartDate(val)}
-             placeholder="Başlangıç Seçin"
-           />
+      {/* Tarih Filtre Barı - Sola Yaslı */}
+      <div className="bg-white/50 backdrop-blur-sm px-6 py-3 rounded-2xl mb-8 flex flex-wrap items-center gap-6 shadow-sm border border-slate-200/60">
+        <div className="flex items-center gap-3">
+          <label className="text-[0.65rem] font-black uppercase tracking-[0.1em] text-slate-500">BAŞLANGIÇ</label>
+          <FlatPicker 
+            value={startDate} 
+            onChange={(val) => setStartDate(val)}
+            className="w-[160px]"
+          />
         </div>
-        <div className="flex flex-col items-center gap-2 min-w-[220px]">
-           <label className="text-[0.65rem] font-bold uppercase tracking-[0.1em] text-slate-500">Bitiş Tarihi</label>
-           <FlatPicker 
-             value={endDate} 
-             onChange={(val) => setEndDate(val)}
-             placeholder="Bitiş Seçin"
-           />
+        <div className="flex items-center gap-3">
+          <label className="text-[0.65rem] font-black uppercase tracking-[0.1em] text-slate-500">BİTİŞ</label>
+          <FlatPicker 
+            value={endDate} 
+            onChange={(val) => setEndDate(val)}
+            className="w-[160px]"
+          />
         </div>
       </div>
+
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
         <div className="bg-white p-[18px_20px] rounded-xl border border-slate-200 flex items-center gap-3.5 shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all">

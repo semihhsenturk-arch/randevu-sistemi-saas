@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useDatabase, Appointment, PatientProfile, InventoryItem } from "@/hooks/use-database";
+import { useDatabase, Appointment, PatientProfile, InventoryItem, getCacheSync, CACHE_KEYS } from "@/hooks/use-database";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,6 +31,7 @@ export default function PatientListPage() {
   const [profiles, setProfiles] = useState<Record<string, Omit<PatientProfile, "patient_name">>>({});
   const [inventory, setInventory] = useState<{ stock: Record<string, number>; items: InventoryItem[] }>({ stock: {}, items: [] });
   const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(false);
 
   // Patient Modal
   const [modalOpen, setModalOpen] = useState(false);
@@ -56,18 +57,32 @@ export default function PatientListPage() {
   const [editingNoteContent, setEditingNoteContent] = useState("");
 
   useEffect(() => {
+    // Load from cache first
+    const cachedApts = getCacheSync<Appointment[]>(CACHE_KEYS.APPOINTMENTS);
+    if (cachedApts) setAppointments(cachedApts);
+    
+    const cachedProfs = getCacheSync<Record<string, Omit<PatientProfile, "patient_name">>>(CACHE_KEYS.PROFILES);
+    if (cachedProfs) setProfiles(cachedProfs);
+    
+    const cachedInv = getCacheSync<{ stock: Record<string, number>; items: InventoryItem[] }>(CACHE_KEYS.INVENTORY);
+    if (cachedInv) setInventory(cachedInv);
+
     loadData();
-  }, []);
+  }, [getAppointments, getPatientProfiles, getInventory]);
 
   const loadData = async () => {
-    const [list, profs, inv] = await Promise.all([
-      getAppointments(),
-      getPatientProfiles(),
-      getInventory()
-    ]);
-    setAppointments(list);
-    setProfiles(profs);
-    setInventory(inv);
+    try {
+      const [list, profs, inv] = await Promise.all([
+        getAppointments(),
+        getPatientProfiles(),
+        getInventory()
+      ]);
+      setAppointments(list);
+      setProfiles(profs);
+      setInventory(inv);
+    } catch (e) {
+      console.error("Data load failed:", e);
+    }
   };
 
   const todayStr = format(new Date(), "yyyy-MM-dd");
@@ -221,7 +236,7 @@ export default function PatientListPage() {
       </header>
 
 
-      <div className="bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden">
+      <div className="bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden relative min-h-[400px]">
         <Table>
           <TableHeader className="bg-gradient-to-r from-[#0c4a40] to-[#177567] hover:bg-transparent">
             <TableRow className="hover:bg-transparent border-none">
@@ -233,7 +248,7 @@ export default function PatientListPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredPatients.length === 0 ? (
+            {filteredPatients.length === 0 && !loading ? (
               <TableRow><TableCell colSpan={5} className="h-32 text-center text-slate-500">Kayıt bulunamadı.</TableCell></TableRow>
             ) : filteredPatients.map(p => {
               const h = HIZMETLER.find(x => x.id.toString() === p.hizmetId.toString());
