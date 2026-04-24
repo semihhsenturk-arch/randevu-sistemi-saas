@@ -11,9 +11,10 @@ import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale/tr";
 import { useAuth } from "@/hooks/use-auth";
+import { UpgradeScreen } from "@/components/UpgradeScreen";
 
 export default function StockManagementPage() {
-  const { profile } = useAuth();
+  const { profile, isLoading, checkAccess } = useAuth();
   const { getInventory, saveInventoryItem, deleteInventoryItem } = useDatabase();
   const [inventory, setInventory] = useState<{ stock: Record<string, number>; items: InventoryItem[] }>({ stock: {}, items: [] });
   const [searchTerm, setSearchTerm] = useState("");
@@ -25,6 +26,8 @@ export default function StockManagementPage() {
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [selectedItemToDelete, setSelectedItemToDelete] = useState<InventoryItem | null>(null);
   const [adjustAmounts, setAdjustAmounts] = useState<Record<string, number>>({});
+
+  const isLocked = !checkAccess("advanced");
 
   useEffect(() => {
     // Load from cache first
@@ -96,6 +99,18 @@ export default function StockManagementPage() {
     });
     return { total, critical: criticalItems.length, ok: total - criticalItems.length, criticalItems };
   }, [inventory]);
+
+  if (isLoading) return null;
+
+  if (isLocked) {
+    return (
+      <UpgradeScreen 
+        title="Stoklarınızı Otomatize Edin 🚀" 
+        description="Kritik seviye uyarıları ve detaylı malzeme takibi ile kliniğinizin operasyonel süreçlerini hızlandırın."
+        requiredPlan="Advanced"
+      />
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4">

@@ -1,31 +1,42 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { CalendarDays, Contact, Warehouse, ChartPie, HelpCircle, LogOut, Users } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { CalendarDays, Contact, Warehouse, ChartPie, HelpCircle, LogOut, Users, Lock, CreditCard, Layers } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { signOut, user, profile } = useAuth();
+  const router = useRouter();
+  const { signOut, user, profile, isLoading, checkAccess } = useAuth();
   const [supportOpen, setSupportOpen] = useState(false);
   const [supportMessage, setSupportMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [hasSent, setHasSent] = useState(false);
 
+  // Ödeme yapılmamışsa /odeme dışındaki sayfalara erişimi engelle
+  const needsPayment = !isLoading && profile && profile.payment_status !== 'paid' && profile.role !== 'admin';
+
+  useEffect(() => {
+    if (needsPayment && pathname !== '/odeme') {
+      router.replace('/odeme');
+    }
+  }, [needsPayment, pathname, router]);
+
   const navItems = [
-    { href: "/", label: "Randevu Takvimi", icon: CalendarDays },
-    { href: "/hasta-listesi", label: "Hasta Listesi", icon: Contact },
-    { href: "/stok-yonetimi", label: "Stok Yönetimi", icon: Warehouse },
-    { href: "/dashboard", label: "Analiz", icon: ChartPie },
+    { href: "/takvim", label: "Randevu Takvimi", icon: CalendarDays, minTier: "starter" },
+    { href: "/hasta-listesi", label: "Hasta Listesi", icon: Contact, minTier: "professional" },
+    { href: "/stok-yonetimi", label: "Stok Yönetimi", icon: Warehouse, minTier: "advanced" },
+    { href: "/dashboard", label: "Analiz", icon: ChartPie, minTier: "advanced" },
+    { href: "/hizmet-yonetimi", label: "Hizmet Yönetimi", icon: Layers, minTier: "starter" },
   ];
 
   if (profile?.role === "admin") {
-    navItems.push({ href: "/admin/users", label: "Kullanıcılar", icon: Users });
+    navItems.push({ href: "/admin/users", label: "Kullanıcılar", icon: Users, minTier: "starter" });
   }
 
   const handleSupportSend = async () => {
@@ -56,7 +67,7 @@ export function Sidebar() {
             Klinik Yönetimi
           </div>
           <div className="text-[1.15rem] font-extrabold leading-snug uppercase">
-            {profile?.clinic_name || "Klinik"}
+            {(profile?.clinic_name || "Klinik").toUpperCase()}
           </div>
         </div>
 
@@ -64,18 +75,24 @@ export function Sidebar() {
           {navItems.map((item) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;
+            
+            const isLocked = !checkAccess(item.minTier as any);
+
             return (
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={`flex items-center gap-3 p-3 rounded-xl text-[0.9rem] font-medium transition-all duration-250 ${
+                  className={`flex items-center justify-between p-3 rounded-xl text-[0.9rem] font-medium transition-all duration-250 ${
                     isActive
                       ? "bg-[#f8fafc] text-[#1e293b] font-bold shadow-[0_4px_12px_rgba(0,0,0,0.1)]"
                       : "text-[#94a3b8] hover:bg-white/10 hover:text-white"
                   }`}
                 >
-                  <Icon className="w-5 h-5" />
-                  <span>{item.label}</span>
+                  <div className="flex items-center gap-3">
+                    <Icon className="w-5 h-5" />
+                    <span>{item.label}</span>
+                  </div>
+                  {isLocked && <Lock className="w-4 h-4 opacity-50" />}
                 </Link>
               </li>
             );
@@ -102,7 +119,7 @@ export function Sidebar() {
 
       {/* Mobile Nav Top Bar Placeholder if needed */}
       <div className="lg:hidden w-full h-[60px] bg-[#1e293b] fixed top-0 flex items-center justify-between px-4 z-[2000] text-white">
-        <div className="font-bold text-sm uppercase">{profile?.clinic_name || "Klinik"}</div>
+        <div className="font-bold text-sm uppercase">{(profile?.clinic_name || "Klinik").toUpperCase()}</div>
         {/* Mobile menu logic could be added here */}
       </div>
 

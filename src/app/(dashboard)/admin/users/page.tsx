@@ -8,7 +8,15 @@ import { getCacheSync, CACHE_KEYS } from "@/hooks/use-database";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, XCircle, AlertTriangle } from "lucide-react";
+import { CheckCircle, XCircle, AlertTriangle, ShieldCheck, Zap, Star, CreditCard, Mail, Clock } from "lucide-react";
+import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -66,9 +74,32 @@ export default function AdminUsersPage() {
       .eq('id', id);
 
     if (!error) {
-      setUsers(users.map(u => u.id === id ? { ...u, is_approved: !currentStatus } : u));
+      const updatedUsers = users.map(u => u.id === id ? { ...u, is_approved: !currentStatus } : u);
+      setUsers(updatedUsers);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(CACHE_KEYS.ADMIN_USERS, JSON.stringify(updatedUsers));
+      }
+      toast.success(currentStatus ? "Yetki alındı." : "Kullanıcı onaylandı.");
     } else {
-      alert("Durum güncellenirken bir hata oluştu.");
+      toast.error("Durum güncellenirken bir hata oluştu.");
+    }
+  };
+
+  const updateUserPlan = async (id: string, newPlan: string) => {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ plan: newPlan })
+      .eq('id', id);
+
+    if (!error) {
+      const updatedUsers = users.map(u => u.id === id ? { ...u, plan: newPlan as any } : u);
+      setUsers(updatedUsers);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(CACHE_KEYS.ADMIN_USERS, JSON.stringify(updatedUsers));
+      }
+      toast.success("Hizmet paketi güncellendi.");
+    } else {
+      toast.error("Paket güncellenirken bir hata oluştu.");
     }
   };
 
@@ -89,6 +120,41 @@ export default function AdminUsersPage() {
       alert("Kullanıcı reddedilirken bir hata oluştu.");
     }
     setIsDeleting(false);
+  };
+
+  const getPaymentBadge = (status?: string) => {
+    switch (status) {
+      case "paid":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
+            <CreditCard className="w-3 h-3" />
+            Ödendi
+          </span>
+        );
+      case "pending":
+      default:
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+            <Clock className="w-3 h-3" />
+            Beklemede
+          </span>
+        );
+    }
+  };
+
+  const getBillingBadge = (cycle?: string) => {
+    if (cycle === "yearly") {
+      return (
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">
+          Yıllık
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">
+        Aylık
+      </span>
+    );
   };
 
   if (isLoading || profile?.role !== "admin") {
@@ -114,6 +180,9 @@ export default function AdminUsersPage() {
               <TableHeader className="bg-slate-50">
                 <TableRow>
                   <TableHead className="font-semibold text-slate-700">Klinik Adı / Ünvan</TableHead>
+                  <TableHead className="font-semibold text-slate-700">E-posta</TableHead>
+                  <TableHead className="font-semibold text-slate-700">Hizmet Paketi</TableHead>
+                  <TableHead className="font-semibold text-slate-700">Ödeme</TableHead>
                   <TableHead className="font-semibold text-slate-700">Rol</TableHead>
                   <TableHead className="font-semibold text-slate-700">Durum</TableHead>
                   <TableHead className="text-right font-semibold text-slate-700">İşlem</TableHead>
@@ -122,7 +191,7 @@ export default function AdminUsersPage() {
               <TableBody>
                 {users.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8 text-slate-500">
+                    <TableCell colSpan={7} className="text-center py-8 text-slate-500">
                       Sistemde kayıtlı kullanıcı bulunamadı.
                     </TableCell>
                   </TableRow>
@@ -130,6 +199,53 @@ export default function AdminUsersPage() {
                   users.map((u) => (
                     <TableRow key={u.id} className="hover:bg-slate-50/50 transition-colors">
                       <TableCell className="font-medium text-slate-900">{u.clinic_name}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1.5 text-sm text-slate-600">
+                          <Mail className="w-3.5 h-3.5 text-slate-400" />
+                          {u.email || "—"}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Select
+                            value={u.plan || "starter"}
+                            onValueChange={(value) => updateUserPlan(u.id, value)}
+                            disabled={u.role === 'admin'}
+                          >
+                            <SelectTrigger className="w-[140px] h-8 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="starter">
+                                <div className="flex items-center gap-2">
+                                  <Zap className="w-3 h-3 text-amber-500" />
+                                  <span>Starter</span>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="professional">
+                                <div className="flex items-center gap-2">
+                                  <ShieldCheck className="w-3 h-3 text-emerald-500" />
+                                  <span>Professional</span>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="advanced">
+                                <div className="flex items-center gap-2">
+                                  <Star className="w-3 h-3 text-purple-500" />
+                                  <span>Advanced</span>
+                                </div>
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                          {getBillingBadge(u.billing_cycle)}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {u.role === 'admin' ? (
+                          <span className="text-xs text-slate-400 italic">—</span>
+                        ) : (
+                          getPaymentBadge(u.payment_status)
+                        )}
+                      </TableCell>
                       <TableCell>
                         <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${u.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-700'}`}>
                           {u.role === 'admin' ? 'Yönetici' : 'Kiracı (Tenant)'}

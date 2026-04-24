@@ -27,11 +27,20 @@ export type InventoryItem = {
   kritik_stok: number;
 };
 
+export type Service = {
+  id: string | number;
+  ad: string;
+  sure: number;
+  fiyat: number;
+  renk: string;
+};
+
 export const CACHE_KEYS = {
   APPOINTMENTS: "cache_appointments",
   PROFILES: "cache_patient_profiles",
   INVENTORY: "cache_inventory",
   ADMIN_USERS: "cache_admin_users",
+  SERVICES: "cache_services",
 };
 
 export function getCacheSync<T>(key: string): T | null {
@@ -93,7 +102,7 @@ export function useDatabase() {
   const getAppointments = useCallback(async (): Promise<Appointment[]> => {
     try {
       const fresh = await fetchFreshAppointments();
-      if (fresh && fresh.length > 0) return fresh;
+      return fresh; // DB sonucunu her zaman güven — cache zaten fetchFreshAppointments içinde güncellendi
     } catch (e) {
       console.warn("fetchFreshAppointments failed, falling back to cache", e);
     }
@@ -128,7 +137,6 @@ export function useDatabase() {
 
     if (error) throw error;
 
-    const cached = getCache<Appointment[]>(CACHE_KEYS.APPOINTMENTS) || [];
     const updatedApt: Appointment = {
       id: data[0].id,
       musteriAdi: data[0].musteri_adi,
@@ -140,9 +148,12 @@ export function useDatabase() {
       notlar: data[0].notlar,
     };
 
-    const idx = cached.findIndex((a) => a.id === updatedApt.id || a.id === apt.id);
-    if (idx > -1) cached[idx] = updatedApt;
-    else cached.push(updatedApt);
+    // Cache'i güncelle: hem yeni ID hem eski (temp_) ID ile eşleşenleri temizle
+    let cached = getCache<Appointment[]>(CACHE_KEYS.APPOINTMENTS) || [];
+    // Eski temp_ ID veya aynı gerçek ID'yi sil
+    cached = cached.filter((a) => a.id !== updatedApt.id && a.id !== apt.id);
+    // Güncellenmiş kaydı ekle
+    cached.push(updatedApt);
     setCache(CACHE_KEYS.APPOINTMENTS, cached);
 
     return updatedApt;
@@ -297,6 +308,79 @@ export function useDatabase() {
     }
   }, [userId]);
 
+  // ─── Services ──────────────────────────────────────────────────
+
+  const getServices = useCallback(async (): Promise<Service[]> => {
+    try {
+      if (!userId) return getCache<Service[]>(CACHE_KEYS.SERVICES) || [];
+
+      const { data, error } = await supabase
+        .from("services")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: true });
+
+      if (!error && data) {
+        setCache(CACHE_KEYS.SERVICES, data);
+        return data as Service[];
+      }
+    } catch (e) {
+      console.warn("getServices failed, falling back to cache", e);
+    }
+    return getCache<Service[]>(CACHE_KEYS.SERVICES) || [];
+  }, [userId]);
+
+  const saveService = useCallback(async (service: Omit<Service, "id"> & { id?: string | number }) => {
+    if (!userId) throw new Error("Oturum kapatılmış.");
+
+    const payload: any = {
+      user_id: userId,
+      ad: service.ad,
+      sure: service.sure,
+      fiyat: service.fiyat,
+      renk: service.renk,
+    };
+
+    if (service.id && (typeof service.id !== "string" || !service.id.startsWith("temp_"))) {
+      payload.id = service.id;
+    }
+
+    let { data, error } = await supabase
+      .from("services")
+      .upsert(payload, { onConflict: 'id' })
+      .select();
+
+    if (error) {
+      console.error("Supabase Save Error:", error);
+      throw new Error(`DB Hatası: ${error.message} (Kod: ${error.code})`);
+    }
+    
+    if (!data || data.length === 0) {
+      console.error("Supabase returned empty data after insert/update. Payload:", payload);
+      // Fallback: If it inserted but couldn't read back, we return the payload as is
+      data = [{ ...payload, id: payload.id || "temp_" + Date.now() }];
+    }
+
+    const cached = getCache<Service[]>(CACHE_KEYS.SERVICES) || [];
+    const saved = data[0];
+    const idx = cached.findIndex(s => s.id === saved.id || s.id === service.id);
+    if (idx > -1) cached[idx] = saved;
+    else cached.push(saved);
+    
+    setCache(CACHE_KEYS.SERVICES, cached);
+    return saved as Service;
+  }, [userId]);
+
+  const deleteService = useCallback(async (id: string | number) => {
+    if (!userId) return;
+    const { error } = await supabase.from("services").delete().eq("id", id).eq("user_id", userId);
+    if (error) throw error;
+
+    const cached = getCache<Service[]>(CACHE_KEYS.SERVICES) || [];
+    const filtered = cached.filter(s => s.id !== id);
+    setCache(CACHE_KEYS.SERVICES, filtered);
+  }, [userId]);
+
   return {
     getAppointments,
     fetchFreshAppointments,
@@ -307,5 +391,8 @@ export function useDatabase() {
     getInventory,
     saveInventoryItem,
     deleteInventoryItem,
+    getServices,
+    saveService,
+    deleteService,
   };
 }

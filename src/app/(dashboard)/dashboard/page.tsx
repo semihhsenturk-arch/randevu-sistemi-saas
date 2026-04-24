@@ -1,43 +1,74 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useDatabase, Appointment } from "@/hooks/use-database";
+import { useDatabase, Appointment, Service, getCacheSync, CACHE_KEYS } from "@/hooks/use-database";
 import { CalendarCheck, Banknote, Star, TrendingUp } from "lucide-react";
 import { format, startOfMonth, parseISO, isValid } from "date-fns";
 import { tr } from "date-fns/locale/tr";
 import { useAuth } from "@/hooks/use-auth";
 import { FlatPicker } from "@/components/ui/flat-picker";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Cell as PieCell } from "recharts";
-
-const HIZMETLER = [
-  { id: 1, ad: 'Klinik Muayene', fiyat: 600, renk: '#0a3d34' },
-  { id: 2, ad: 'Dermoskopi', fiyat: 450, renk: '#14b8a6' },
-  { id: 3, ad: 'Botoks Uygulaması', fiyat: 2500, renk: '#0d9488' },
-  { id: 4, ad: 'Lazer Tedavisi', fiyat: 1800, renk: '#ef4444' },
-  { id: 5, ad: 'Cilt Bakımı', fiyat: 1200, renk: '#f59e0b' }
-];
+import { UpgradeScreen } from "@/components/UpgradeScreen";
 
 export default function DashboardAnalyticsPage() {
-  const { profile } = useAuth();
-  const { getAppointments } = useDatabase();
+  const { profile, isLoading, checkAccess } = useAuth();
+  const { getAppointments, getServices } = useDatabase();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
+  
+  const isLocked = !checkAccess("advanced");
   
   const [startDate, setStartDate] = useState(format(startOfMonth(new Date()), "yyyy-MM-dd"));
   const [endDate, setEndDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  
+  const [appliedStartDate, setAppliedStartDate] = useState(format(startOfMonth(new Date()), "yyyy-MM-dd"));
+  const [appliedEndDate, setAppliedEndDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    const savedStart = localStorage.getItem("dashboard_startDate");
+    const savedEnd = localStorage.getItem("dashboard_endDate");
+    if (savedStart) {
+      setStartDate(savedStart);
+      setAppliedStartDate(savedStart);
+    }
+    if (savedEnd) {
+      setEndDate(savedEnd);
+      setAppliedEndDate(savedEnd);
+    }
+    setIsClient(true);
+    
+    const cachedApts = getCacheSync<Appointment[]>(CACHE_KEYS.APPOINTMENTS);
+    if (cachedApts) setAppointments(cachedApts);
+    const cachedSvcs = getCacheSync<Service[]>(CACHE_KEYS.SERVICES);
+    if (cachedSvcs) setServices(cachedSvcs);
+    
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (isClient) {
+      localStorage.setItem("dashboard_startDate", appliedStartDate);
+      localStorage.setItem("dashboard_endDate", appliedEndDate);
+    }
+  }, [appliedStartDate, appliedEndDate, isClient]);
+
+  const handleUpdate = () => {
+    setAppliedStartDate(startDate);
+    setAppliedEndDate(endDate);
+  };
+
   const loadData = async () => {
-    const data = await getAppointments();
+    const [data, svcs] = await Promise.all([getAppointments(), getServices()]);
     setAppointments(data);
+    if (svcs) setServices(svcs);
   };
 
   const filtered = useMemo(() => {
-    return appointments.filter(a => a.durum === 'onaylandi' && a.tarih >= startDate && a.tarih <= endDate);
-  }, [appointments, startDate, endDate]);
+    return appointments.filter(a => a.durum === 'onaylandi' && a.tarih >= appliedStartDate && a.tarih <= appliedEndDate);
+  }, [appointments, appliedStartDate, appliedEndDate]);
 
   const { totalApt, totalRevenue, topSvc, avgRevenue, barData, pieData, occupancyRate } = useMemo(() => {
     const totalApt = filtered.length;
@@ -45,7 +76,7 @@ export default function DashboardAnalyticsPage() {
     const counts: Record<string, number> = {};
 
     filtered.forEach(a => {
-        const svc = HIZMETLER.find(h => h.id.toString() === a.hizmetId.toString());
+        const svc = services.find(h => h.id.toString() === a.hizmetId.toString());
         if (svc) {
            totalRevenue += svc.fiyat;
            counts[svc.ad] = (counts[svc.ad] || 0) + 1;
@@ -60,22 +91,22 @@ export default function DashboardAnalyticsPage() {
 
     const avgRevenue = totalApt > 0 ? Math.round(totalRevenue / totalApt) : 0;
 
-    const barData = HIZMETLER.map(h => {
-        const rev = filtered.filter(a => a.hizmetId.toString() === h.id.toString()).reduce((s, a) => s + h.fiyat, 0);
+    const barData = services.map(h => {
+        const rev = filtered.filter(a => a.hizmetId.toString() === h.id.toString()).reduce((s, a) => s + (h.fiyat || 0), 0);
         const qty = counts[h.ad] || 0;
-        return { name: h.ad, revenue: rev, quantity: qty, color: h.renk };
+        return { name: h.ad, revenue: rev, quantity: qty, color: h.renk || '#0a3d34' };
     });
 
     const pieData = barData.filter(b => b.revenue > 0);
 
-    const sd = new Date(startDate);
-    const ed = new Date(endDate);
+    const sd = new Date(appliedStartDate);
+    const ed = new Date(appliedEndDate);
     const diffDays = Math.ceil((ed.getTime() - sd.getTime()) / (1000 * 60 * 60 * 24)) + 1;
     const totalCapacity = diffDays * 16;
     const occupancyRate = totalCapacity > 0 ? Math.round((totalApt / totalCapacity) * 100) : 0;
 
     return { totalApt, totalRevenue, topSvc, avgRevenue, barData, pieData, occupancyRate };
-  }, [filtered, startDate, endDate]);
+  }, [filtered, appliedStartDate, appliedEndDate]);
 
   const varColor = (val: number) => {
     if (val > 80) return '#0d9488';
@@ -94,6 +125,18 @@ export default function DashboardAnalyticsPage() {
     }
     return null;
   };
+
+  if (isLoading) return null;
+
+  if (isLocked) {
+    return (
+      <UpgradeScreen 
+        title="Verilerinizle Geleceği Planlayın 📈" 
+        description="Gelir dağılımları, doktor doluluk oranları ve en çok tercih edilen hizmetleri analiz ederek kliniğinizi büyütün."
+        requiredPlan="Advanced"
+      />
+    );
+  }
 
   return (
     <div className="flex flex-col gap-2">
@@ -124,6 +167,12 @@ export default function DashboardAnalyticsPage() {
             onChange={(val) => setEndDate(val)}
             className="w-[160px]"
           />
+          <button 
+            onClick={handleUpdate}
+            className="bg-[#0a3d34] text-white h-11 px-6 rounded-xl text-sm font-bold shadow-md hover:bg-[#0a3d34]/90 transition-all hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:shadow-md flex items-center justify-center ml-1"
+          >
+            Güncelle
+          </button>
         </div>
       </div>
 

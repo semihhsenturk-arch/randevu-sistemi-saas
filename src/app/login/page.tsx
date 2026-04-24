@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, ArrowLeft } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -43,13 +43,20 @@ export default function LoginPage() {
         return;
       }
 
-      router.replace("/");
+      router.replace("/takvim");
       router.refresh();
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4 relative">
+      <Link 
+        href="/" 
+        className="absolute top-6 flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-emerald-700 transition-colors md:left-6 left-4"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Ana Sayfaya Dön
+      </Link>
       <Card className="w-full max-w-md shadow-lg border-emerald-100">
         <CardHeader className="space-y-1 text-center">
           <div className="mx-auto w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center mb-4">

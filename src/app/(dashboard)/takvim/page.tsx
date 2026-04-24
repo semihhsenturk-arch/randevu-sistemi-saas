@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { format, addDays, startOfWeek, parseISO, isValid } from "date-fns";
 import { tr } from "date-fns/locale/tr";
 import { DatePicker } from "@/components/ui/date-picker";
-import { useDatabase, Appointment, CACHE_KEYS, getCacheSync } from "@/hooks/use-database";
+import { useDatabase, Appointment, CACHE_KEYS, getCacheSync, Service } from "@/hooks/use-database";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -48,19 +48,12 @@ const SHIFTS = Array.from({ length: 18 }, (_, i) => {
   return `${hour.toString().padStart(2, "0")}:${min.toString().padStart(2, "0")}`;
 });
 
-const HIZMETLER = [
-  { id: 1, ad: "Klinik Muayene", sure: 30, fiyat: 600, renk: "#0d9488" },
-  { id: 2, ad: "Dermoskopi", sure: 30, fiyat: 450, renk: "#3b82f6" },
-  { id: 3, ad: "Botoks Uygulaması", sure: 30, fiyat: 2500, renk: "#8b5cf6" },
-  { id: 4, ad: "Lazer Tedavisi", sure: 30, fiyat: 1800, renk: "#ef4444" },
-  { id: 5, ad: "Cilt Bakımı", sure: 30, fiyat: 1200, renk: "#f59e0b" },
-];
-
 export default function CalendarPage() {
   const { profile } = useAuth();
-  const { getAppointments, saveAppointment, deleteAppointment } = useDatabase();
+  const { getAppointments, saveAppointment, deleteAppointment, getServices } = useDatabase();
   
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [weekOffset, setWeekOffset] = useState(0);
   const [syncing, setSyncing] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -90,13 +83,17 @@ export default function CalendarPage() {
     const cached = getCacheSync<Appointment[]>(CACHE_KEYS.APPOINTMENTS);
     if (cached) setAppointments(cached);
     
+    const cachedServices = getCacheSync<Service[]>(CACHE_KEYS.SERVICES);
+    if (cachedServices) setServices(cachedServices);
+    
     loadData();
-  }, [getAppointments]);
+  }, [getAppointments, getServices]);
 
   const loadData = async () => {
     try {
-      const data = await getAppointments();
+      const [data, svcs] = await Promise.all([getAppointments(), getServices()]);
       setAppointments(data);
+      if (svcs) setServices(svcs);
     } catch (e) {
       console.error(e);
     }
@@ -141,8 +138,8 @@ export default function CalendarPage() {
           let notlar = row["Notlar"] || row["Not"] || row["Açıklama"] || "";
           if (hizmetAd) notlar = notlar ? `İstek: ${hizmetAd}\n${notlar}` : `İstek: ${hizmetAd}`;
 
-          let hId = 1;
-          const findHizmet = HIZMETLER.find(h => ad.toLowerCase().includes(h.ad.toLowerCase()) || (hizmetAd && h.ad.toLowerCase().includes(hizmetAd.toLowerCase())));
+          let hId: string | number = 1;
+          const findHizmet = services.find(h => ad.toLowerCase().includes(h.ad.toLowerCase()) || (hizmetAd && h.ad.toLowerCase().includes(hizmetAd.toLowerCase())));
           if (findHizmet) hId = findHizmet.id;
 
           const sheetRowId = "gs_" + (row["_sheetRowIndex"] || Math.random().toString(36).substr(2, 9));
@@ -217,7 +214,14 @@ export default function CalendarPage() {
 
     const updated = { ...apt, tarih: date, saat: time };
     setAppointments(prev => prev.map(a => a.id === aptId ? updated : a));
-    await saveAppointment(updated);
+    try {
+      const saved = await saveAppointment(updated);
+      if (saved && saved.id !== aptId) {
+        setAppointments(prev => prev.map(a => a.id === aptId ? { ...a, id: saved.id } : a));
+      }
+    } catch (e) {
+      console.error("Sürükleme hatası:", e);
+    }
   };
 
   const handleApprove = async (apt: Appointment) => {
@@ -230,29 +234,54 @@ export default function CalendarPage() {
     }
     const updated = { ...apt, durum: "onaylandi" as const };
     setAppointments(prev => prev.map(a => a.id === apt.id ? updated : a));
-    await saveAppointment(updated);
+    try {
+      const saved = await saveAppointment(updated);
+      if (saved && saved.id !== apt.id) {
+        setAppointments(prev => prev.map(a => a.id === apt.id ? { ...a, id: saved.id } : a));
+      }
+    } catch (e) {
+      console.error("Onaylama hatası:", e);
+    }
   };
 
   const handleReject = async (apt: Appointment) => {
     const updated = { ...apt, durum: "iptal" as const };
     setAppointments(prev => prev.map(a => a.id === apt.id ? updated : a));
-    await saveAppointment(updated);
+    try {
+      const saved = await saveAppointment(updated);
+      if (saved && saved.id !== apt.id) {
+        setAppointments(prev => prev.map(a => a.id === apt.id ? { ...a, id: saved.id } : a));
+      }
+    } catch (e) {
+      console.error("Reddetme hatası:", e);
+    }
   };
 
   const handleSaveModal = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentApt.tarih || !currentApt.saat || !currentApt.musteriAdi) return;
 
+    const tempId = currentApt.id || "temp_" + Math.random().toString(36).substr(2, 9);
     const payload = {
       ...(currentApt as Appointment),
-      id: currentApt.id || "temp_" + Math.random().toString(36).substr(2, 9),
+      id: tempId,
       hizmetId: currentApt.hizmetId || "1",
       durum: currentApt.durum || "beklemede"
     };
 
     setAppointments(prev => currentApt.id ? prev.map(a => a.id === payload.id ? payload : a) : [...prev, payload]);
     setModalOpen(false);
-    await saveAppointment(payload);
+    
+    try {
+      const saved = await saveAppointment(payload);
+      // Veritabanından dönen gerçek ID ile local state'i güncelle
+      if (saved && saved.id !== tempId) {
+        setAppointments(prev => prev.map(a => a.id === tempId ? { ...a, id: saved.id } : a));
+      }
+    } catch (e) {
+      console.error("Randevu kaydedilemedi:", e);
+      toast.error("Kayıt Hatası", { description: "Randevu kaydedilemedi." });
+    }
   };
 
   const handleDelete = async () => {
@@ -290,7 +319,7 @@ export default function CalendarPage() {
     const weekConfirmed = weekApts.filter(a => a.durum === "onaylandi");
     
     const income = weekConfirmed.reduce((sum, a) => {
-      const svc = HIZMETLER.find(h => h.id.toString() === a.hizmetId.toString());
+      const svc = services.find(h => h.id.toString() === a.hizmetId.toString());
       return sum + (svc?.fiyat || 0);
     }, 0);
 
@@ -364,7 +393,7 @@ export default function CalendarPage() {
 
                       {colApts.map((a) => {
                         if (a.durum === "beklemede" && !activeDragId) return null;
-                        const svc = HIZMETLER.find(h => h.id.toString() === a.hizmetId.toString());
+                        const svc = services.find(h => h.id.toString() === a.hizmetId.toString());
                         const idx = SHIFTS.indexOf(a.saat);
                         if (idx === -1) return null;
                         const sameSlotApts = colApts.filter(ca => ca.saat === a.saat);
@@ -394,7 +423,7 @@ export default function CalendarPage() {
                 <div className={`appointment-card-legacy ${draggedApt.durum} opacity-90 cursor-grabbing shadow-2xl scale-105 transition-transform`} style={{ width: '160px', height: '45px', position: 'static', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                   <span className="apt-name">{draggedApt.musteriAdi}</span>
                   <span className="apt-service text-[0.6rem] opacity-70">
-                    {HIZMETLER.find(h => h.id.toString() === draggedApt.hizmetId.toString())?.ad || "Bilinmeyen Hizmet"}
+                    {services.find(h => h.id.toString() === draggedApt.hizmetId.toString())?.ad || "Bilinmeyen Hizmet"}
                   </span>
                 </div>
               ) : null}
@@ -417,7 +446,7 @@ export default function CalendarPage() {
                       <div className="text-[0.65rem] font-bold text-amber-600 uppercase tracking-wider">{format(parseISO(a.tarih), "d MMM", { locale: tr })} · {a.saat}</div>
                       <div className="font-bold text-[0.82rem] text-[#1e293b] line-height-tight">{a.musteriAdi}</div>
                       <div className="text-[0.7rem] text-slate-500 font-medium">
-                        {HIZMETLER.find(h => h.id.toString() === a.hizmetId.toString())?.ad}
+                        {services.find(h => h.id.toString() === a.hizmetId.toString())?.ad}
                       </div>
                       <div className="flex gap-2 mt-3">
                         <Button size="sm" variant="outline" className="h-8 text-[0.7rem] font-bold flex-1 border-emerald-100 bg-emerald-50 text-emerald-700 hover:bg-emerald-100" onClick={(e) => { e.stopPropagation(); handleApprove(a); }}><Check className="w-3 h-3 mr-1" /> Onayla</Button>
@@ -483,7 +512,7 @@ export default function CalendarPage() {
                     <SelectValue/>
                   </SelectTrigger>
                   <SelectContent>
-                    {HIZMETLER.map(h => <SelectItem key={h.id} value={h.id.toString()}>{h.ad}</SelectItem>)}
+                    {services.map(h => <SelectItem key={h.id} value={h.id.toString()}>{h.ad} ({h.fiyat} ₺)</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -506,7 +535,7 @@ export default function CalendarPage() {
                     <SelectTrigger className="h-12 border-slate-200 rounded-xl focus:ring-[#0a3d34]">
                       <SelectValue/>
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent position="popper" side="bottom" align="start" className="max-h-[200px] overflow-y-auto">
                       {SHIFTS.filter(t => t !== "12:30" && t !== "13:00").map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                     </SelectContent>
                   </Select>

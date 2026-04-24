@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useDatabase, Appointment, PatientProfile, InventoryItem, getCacheSync, CACHE_KEYS } from "@/hooks/use-database";
+import { useDatabase, Appointment, PatientProfile, InventoryItem, Service, getCacheSync, CACHE_KEYS } from "@/hooks/use-database";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,26 +10,24 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Contact, Search, Package, Users, Clock, CheckCircle2, History, Pill, FileText, Box, Trash2, Plus, X, Edit2 } from "lucide-react";
+import { Contact, Search, Package, Users, Clock, CheckCircle2, History, Pill, FileText, Box, Trash2, Plus, X, Edit2, Notebook as Emerald } from "lucide-react";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale/tr";
 import { useAuth } from "@/hooks/use-auth";
-
-const HIZMETLER = [
-  { id: 1, ad: "Klinik Muayene", sure: 30, fiyat: 600 },
-  { id: 2, ad: "Dermoskopi", sure: 30, fiyat: 450 },
-  { id: 3, ad: "Botoks Uygulaması", sure: 30, fiyat: 2500 },
-  { id: 4, ad: "Lazer Tedavisi", sure: 30, fiyat: 1800 },
-  { id: 5, ad: "Cilt Bakımı", sure: 30, fiyat: 1200 },
-];
+import { UpgradeScreen } from "@/components/UpgradeScreen";
 
 export default function PatientListPage() {
-  const { profile } = useAuth();
-  const { getAppointments, getPatientProfiles, savePatientProfile, getInventory, saveInventoryItem } = useDatabase();
+  const { profile, isLoading, checkAccess } = useAuth();
+
+  const isLocked = !checkAccess("professional");
+  const canUseInventory = checkAccess("advanced");
+  
+  const { getAppointments, getPatientProfiles, savePatientProfile, getInventory, saveInventoryItem, getServices } = useDatabase();
   
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [profiles, setProfiles] = useState<Record<string, Omit<PatientProfile, "patient_name">>>({});
   const [inventory, setInventory] = useState<{ stock: Record<string, number>; items: InventoryItem[] }>({ stock: {}, items: [] });
+  const [services, setServices] = useState<Service[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -41,9 +39,11 @@ export default function PatientListPage() {
 
   // Material Modal
   const [materialModalOpen, setMaterialModalOpen] = useState(false);
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [currentCart, setCurrentCart] = useState<{ id: string; name: string; unit: string; amount: number }[]>([]);
   const [selectedStockId, setSelectedStockId] = useState("");
   const [stockAmount, setStockAmount] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Forms
   const [newMedName, setNewMedName] = useState("");
@@ -67,19 +67,24 @@ export default function PatientListPage() {
     const cachedInv = getCacheSync<{ stock: Record<string, number>; items: InventoryItem[] }>(CACHE_KEYS.INVENTORY);
     if (cachedInv) setInventory(cachedInv);
 
+    const cachedSvc = getCacheSync<Service[]>(CACHE_KEYS.SERVICES);
+    if (cachedSvc) setServices(cachedSvc);
+
     loadData();
-  }, [getAppointments, getPatientProfiles, getInventory]);
+  }, [getAppointments, getPatientProfiles, getInventory, getServices]);
 
   const loadData = async () => {
     try {
-      const [list, profs, inv] = await Promise.all([
+      const [list, profs, inv, svcs] = await Promise.all([
         getAppointments(),
         getPatientProfiles(),
-        getInventory()
+        getInventory(),
+        getServices()
       ]);
       setAppointments(list);
       setProfiles(profs);
       setInventory(inv);
+      if (svcs) setServices(svcs);
     } catch (e) {
       console.error("Data load failed:", e);
     }
@@ -115,8 +120,14 @@ export default function PatientListPage() {
   };
 
   const openMaterial = (name: string) => {
+    if (!canUseInventory) {
+      setUpgradeModalOpen(true);
+      return;
+    }
     setSelectedPatientName(name);
     setCurrentCart([]);
+    setSelectedStockId("");
+    setStockAmount(1);
     setMaterialModalOpen(true);
   };
 
@@ -127,9 +138,10 @@ export default function PatientListPage() {
     mList.push({ name: newMedName, usage: newMedUsage, date: format(new Date(), "dd.MM.yyyy") });
     
     const updated = { ...current, meds: mList };
-    await savePatientProfile(selectedPatientName, updated);
     setProfiles(prev => ({ ...prev, [selectedPatientName]: updated }));
     setNewMedName(""); setNewMedUsage("");
+
+    savePatientProfile(selectedPatientName, updated).catch(err => console.error("Background save err:", err));
   };
 
   const handleAddNote = async () => {
@@ -140,9 +152,10 @@ export default function PatientListPage() {
     nList.push({ date: format(new Date(), "dd.MM.yyyy HH:mm"), content });
     
     const updated = { ...current, notes_list: nList };
-    await savePatientProfile(selectedPatientName, updated);
     setProfiles(prev => ({ ...prev, [selectedPatientName]: updated }));
     setNoteSikayet(""); setNoteHikaye(""); setNoteMuayene("");
+
+    savePatientProfile(selectedPatientName, updated).catch(err => console.error("Background save err:", err));
   };
 
   const handleUpdateNote = async () => {
@@ -152,10 +165,11 @@ export default function PatientListPage() {
     nList[editingNoteIndex].content = editingNoteContent;
     
     const updated = { ...current, notes_list: nList };
-    await savePatientProfile(selectedPatientName, updated);
     setProfiles(prev => ({ ...prev, [selectedPatientName]: updated }));
     setEditingNoteIndex(null);
     setEditingNoteContent("");
+
+    savePatientProfile(selectedPatientName, updated).catch(err => console.error("Background save err:", err));
   };
 
   const startEditingNote = (realIndex: number, content: string) => {
@@ -185,32 +199,86 @@ export default function PatientListPage() {
 
   const handleMaterialSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (currentCart.length === 0) return;
+    if (isSubmitting) return;
 
-    const current = profiles[selectedPatientName] || { notes_list: [], meds: [], stock_history: [] };
-    const history = [...(current.stock_history || [])];
-    const detailStr = currentCart.map(c => `${c.amount} ${c.unit} ${c.name}`).join(", ");
-    history.push({ date: format(new Date(), "dd.MM.yyyy HH:mm"), text: detailStr });
+    let finalCart = [...currentCart];
 
-    const updatedProf = { ...current, stock_history: history };
-    await savePatientProfile(selectedPatientName, updatedProf);
-
-    // Deduct from Inventory
-    for (const c of currentCart) {
-      const item = inventory.items.find(i => i.id === c.id);
+    // Try to add un-added selection if exists
+    if (selectedStockId && stockAmount > 0) {
+      const item = inventory.items.find(i => i.id === selectedStockId);
       if (item) {
-        const newQty = (inventory.stock[c.id] || 0) - c.amount;
-        await saveInventoryItem(item, newQty);
-        setInventory(prev => ({ ...prev, stock: { ...prev.stock, [c.id]: newQty } }));
+        const currentStock = inventory.stock[selectedStockId] || 0;
+        if (stockAmount > currentStock) {
+           alert(`Stokta yeterli miktar yok. Mevcut: ${currentStock}`);
+           return;
+        }
+        const existing = finalCart.find(c => c.id === selectedStockId);
+        if (existing) {
+          finalCart = finalCart.map(c => c.id === selectedStockId ? { ...c, amount: c.amount + stockAmount } : c);
+        } else {
+          finalCart.push({ id: item.id, name: item.ad, unit: item.birim, amount: stockAmount });
+        }
+        setSelectedStockId("");
+        setStockAmount(1);
       }
     }
 
+    if (finalCart.length === 0) return;
+
+    setIsSubmitting(true);
+    
+    // 1. Optimistic Preparation
+    const current = profiles[selectedPatientName] || { notes_list: [], meds: [], stock_history: [] };
+    const history = [...(current.stock_history || [])];
+    const detailStr = finalCart.map(c => `${c.amount} ${c.unit} ${c.name}`).join(", ");
+    history.push({ date: format(new Date(), "dd.MM.yyyy HH:mm"), text: detailStr });
+
+    const updatedProf = { ...current, stock_history: history };
+    
+    const newStockMap = { ...inventory.stock };
+    for (const c of finalCart) {
+      newStockMap[c.id] = (newStockMap[c.id] || 0) - c.amount;
+    }
+
+    // 2. Apply Optimistic Update Immediately
+    setInventory(prev => ({ ...prev, stock: newStockMap }));
     setProfiles(prev => ({ ...prev, [selectedPatientName]: updatedProf }));
     setMaterialModalOpen(false);
+    setCurrentCart([]);
+
+    // 3. Background Saves
+    try {
+      await savePatientProfile(selectedPatientName, updatedProf);
+
+      // Deduct from Inventory sequentially to prevent cache or network clobber
+      for (const c of finalCart) {
+        const item = inventory.items.find(i => i.id === c.id);
+        if (item) {
+          const newQty = (inventory.stock[c.id] || 0) - c.amount;
+          await saveInventoryItem(item, newQty);
+        }
+      }
+    } catch(err) {
+      console.error("Background save error:", err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const selProfile = profiles[selectedPatientName] || { notes_list: [], meds: [], stock_history: [] };
   const hstAppointments = appointments.filter(a => a.musteriAdi === selectedPatientName).sort((a,b) => b.tarih.localeCompare(a.tarih));
+
+  if (isLoading) return null;
+
+  if (isLocked) {
+    return (
+      <UpgradeScreen 
+        title="Hastalarınızı Tek Ekrandan Yönetin 👥" 
+        description="Hasta kayıtları, ilaç takibi, muayene notları ve stok geçmişini tek bir panelden yönetin."
+        requiredPlan="Professional"
+      />
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -236,7 +304,7 @@ export default function PatientListPage() {
       </header>
 
 
-      <div className="bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden relative min-h-[400px]">
+      <div className="bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden relative">
         <Table>
           <TableHeader className="bg-gradient-to-r from-[#0c4a40] to-[#177567] hover:bg-transparent">
             <TableRow className="hover:bg-transparent border-none">
@@ -251,7 +319,7 @@ export default function PatientListPage() {
             {filteredPatients.length === 0 && !loading ? (
               <TableRow><TableCell colSpan={5} className="h-32 text-center text-slate-500">Kayıt bulunamadı.</TableCell></TableRow>
             ) : filteredPatients.map(p => {
-              const h = HIZMETLER.find(x => x.id.toString() === p.hizmetId.toString());
+              const h = services.find(x => x.id.toString() === p.hizmetId.toString());
               return (
                 <TableRow key={p.id} className={`hover:bg-emerald-50/30 transition-colors ${p.durum === 'beklemede' ? 'bg-amber-50/20' : ''}`}>
                   <TableCell className="text-center py-4">
@@ -286,14 +354,14 @@ export default function PatientListPage() {
           <div className="w-full md:w-[280px] bg-slate-50/50 border-r border-slate-200/60 p-6 flex flex-col items-center md:items-start shrink-0">
              
              {/* Avatar / Profile Header */}
-             <div className="flex flex-col items-center md:items-start w-full gap-4 mb-8">
-               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#0c4a40] to-[#177567] text-white flex items-center justify-center text-2xl font-extrabold shadow-lg shadow-[#0a3d34]/20 ring-4 ring-[#0a3d34]/5">
+             <div className="flex items-center w-full gap-4 mb-10">
+               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#0c4a40] to-[#177567] text-white flex items-center justify-center text-2xl font-extrabold shadow-lg shadow-[#0a3d34]/20 ring-4 ring-[#0a3d34]/5 shrink-0">
                  {selectedPatientName ? selectedPatientName.substring(0, 2).toUpperCase() : "HA"}
                </div>
-               <div className="flex flex-col items-center md:items-start text-center md:text-left gap-1">
-                 <DialogTitle className="text-xl font-extrabold text-[#1e293b] leading-tight">{selectedPatientName}</DialogTitle>
-                 <span className="text-xs font-semibold text-slate-500 flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-full border border-slate-200/60 shadow-sm mt-1">
-                   <Contact className="w-3.5 h-3.5 text-slate-400"/> {selectedPatientPhone || "Telefon Yok"}
+               <div className="flex flex-col gap-1 min-w-0">
+                 <DialogTitle className="text-xl font-extrabold text-[#1e293b] leading-tight truncate">{selectedPatientName}</DialogTitle>
+                 <span className="text-xs font-bold text-slate-500 flex items-center gap-1.5 mt-1">
+                   <Contact className="w-4 h-4 text-[#0a3d34] opacity-70"/> {selectedPatientPhone || "Telefon Yok"}
                  </span>
                </div>
              </div>
@@ -301,23 +369,37 @@ export default function PatientListPage() {
              {/* Navigation */}
              <div className="flex flex-row md:flex-col gap-2 w-full overflow-x-auto md:overflow-visible pb-2 md:pb-0 no-scrollbar">
                 {[
-                  { id: 'timeline', label: 'Geçmiş İşlemler', icon: History },
-                  { id: 'meds', label: 'İlaçlar / Reçete', icon: Pill },
-                  { id: 'notes', label: 'Muayene / Notlar', icon: FileText },
-                  { id: 'stock', label: 'Stok Geçmişi', icon: Box }
-                ].map(tab => (
-                  <button 
-                    key={tab.id}
-                    className={`flex items-center justify-center md:justify-start gap-3 px-4 py-3.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap md:whitespace-normal
-                      ${activeTab === tab.id 
-                        ? 'bg-white text-[#0a3d34] shadow-[0_4px_12px_-4px_rgba(0,0,0,0.08)] border border-slate-200/80' 
-                        : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700 border border-transparent'
-                      }`}
-                    onClick={() => setActiveTab(tab.id as any)}
-                  >
-                    <tab.icon className={`w-4.5 h-4.5 mb-0.5 ${activeTab === tab.id ? 'text-[#0a3d34]' : 'text-slate-400'}`} /> {tab.label}
-                  </button>
-                ))}
+                  { id: 'timeline', label: 'Geçmiş İşlemler', icon: History, color: 'blue' },
+                  { id: 'meds', label: 'İlaçlar / Reçete', icon: Pill, color: 'rose' },
+                  { id: 'notes', label: 'Muayene / Notlar', icon: Emerald, color: 'emerald' },
+                  { id: 'stock', label: 'Stok Geçmişi', icon: Box, color: 'amber' }
+                ].map(tab => {
+                  const isActive = activeTab === tab.id;
+                  const colors: Record<string, string> = {
+                    blue: isActive ? 'bg-blue-50 text-blue-700 border-blue-200' : 'text-slate-500 hover:bg-blue-50/50 hover:text-blue-600',
+                    rose: isActive ? 'bg-rose-50 text-rose-700 border-rose-200' : 'text-slate-500 hover:bg-rose-50/50 hover:text-rose-600',
+                    emerald: isActive ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'text-slate-500 hover:bg-emerald-50/50 hover:text-emerald-600',
+                    amber: isActive ? 'bg-amber-50 text-amber-700 border-amber-200' : 'text-slate-500 hover:bg-amber-50/50 hover:text-amber-600',
+                  };
+                  const iconColors: Record<string, string> = {
+                    blue: isActive ? 'text-blue-600' : 'text-blue-400 group-hover:text-blue-600',
+                    rose: isActive ? 'text-rose-600' : 'text-rose-400 group-hover:text-rose-600',
+                    emerald: isActive ? 'text-emerald-600' : 'text-emerald-400 group-hover:text-emerald-600',
+                    amber: isActive ? 'text-amber-600' : 'text-amber-400 group-hover:text-amber-600',
+                  };
+
+                  return (
+                    <button 
+                      key={tab.id}
+                      className={`flex items-center justify-center md:justify-start gap-3 px-4 py-4 rounded-2xl text-sm font-bold transition-all whitespace-nowrap md:whitespace-normal border group
+                        ${colors[tab.color] || ''} ${isActive ? 'shadow-sm shadow-black/5' : 'border-transparent'}
+                      `}
+                      onClick={() => setActiveTab(tab.id as any)}
+                    >
+                      <tab.icon className={`w-5 h-5 transition-colors ${iconColors[tab.color] || ''}`} /> {tab.label}
+                    </button>
+                  );
+                })}
              </div>
           </div>
 
@@ -338,7 +420,7 @@ export default function PatientListPage() {
                     {hstAppointments.length === 0 ? <div className="text-center py-10 italic text-slate-400 bg-white border border-slate-100 rounded-xl shadow-sm">Henüz işlem geçmişi bulunamadı.</div> : (
                       <div className="relative border-l-2 border-slate-100 ml-3 space-y-6">
                          {hstAppointments.map(a => {
-                           const h = HIZMETLER.find(x => x.id.toString() === a.hizmetId.toString());
+                           const h = services.find(x => x.id.toString() === a.hizmetId.toString());
                            const isStatusDone = a.durum === 'onaylandi';
                            return (
                              <div key={a.id} className="relative pl-6">
@@ -347,7 +429,7 @@ export default function PatientListPage() {
                                 <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
                                    <div className="flex items-center justify-between mb-2">
                                       <div className="text-[0.7rem] font-bold text-slate-400 tracking-wide uppercase flex items-center gap-1.5">
-                                        <Clock className="w-3 h-3"/> {a.tarih} · {a.saat}
+                                        <Clock className="w-3 h-3 text-blue-500"/> {a.tarih} · {a.saat}
                                       </div>
                                       <span className={`text-[0.65rem] font-bold px-2 py-0.5 rounded-full ${isStatusDone ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>
                                         {isStatusDone ? 'Tamamlandı' : 'Beklemede'}
@@ -390,7 +472,7 @@ export default function PatientListPage() {
                     <div className="space-y-3">
                       {(selProfile.meds || []).slice().reverse().map((m: any, i: number) => (
                         <div key={i} className="flex gap-4 items-center bg-white p-4 border border-slate-100 rounded-2xl shadow-sm hover:border-slate-200 transition-colors">
-                           <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                           <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100">
                              <Pill className="w-5 h-5"/>
                            </div>
                            <div className="flex flex-col flex-1">
@@ -440,8 +522,8 @@ export default function PatientListPage() {
                                      {isEditing ? <X className="w-3 h-3"/> : <Edit2 className="w-3 h-3" />}
                                      {isEditing ? 'İptal' : 'Düzenle'}
                                  </button>
-                                 <div className="bg-slate-50 text-slate-500 text-[0.65rem] font-bold px-3 py-1 rounded-full border border-slate-200 shadow-sm flex items-center gap-1.5">
-                                   <Clock className="w-3 h-3"/> {n.date}
+                                 <div className="bg-emerald-50 text-emerald-600 text-[0.65rem] font-bold px-3 py-1 rounded-full border border-emerald-100 shadow-sm flex items-center gap-1.5">
+                                   <Emerald className="w-3 h-3"/> {n.date}
                                  </div>
                                </div>
                                
@@ -464,27 +546,39 @@ export default function PatientListPage() {
                )}
 
                {activeTab === 'stock' && (
-                 <div className="space-y-3">
-                    {(selProfile.stock_history || []).slice().reverse().map((h: any, i: number) => (
-                      <div key={i} className="flex gap-4 items-center bg-white p-4 border border-slate-100 rounded-2xl shadow-sm hover:border-slate-200 transition-colors">
-                         <div className="w-11 h-11 bg-emerald-50 rounded-xl flex items-center justify-center text-[#0a3d34] shrink-0 border border-emerald-100/50">
-                            <Box className="w-5 h-5" />
-                         </div>
-                         <div className="flex flex-col flex-1">
-                            <span className="text-[0.65rem] font-bold text-slate-400 uppercase tracking-wide mb-1 flex items-center gap-1"><Clock className="w-3 h-3"/> {h.date}</span>
-                            <span className="text-[0.85rem] font-bold text-slate-700 leading-tight">{h.text}</span>
-                         </div>
+                 !canUseInventory ? (
+                   <div className="flex flex-col items-center justify-center py-16 px-6 bg-gradient-to-br from-amber-50/50 to-orange-50/50 border border-amber-100/60 rounded-2xl text-center shadow-inner">
+                      <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center shadow-sm mb-4 rotate-3">
+                        <Box className="w-8 h-8" />
                       </div>
-                    ))}
-                    {(!selProfile.stock_history || selProfile.stock_history.length === 0) && (
-                      <div className="text-center py-10 bg-white border border-slate-100 rounded-2xl flex flex-col items-center justify-center gap-3">
-                         <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-300">
-                           <Box className="w-6 h-6"/>
-                         </div>
-                         <span className="italic text-sm text-slate-400 font-medium">Bu hastaya henüz malzeme verilmemiş.</span>
-                      </div>
-                    )}
-                 </div>
+                      <h4 className="text-[1.1rem] font-extrabold text-[#111827] mb-2">Stok Takibi Özelliği</h4>
+                      <p className="text-[0.85rem] font-medium text-slate-500 max-w-sm">
+                        Hastaya özel kullanılan malzemeleri düşmek ve stok geçmişini görüntülemek için <strong className="text-amber-700">Advanced</strong> paketine geçmeniz gerekmektedir.
+                      </p>
+                   </div>
+                 ) : (
+                   <div className="space-y-3">
+                      {(selProfile.stock_history || []).slice().reverse().map((h: any, i: number) => (
+                        <div key={i} className="flex gap-4 items-center bg-white p-4 border border-slate-100 rounded-2xl shadow-sm hover:border-slate-200 transition-colors">
+                           <div className="w-11 h-11 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 shrink-0 border border-amber-100">
+                              <Box className="w-5 h-5" />
+                           </div>
+                           <div className="flex flex-col flex-1">
+                              <span className="text-[0.65rem] font-bold text-slate-400 uppercase tracking-wide mb-1 flex items-center gap-1"><Clock className="w-3 h-3"/> {h.date}</span>
+                              <span className="text-[0.85rem] font-bold text-slate-700 leading-tight">{h.text}</span>
+                           </div>
+                        </div>
+                      ))}
+                      {(!selProfile.stock_history || selProfile.stock_history.length === 0) && (
+                        <div className="text-center py-10 bg-white border border-slate-100 rounded-2xl flex flex-col items-center justify-center gap-3">
+                           <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-300">
+                             <Box className="w-6 h-6"/>
+                           </div>
+                           <span className="italic text-sm text-slate-400 font-medium">Bu hastaya henüz malzeme verilmemiş.</span>
+                        </div>
+                      )}
+                   </div>
+                 )
                )}
              </div>
           </div>
@@ -532,10 +626,26 @@ export default function PatientListPage() {
              </div>
 
              <div className="flex gap-2">
-                <Button variant="outline" className="flex-1" onClick={() => setMaterialModalOpen(false)}>İptal</Button>
-                <Button className="flex-1 bg-[#0a3d34] hover:bg-[#072b25]" disabled={currentCart.length === 0} onClick={handleMaterialSubmit}>Değişiklikleri Kaydet</Button>
+                <Button variant="outline" className="flex-1" onClick={() => setMaterialModalOpen(false)} disabled={isSubmitting}>İptal</Button>
+                <Button className="flex-1 bg-[#0a3d34] hover:bg-[#072b25]" disabled={isSubmitting || (currentCart.length === 0 && !selectedStockId)} onClick={handleMaterialSubmit}>
+                  {isSubmitting ? "Kaydediliyor..." : "Değişiklikleri Kaydet"}
+                </Button>
              </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Upgrade Modal */}
+      <Dialog open={upgradeModalOpen} onOpenChange={setUpgradeModalOpen}>
+        <DialogContent className="sm:max-w-[400px] text-center p-8 bg-white border-slate-200">
+           <div className="mx-auto w-16 h-16 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mb-4 rotate-3 shadow-sm border border-amber-200/50">
+             <Package className="w-8 h-8" />
+           </div>
+           <DialogHeader><DialogTitle className="text-center text-xl font-extrabold text-[#111827]">Stok Takibi Kilitli</DialogTitle></DialogHeader>
+           <p className="text-sm font-medium text-slate-500 mb-6">Hastaya özel kullanılan malzemeleri kaydetmek ve stoklardan düşmek için <strong className="text-amber-700">Advanced</strong> paketine geçmeniz gerekmektedir.</p>
+           <div className="flex gap-3 mt-2">
+              <Button className="flex-1 bg-[#0a3d34] hover:bg-[#072b25] shadow-md shadow-[#0a3d34]/20" onClick={() => setUpgradeModalOpen(false)}>Tamam, Anladım</Button>
+           </div>
         </DialogContent>
       </Dialog>
     </div>
