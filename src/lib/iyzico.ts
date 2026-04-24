@@ -4,9 +4,10 @@ export { PLAN_PRICES };
 export type { PlanType, BillingCycle };
 
 // İyzico API yapılandırması
-const iyzipay = new Iyzipay({
-  apiKey: process.env.IYZICO_API_KEY || "",
-  secretKey: process.env.IYZICO_SECRET_KEY || "",
+// Build sırasında patlamaması için getIyzipay() fonksiyonu ile lazy load veya dummy key kullanıyoruz.
+const getIyzipay = () => new Iyzipay({
+  apiKey: process.env.IYZICO_API_KEY || "dummy_api_key",
+  secretKey: process.env.IYZICO_SECRET_KEY || "dummy_secret_key",
   uri: process.env.IYZICO_BASE_URL || "https://sandbox-api.iyzipay.com",
 });
 
@@ -69,7 +70,7 @@ export async function initializeCheckoutForm(params: any): Promise<any> {
       })),
     };
 
-    iyzipay.checkoutFormInitialize.create(request as any, (err: any, result: any) => {
+    getIyzipay().checkoutFormInitialize.create(request as any, (err: any, result: any) => {
       if (err) reject(err);
       else resolve(result);
     });
@@ -83,7 +84,7 @@ export async function retrieveCheckoutForm(token: string): Promise<any> {
       token: token,
     };
 
-    iyzipay.checkoutForm.retrieve(request as any, (err: any, result: any) => {
+    getIyzipay().checkoutForm.retrieve(request as any, (err: any, result: any) => {
       if (err) reject(err);
       else resolve(result);
     });
