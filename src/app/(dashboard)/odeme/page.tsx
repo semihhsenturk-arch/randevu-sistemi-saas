@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, CreditCard, Loader2, AlertCircle, ArrowRight, Shield, Zap, ShieldCheck, Star, Sparkles } from "lucide-react";
 
-export default function OdemePage() {
+function OdemeContent() {
   const { profile, user, isLoading, refreshProfile } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -303,5 +303,14 @@ export default function OdemePage() {
         </Card>
       )}
     </div>
+  );
+}
+
+import { Suspense } from "react";
+export default function OdemePage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="w-8 h-8 animate-spin text-emerald-500" /></div>}>
+      <OdemeContent />
+    </Suspense>
   );
 }

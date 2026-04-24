@@ -32,7 +32,7 @@ const PLAN_FEATURES: Record<PlanType, { included: string[]; excluded: string[]; 
   },
 };
 
-export default function RegisterPage() {
+function RegisterContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -436,5 +436,14 @@ export default function RegisterPage() {
         </Card>
       )}
     </div>
+  );
+}
+
+import { Suspense } from "react";
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">Yükleniyor...</div>}>
+      <RegisterContent />
+    </Suspense>
   );
 }
