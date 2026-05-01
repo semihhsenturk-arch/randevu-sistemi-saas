@@ -124,91 +124,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     let mounted = true;
+    let authInitialized = false;
 
-    async function getInitialSession() {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error("Supabase Session Error:", error.message);
-          if (error.message.includes("Refresh Token")) {
-             await supabase.auth.signOut().catch(() => {});
-          }
-          if (mounted) {
-            setSession(null);
-            setUser(null);
-            setProfile(null);
-            setCachedProfile(null);
-            setIsLoading(false);
-            if (pathnameRef.current !== "/login" && pathnameRef.current !== "/register") {
-              router.replace("/login");
-            }
-          }
-          return;
-        }
-
-        if (mounted) {
-          let currentProfile: UserProfile | null = null;
-          
-          if (session?.user) {
-            const { data: profileData, error: pErr } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
-
-            if (pErr || !profileData || profileData.is_approved === false) {
-              await supabase.auth.signOut().catch(() => {});
-              setSession(null);
-              setUser(null);
-              setProfile(null);
-              setCachedProfile(null);
-              setIsLoading(false);
-              if (pathnameRef.current !== "/login" && pathnameRef.current !== "/register") {
-                router.replace("/login");
-              }
-              return;
-            }
-            currentProfile = applyProfile(profileData, session.user.email);
-          }
-
-          setSession(session);
-          setUser(session?.user ?? null);
-          setProfile(currentProfile);
-          setIsLoading(false);
-          
-          if (!session && pathnameRef.current !== "/login" && pathnameRef.current !== "/register" && pathnameRef.current !== "/") {
-            router.replace("/login");
-          } else if (session && (pathnameRef.current === "/login" || pathnameRef.current === "/register" || pathnameRef.current === "/")) {
-            // Ödeme yapılmamışsa ödeme sayfasına yönlendir
-            if (currentProfile && currentProfile.payment_status !== 'paid' && currentProfile.role !== 'admin') {
-              router.replace("/odeme");
-            } else {
-              router.replace("/takvim");
-            }
-          }
-        }
-      } catch (e) {
-        console.error("Auth check exception:", e);
-        if (mounted) {
-          setIsLoading(false);
-          if (pathnameRef.current !== "/login" && pathnameRef.current !== "/register") {
-            router.replace("/login");
-          }
-        }
+    // Safety timeout: stop loading after 5 seconds no matter what
+    const safetyTimeout = setTimeout(() => {
+      if (mounted && isLoading) {
+        console.warn("Auth initialization timed out after 5s. Forcing isLoading to false.");
+        setIsLoading(false);
       }
-    }
+    }, 5000);
 
-    getInitialSession();
+    async function handleAuthChange(event: string, session: Session | null) {
+      if (!mounted) return;
+      
+      console.log(`Auth Event: ${event}`, session?.user?.id ? `User: ${session.user.id}` : "No Session");
+      
+      const currentPath = pathnameRef.current;
+      let currentProfile: UserProfile | null = null;
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!mounted) return;
-        
-        const currentPath = pathnameRef.current;
-        
-        let currentProfile: UserProfile | null = null;
+      try {
         if (session?.user) {
+          // Profile check
           const { data: profileData, error: pErr } = await supabase
             .from('profiles')
             .select('*')
@@ -216,8 +152,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             .single();
 
           if (pErr || !profileData || profileData.is_approved === false) {
+            console.error("Profile check failed or unapproved:", pErr?.message || "Not found/Unapproved");
             if (event === "SIGNED_IN") {
               await supabase.auth.signOut().catch(() => {});
+            }
+            if (mounted) {
+              setSession(null);
+              setUser(null);
+              setProfile(null);
+              setCachedProfile(null);
+              setIsLoading(false);
+              if (currentPath !== "/login" && currentPath !== "/register") {
+                router.replace("/login");
+              }
             }
             return;
           }
@@ -229,11 +176,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setUser(session?.user ?? null);
           setProfile(currentProfile);
           setIsLoading(false);
+          authInitialized = true;
 
-          if (event === "SIGNED_OUT" && currentPath !== "/login" && currentPath !== "/register" && currentPath !== "/") {
+          // Navigation logic
+          if (!session && currentPath !== "/login" && currentPath !== "/register" && currentPath !== "/") {
             router.replace("/login");
-          } else if (event === "SIGNED_IN" && (currentPath === "/login" || currentPath === "/register" || currentPath === "/")) {
-            // Ödeme yapılmamışsa ödeme sayfasına yönlendir
+          } else if (session && (currentPath === "/login" || currentPath === "/register" || currentPath === "/")) {
             if (currentProfile && currentProfile.payment_status !== 'paid' && currentProfile.role !== 'admin') {
               router.replace("/odeme");
             } else {
@@ -242,11 +190,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             router.refresh();
           }
         }
+      } catch (err) {
+        console.error("Auth handle error:", err);
+        if (mounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    // Initialize with current session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!authInitialized) {
+        handleAuthChange("INITIAL_SESSION", session);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        handleAuthChange(event, session);
       }
     );
 
     return () => {
       mounted = false;
+      clearTimeout(safetyTimeout);
       subscription.unsubscribe();
     };
   }, [router]); // pathname removed - we use pathnameRef instead

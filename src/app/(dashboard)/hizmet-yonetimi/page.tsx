@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Layers, Plus, Edit2, Trash2, CheckCircle2 } from "lucide-react";
+import { Layers, Plus, Edit2, Trash2, CheckCircle2, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
 const PREDEFINED_COLORS = [
@@ -34,14 +34,16 @@ export default function HizmetYonetimiPage() {
   const [formData, setFormData] = useState<{ ad: string; sure: number | string; fiyat: number | string; renk: string }>({ ad: "", sure: 30, fiyat: "", renk: "#3b82f6" });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [isMounted, setIsMounted] = useState(false);
+
   useEffect(() => {
+    // Load from cache first
     const cached = getCacheSync<Service[]>(CACHE_KEYS.SERVICES);
-    if (cached && cached.length > 0) {
-      setServices(cached);
-    } else {
-      setLoading(true);
-    }
+    if (cached) setServices(cached);
+
+    setIsMounted(true);
     loadServices();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [getServices]);
 
   const loadServices = async () => {
@@ -113,7 +115,13 @@ export default function HizmetYonetimiPage() {
     }
   };
 
-  if (isLoading) return null;
+  if (isLoading || !isMounted) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4">

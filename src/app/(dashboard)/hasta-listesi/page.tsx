@@ -56,6 +56,8 @@ export default function PatientListPage() {
   const [editingNoteIndex, setEditingNoteIndex] = useState<number | null>(null);
   const [editingNoteContent, setEditingNoteContent] = useState("");
 
+  const [isMounted, setIsMounted] = useState(false);
+
   useEffect(() => {
     // Load from cache first
     const cachedApts = getCacheSync<Appointment[]>(CACHE_KEYS.APPOINTMENTS);
@@ -70,6 +72,7 @@ export default function PatientListPage() {
     const cachedSvc = getCacheSync<Service[]>(CACHE_KEYS.SERVICES);
     if (cachedSvc) setServices(cachedSvc);
 
+    setIsMounted(true);
     loadData();
   }, [getAppointments, getPatientProfiles, getInventory, getServices]);
 
@@ -268,7 +271,13 @@ export default function PatientListPage() {
   const selProfile = profiles[selectedPatientName] || { notes_list: [], meds: [], stock_history: [] };
   const hstAppointments = appointments.filter(a => a.musteriAdi === selectedPatientName).sort((a,b) => b.tarih.localeCompare(a.tarih));
 
-  if (isLoading) return null;
+  if (isLoading || !isMounted) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+      </div>
+    );
+  }
 
   if (isLocked) {
     return (

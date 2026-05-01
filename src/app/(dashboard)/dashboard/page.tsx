@@ -24,7 +24,7 @@ export default function DashboardAnalyticsPage() {
   const [appliedStartDate, setAppliedStartDate] = useState(format(startOfMonth(new Date()), "yyyy-MM-dd"));
   const [appliedEndDate, setAppliedEndDate] = useState(format(new Date(), "yyyy-MM-dd"));
   
-  const [isClient, setIsClient] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     const savedStart = localStorage.getItem("dashboard_startDate");
@@ -38,6 +38,7 @@ export default function DashboardAnalyticsPage() {
       setAppliedEndDate(savedEnd);
     }
     setIsClient(true);
+    setIsMounted(true);
     
     const cachedApts = getCacheSync<Appointment[]>(CACHE_KEYS.APPOINTMENTS);
     if (cachedApts) setAppointments(cachedApts);
@@ -126,7 +127,13 @@ export default function DashboardAnalyticsPage() {
     return null;
   };
 
-  if (isLoading) return null;
+  if (isLoading || !isMounted) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+      </div>
+    );
+  }
 
   if (isLocked) {
     return (
