@@ -17,6 +17,7 @@ function OdemeContent() {
   const [loadingPayment, setLoadingPayment] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const checkoutRef = useRef<HTMLDivElement>(null);
+  const successHandledRef = useRef(false);
 
   // URL params'dan callback durumu kontrol
   const callbackStatus = searchParams.get("status");
@@ -28,37 +29,42 @@ function OdemeContent() {
     let timer: NodeJS.Timeout;
     let safetyTimer: NodeJS.Timeout;
     
-    if (callbackStatus === "success") {
+    if (callbackStatus === "success" && !successHandledRef.current) {
+      successHandledRef.current = true;
+      
       const handleSuccess = async () => {
+        console.log("Payment success detected, handling...");
         try {
           // Profil güncellemesini getir
           await refreshProfile();
-          
-          // Profil güncellendikten kısa bir süre sonra tam sayfa yenileme ile yönlendir
-          // Bu, "beyaz sayfa" hatasını ve stale cache sorunlarını kesin çözer
-          timer = setTimeout(() => {
-            console.log("Redirecting to /takvim via window.location...");
-            window.location.href = "/takvim";
-          }, 2000);
+          console.log("Profile refreshed after payment success.");
         } catch (err) {
-          console.error("Success handling error:", err);
-          window.location.href = "/takvim";
+          console.error("Success handling error (refreshProfile):", err);
+        } finally {
+          // Her durumda yönlendir
+          timer = setTimeout(() => {
+            console.log("Redirecting to /takvim...");
+            window.location.href = "/takvim";
+          }, 1500);
         }
       };
       
       handleSuccess();
 
-      // Güvenlik zamanlayıcısı: 5 saniye sonra ne olursa olsun tam yenileme ile yönlendir
+      // Güvenlik zamanlayıcısı: 4 saniye sonra ne olursa olsun tam yenileme ile yönlendir
       safetyTimer = setTimeout(() => {
-        window.location.href = "/takvim";
-      }, 5000);
+        if (window.location.pathname === "/odeme") {
+          console.log("Safety redirecting to /takvim...");
+          window.location.href = "/takvim";
+        }
+      }, 4000);
     }
     
     return () => {
       if (timer) clearTimeout(timer);
       if (safetyTimer) clearTimeout(safetyTimer);
     };
-  }, [callbackStatus, router, refreshProfile]);
+  }, [callbackStatus, refreshProfile]);
 
   // Zaten ödeme yaptıysa dashboard'a yönlendir
   useEffect(() => {

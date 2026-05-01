@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useRef } from "react";
+import { createContext, useContext, useEffect, useState, useRef, useCallback } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { useRouter, usePathname } from "next/navigation";
@@ -218,7 +218,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, [router]); // pathname removed - we use pathnameRef instead
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     // Supabase auth key'lerini de manuel temizlemek garanti sağlar
     const keysToClear = [
       'randevular', 
@@ -258,9 +258,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // Yönlendir
       window.location.href = "/login";
     });
-  };
+  }, []);
 
-  const refreshProfile = async () => {
+  const refreshProfile = useCallback(async () => {
     if (!user) return null;
     try {
       // Önce cache'i temizle ki güncel veri gelsin
@@ -283,15 +283,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.error("Refresh profile error:", e);
     }
     return null;
-  };
+  }, [user, profile?.email]);
 
-  const checkAccess = (minTier: PlanType) => {
+  const checkAccess = useCallback((minTier: PlanType) => {
     if (profile?.role === 'admin') return true;
     const userPlan = profile?.plan || "starter";
     const userLevel = PLAN_TIERS[userPlan] ?? 0;
     const requiredLevel = PLAN_TIERS[minTier] ?? 0;
     return userLevel >= requiredLevel;
-  };
+  }, [profile]);
 
   return (
     <AuthContext.Provider value={{ user, profile, session, isLoading, signOut, refreshProfile, checkAccess }}>
