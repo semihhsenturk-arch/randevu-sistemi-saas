@@ -34,23 +34,23 @@ function OdemeContent() {
           // Profil güncellemesini getir
           await refreshProfile();
           
-          // Profil güncellendikten kısa bir süre sonra yönlendir
+          // Profil güncellendikten kısa bir süre sonra tam sayfa yenileme ile yönlendir
+          // Bu, "beyaz sayfa" hatasını ve stale cache sorunlarını kesin çözer
           timer = setTimeout(() => {
-            console.log("Redirecting to /takvim...");
-            router.replace("/takvim");
-            router.refresh();
+            console.log("Redirecting to /takvim via window.location...");
+            window.location.href = "/takvim";
           }, 2000);
         } catch (err) {
           console.error("Success handling error:", err);
-          router.replace("/takvim");
+          window.location.href = "/takvim";
         }
       };
       
       handleSuccess();
 
-      // Güvenlik zamanlayıcısı: 5 saniye sonra ne olursa olsun yönlendir
+      // Güvenlik zamanlayıcısı: 5 saniye sonra ne olursa olsun tam yenileme ile yönlendir
       safetyTimer = setTimeout(() => {
-        router.replace("/takvim");
+        window.location.href = "/takvim";
       }, 5000);
     }
     
@@ -147,7 +147,7 @@ function OdemeContent() {
             </div>
             <div className="pt-4">
               <Button 
-                onClick={() => router.replace("/takvim")}
+                onClick={() => window.location.href = "/takvim"}
                 className="bg-emerald-600 hover:bg-emerald-700 font-bold"
               >
                 Takvime Git

@@ -89,7 +89,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     let finalProfile = profileData as UserProfile;
     // Database value is now priority. 
     // Manual overrides removed to ensure Admin panel changes take effect.
-    setCachedProfile(finalProfile);
+    if (typeof window !== 'undefined') {
+      setCachedProfile(finalProfile);
+    }
     return finalProfile;
   }
 
@@ -294,6 +296,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const refreshProfile = async () => {
     if (!user) return null;
     try {
+      // Önce cache'i temizle ki güncel veri gelsin
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(PROFILE_CACHE_KEY);
+      }
+      
       const { data: profileData, error } = await supabase
         .from('profiles')
         .select('*')

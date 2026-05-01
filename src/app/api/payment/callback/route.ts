@@ -63,8 +63,9 @@ export async function POST(req: NextRequest) {
       }
 
       console.log("Database update success for user:", userId, data);
-      // Başarılı ödeme sonrası direkt takvim (randevu) sayfasına yönlendir
-      return NextResponse.redirect(new URL("/takvim", origin));
+      // Ödeme sayfasındaki başarı modallı duruma yönlendiriyoruz
+      // Oradaki useEffect profil yenilemesi yapıp takvime aktaracak
+      return NextResponse.redirect(new URL("/odeme?status=success", origin));
     } else {
       console.error("İyzico payment failed or pending:", result);
       return NextResponse.redirect(

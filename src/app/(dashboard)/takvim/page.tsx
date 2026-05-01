@@ -62,6 +62,12 @@ export default function CalendarPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [currentApt, setCurrentApt] = useState<Partial<Appointment>>({});
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Client-side initialization
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // DND Sensors - Using specific sensors for better performance and instant response
   const mouseSensor = useSensor(MouseSensor, {
@@ -332,6 +338,14 @@ export default function CalendarPage() {
   }, [appointments]);
 
   const draggedApt = activeDragId ? appointments.find(a => a.id === activeDragId) : null;
+
+  if (!isMounted) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4 relative">
