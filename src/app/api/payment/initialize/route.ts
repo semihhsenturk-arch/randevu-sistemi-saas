@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     }
 
     const price = planData[billingCycle];
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const origin = new URL(req.url).origin;
 
     const safeClinicName = clinicName || "Klinik Kullanıcı";
     const nameParts = safeClinicName.split(" ");
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
       conversationId: userId,
       price,
       basketId: `basket_${userId}_${Date.now()}`,
-      callbackUrl: `${baseUrl}/api/payment/callback`,
+      callbackUrl: `${origin}/api/payment/callback`,
       buyer: {
         id: userId,
         name: firstName,

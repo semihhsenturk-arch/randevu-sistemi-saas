@@ -3,7 +3,7 @@ import { retrieveCheckoutForm } from "@/lib/iyzico";
 import { createClient } from "@supabase/supabase-js";
 
 export async function POST(req: NextRequest) {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  const origin = new URL(req.url).origin;
   
   try {
     const formData = await req.formData();
@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
     if (!token) {
       console.error("Payment callback: Token not found in formData");
       return NextResponse.redirect(
-        new URL("/odeme?status=error&message=Token bulunamadı", baseUrl)
+        new URL("/odeme?status=error&message=Token bulunamadı", origin)
       );
     }
 
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       if (!userId) {
         console.error("Payment successful but userId (conversationId/basketId) is missing in result:", JSON.stringify(result));
         return NextResponse.redirect(
-          new URL("/odeme?status=error&message=Kullanıcı bilgisi alınamadı. Lütfen destekle iletişime geçin.", baseUrl)
+          new URL("/odeme?status=error&message=Kullanıcı bilgisi alınamadı. Lütfen destekle iletişime geçin.", origin)
         );
       }
 
@@ -58,25 +58,26 @@ export async function POST(req: NextRequest) {
       if (updateError) {
         console.error("Profile update FAILED in callback:", updateError);
         return NextResponse.redirect(
-          new URL(`/odeme?status=error&message=${encodeURIComponent("Profil güncellenemedi: " + updateError.message)}`, baseUrl)
+          new URL(`/odeme?status=error&message=${encodeURIComponent("Profil güncellenemedi: " + updateError.message)}`, origin)
         );
       }
 
       console.log("Database update success for user:", userId, data);
-      return NextResponse.redirect(new URL("/odeme?status=success", baseUrl));
+      // Başarılı ödeme sonrası direkt takvim (randevu) sayfasına yönlendir
+      return NextResponse.redirect(new URL("/takvim", origin));
     } else {
       console.error("İyzico payment failed or pending:", result);
       return NextResponse.redirect(
         new URL(
           `/odeme?status=error&message=${encodeURIComponent(result.errorMessage || "Ödeme başarısız veya onay bekliyor")}`,
-          baseUrl
+          origin
         )
       );
     }
   } catch (error: any) {
     console.error("Payment callback CRITICAL error:", error);
     return NextResponse.redirect(
-      new URL(`/odeme?status=error&message=${encodeURIComponent(error.message || "Sunucu hatası")}`, baseUrl)
+      new URL(`/odeme?status=error&message=${encodeURIComponent(error.message || "Sunucu hatası")}`, origin)
     );
   }
 }
