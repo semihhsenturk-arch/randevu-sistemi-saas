@@ -25,40 +25,45 @@ export class IyzicoClient {
 
   /**
    * Iyzico Signature Algorithm
+   * IMPORTANT: Order must be secretKey + apiKey + randomString + pkiString
    */
   private generateSignature(randomString: string, pkiString: string): string {
-    const data = this.config.apiKey + randomString + this.config.secretKey + pkiString;
+    const data = this.config.secretKey + this.config.apiKey + randomString + pkiString;
     return crypto.createHash("sha1").update(data).digest("base64");
   }
 
   /**
    * Iyzico PKI String Builder
-   * This is the format required by Iyzico for security
+   * IMPORTANT: No spaces after commas. Keys must be sorted.
    */
   private toPKIString(request: any): string {
     const buildPKI = (obj: any): string => {
       if (obj === null || obj === undefined) return "";
+      
       if (Array.isArray(obj)) {
         let str = "[";
         for (let i = 0; i < obj.length; i++) {
-          str += buildPKI(obj[i]) + (i < obj.length - 1 ? ", " : "");
+          str += buildPKI(obj[i]) + (i < obj.length - 1 ? "," : "");
         }
         return str + "]";
       }
+      
       if (typeof obj === "object") {
         let str = "[";
         const keys = Object.keys(obj).sort();
-        for (let i = 0; i < keys.length; i++) {
-          const key = keys[i];
+        const entries: string[] = [];
+        
+        for (const key of keys) {
           const value = obj[key];
           if (value !== undefined && value !== null) {
-            str += key + "=" + buildPKI(value) + (i < keys.length - 1 ? ", " : "");
+            entries.push(key + "=" + buildPKI(value));
           }
         }
-        // Remove trailing comma if exists
-        if (str.endsWith(", ")) str = str.slice(0, -2);
+        
+        str += entries.join(",");
         return str + "]";
       }
+      
       return obj.toString();
     };
     return buildPKI(request);
@@ -82,7 +87,8 @@ export class IyzicoClient {
       body: JSON.stringify(request),
     });
 
-    return await response.json();
+    const result = await response.json();
+    return result;
   }
 
   public checkoutFormInitialize = {
