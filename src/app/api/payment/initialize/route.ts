@@ -24,7 +24,8 @@ export async function POST(req: NextRequest) {
     const price = planData[billingCycle];
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
-    const nameParts = clinicName.split(" ");
+    const safeClinicName = clinicName || "Klinik Kullanıcı";
+    const nameParts = safeClinicName.split(" ");
     const firstName = nameParts[0] || "Klinik";
     const lastName = nameParts.slice(1).join(" ") || "Kullanıcı";
 
@@ -68,8 +69,14 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Payment initialize error:", error);
-    return NextResponse.json({ error: "Sunucu hatası" }, { status: 500 });
+    return NextResponse.json(
+      { 
+        error: "Sunucu hatası", 
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined 
+      }, 
+      { status: 500 }
+    );
   }
 }
