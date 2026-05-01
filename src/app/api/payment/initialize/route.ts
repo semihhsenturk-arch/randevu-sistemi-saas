@@ -73,8 +73,8 @@ export async function POST(req: NextRequest) {
     console.error("Payment initialize error:", error);
     return NextResponse.json(
       { 
-        error: "Sunucu hatası", 
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined 
+        error: `Sunucu hatası: ${error.message || "Bilinmeyen hata"}`, 
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined 
       }, 
       { status: 500 }
     );

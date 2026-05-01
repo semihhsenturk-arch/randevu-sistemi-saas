@@ -16,6 +16,7 @@ const getIyzipay = () => new Iyzipay({
  * SDK string bekler: "999.0"
  */
 function formatPrice(price: any): string {
+  if (price === null || price === undefined) return "0.0";
   const numericPrice = parseFloat(price.toString());
   return isNaN(numericPrice) ? "0.0" : numericPrice.toFixed(1);
 }
