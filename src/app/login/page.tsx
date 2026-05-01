@@ -42,9 +42,7 @@ export default function LoginPage() {
         setLoading(false);
         return;
       }
-
-      router.replace("/takvim");
-      router.refresh();
+      // AuthProvider handles the redirection via onAuthStateChange
     }
   };
 

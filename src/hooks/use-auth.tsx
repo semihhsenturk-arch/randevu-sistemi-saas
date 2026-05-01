@@ -72,6 +72,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const pathname = usePathname();
   const pathnameRef = useRef(pathname);
+  const isProcessingRef = useRef(false);
 
   // Load profile from cache on mount (client-side only)
   useEffect(() => {
@@ -135,7 +136,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }, 5000);
 
     async function handleAuthChange(event: string, session: Session | null) {
-      if (!mounted) return;
+      if (!mounted || isProcessingRef.current) return;
       
       console.log(`Auth Event: ${event}`, session?.user?.id ? `User: ${session.user.id}` : "No Session");
       
@@ -143,6 +144,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       let currentProfile: UserProfile | null = null;
 
       try {
+        isProcessingRef.current = true;
+
         if (session?.user) {
           // Profile check
           const { data: profileData, error: pErr } = await supabase
@@ -162,13 +165,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               setProfile(null);
               setCachedProfile(null);
               setIsLoading(false);
-              if (currentPath !== "/login" && currentPath !== "/register") {
+              if (currentPath !== "/login" && currentPath !== "/register" && currentPath !== "/") {
                 router.replace("/login");
               }
             }
             return;
           }
           currentProfile = applyProfile(profileData, session.user.email);
+        } else {
+          // Clear everything on sign out
+          setCachedProfile(null);
+          currentProfile = null;
         }
 
         if (mounted) {
@@ -178,16 +185,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setIsLoading(false);
           authInitialized = true;
 
-          // Navigation logic
-          if (!session && currentPath !== "/login" && currentPath !== "/register" && currentPath !== "/") {
-            router.replace("/login");
-          } else if (session && (currentPath === "/login" || currentPath === "/register" || currentPath === "/")) {
-            if (currentProfile && currentProfile.payment_status !== 'paid' && currentProfile.role !== 'admin') {
-              router.replace("/odeme");
-            } else {
-              router.replace("/takvim");
+          // Navigation logic - Only redirect if necessary to prevent loops
+          if (!session) {
+            if (currentPath !== "/login" && currentPath !== "/register" && currentPath !== "/") {
+              router.replace("/login");
             }
-            router.refresh();
+          } else if (currentPath === "/login" || currentPath === "/register" || currentPath === "/") {
+            const target = (currentProfile && currentProfile.payment_status !== 'paid' && currentProfile.role !== 'admin')
+              ? "/odeme"
+              : "/takvim";
+            
+            console.log(`Redirecting to ${target} from ${currentPath}`);
+            router.replace(target);
+            
+            // Wait a bit before refreshing to let navigation settle
+            setTimeout(() => {
+              if (mounted) router.refresh();
+            }, 150);
           }
         }
       } catch (err) {
@@ -195,6 +209,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (mounted) {
           setIsLoading(false);
         }
+      } finally {
+        isProcessingRef.current = false;
       }
     }
 
