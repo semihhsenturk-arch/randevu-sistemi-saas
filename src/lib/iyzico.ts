@@ -1,11 +1,15 @@
-import Iyzipay from "iyzipay";
+import { IyzicoClient } from "./iyzipay-modern";
 import { PLAN_PRICES, PlanType, BillingCycle } from "./iyzico-config";
+
 export { PLAN_PRICES };
 export type { PlanType, BillingCycle };
 
-// İyzico API yapılandırması
-// Build sırasında patlamaması için getIyzipay() fonksiyonu ile lazy load veya dummy key kullanıyoruz.
-const getIyzipay = () => new Iyzipay({
+/**
+ * Modern Iyzico API Yapılandırması
+ * Eski 'iyzipay' kütüphanesi yerine modern, bağımsız istemciyi kullanıyoruz.
+ * Bu sayede Vercel üzerindeki modül hataları tamamen çözülmüş oldu.
+ */
+const getIyzipay = () => new IyzicoClient({
   apiKey: process.env.IYZICO_API_KEY || "dummy_api_key",
   secretKey: process.env.IYZICO_SECRET_KEY || "dummy_secret_key",
   uri: process.env.IYZICO_BASE_URL || "https://sandbox-api.iyzipay.com",
@@ -13,7 +17,6 @@ const getIyzipay = () => new Iyzipay({
 
 /**
  * İyzico Fiyat Formatlayıcı
- * SDK string bekler: "999.0"
  */
 function formatPrice(price: any): string {
   if (price === null || price === undefined) return "0.0";
@@ -22,72 +25,62 @@ function formatPrice(price: any): string {
 }
 
 export async function initializeCheckoutForm(params: any): Promise<any> {
-  return new Promise((resolve, reject) => {
-    const request = {
-      locale: Iyzipay.LOCALE.TR,
-      conversationId: params.conversationId,
-      price: formatPrice(params.price),
-      paidPrice: formatPrice(params.price),
-      currency: Iyzipay.CURRENCY.TRY,
-      basketId: params.basketId,
-      paymentGroup: Iyzipay.PAYMENT_GROUP.PRODUCT,
-      callbackUrl: params.callbackUrl,
-      enabledInstallments: [1],
-      buyer: {
-        id: params.buyer.id,
-        name: params.buyer.name,
-        surname: params.buyer.surname,
-        gsmNumber: "+905350000000",
-        email: params.buyer.email,
-        identityNumber: params.buyer.identityNumber || "11111111111",
-        lastLoginDate: "2023-01-01 12:00:00",
-        registrationDate: "2023-01-01 12:00:00",
-        registrationAddress: params.buyer.registrationAddress || "Istanbul",
-        ip: params.buyer.ip || "85.34.78.112",
-        city: params.buyer.city || "Istanbul",
-        country: params.buyer.country || "Turkey",
-        zipCode: "34000",
-      },
-      shippingAddress: {
-        contactName: `${params.buyer.name} ${params.buyer.surname}`,
-        city: params.buyer.city || "Istanbul",
-        country: params.buyer.country || "Turkey",
-        address: params.buyer.registrationAddress || "Istanbul",
-        zipCode: "34000",
-      },
-      billingAddress: {
-        contactName: `${params.buyer.name} ${params.buyer.surname}`,
-        city: params.buyer.city || "Istanbul",
-        country: params.buyer.country || "Turkey",
-        address: params.buyer.registrationAddress || "Istanbul",
-        zipCode: "34000",
-      },
-      basketItems: params.basketItems.map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        category1: item.category1,
-        itemType: item.itemType === "VIRTUAL" ? Iyzipay.BASKET_ITEM_TYPE.VIRTUAL : Iyzipay.BASKET_ITEM_TYPE.PHYSICAL,
-        price: formatPrice(item.price),
-      })),
-    };
+  const request = {
+    locale: "tr",
+    conversationId: params.conversationId,
+    price: formatPrice(params.price),
+    paidPrice: formatPrice(params.price),
+    currency: "TRY",
+    basketId: params.basketId,
+    paymentGroup: "PRODUCT",
+    callbackUrl: params.callbackUrl,
+    enabledInstallments: [1],
+    buyer: {
+      id: params.buyer.id,
+      name: params.buyer.name,
+      surname: params.buyer.surname,
+      gsmNumber: "+905350000000",
+      email: params.buyer.email,
+      identityNumber: params.buyer.identityNumber || "11111111111",
+      lastLoginDate: "2023-01-01 12:00:00",
+      registrationDate: "2023-01-01 12:00:00",
+      registrationAddress: params.buyer.registrationAddress || "Istanbul",
+      ip: params.buyer.ip || "85.34.78.112",
+      city: params.buyer.city || "Istanbul",
+      country: params.buyer.country || "Turkey",
+      zipCode: "34000",
+    },
+    shippingAddress: {
+      contactName: `${params.buyer.name} ${params.buyer.surname}`,
+      city: params.buyer.city || "Istanbul",
+      country: params.buyer.country || "Turkey",
+      address: params.buyer.registrationAddress || "Istanbul",
+      zipCode: "34000",
+    },
+    billingAddress: {
+      contactName: `${params.buyer.name} ${params.buyer.surname}`,
+      city: params.buyer.city || "Istanbul",
+      country: params.buyer.country || "Turkey",
+      address: params.buyer.registrationAddress || "Istanbul",
+      zipCode: "34000",
+    },
+    basketItems: params.basketItems.map((item: any) => ({
+      id: item.id,
+      name: item.name,
+      category1: item.category1,
+      itemType: item.itemType === "VIRTUAL" ? "VIRTUAL" : "PHYSICAL",
+      price: formatPrice(item.price),
+    })),
+  };
 
-    getIyzipay().checkoutFormInitialize.create(request as any, (err: any, result: any) => {
-      if (err) reject(err);
-      else resolve(result);
-    });
-  });
+  return await getIyzipay().checkoutFormInitialize.create(request);
 }
 
 export async function retrieveCheckoutForm(token: string): Promise<any> {
-  return new Promise((resolve, reject) => {
-    const request = {
-      locale: Iyzipay.LOCALE.TR,
-      token: token,
-    };
+  const request = {
+    locale: "tr",
+    token: token,
+  };
 
-    getIyzipay().checkoutForm.retrieve(request as any, (err: any, result: any) => {
-      if (err) reject(err);
-      else resolve(result);
-    });
-  });
+  return await getIyzipay().checkoutForm.retrieve(request);
 }
