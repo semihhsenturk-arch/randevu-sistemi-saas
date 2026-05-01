@@ -23,6 +23,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
+    "extend": "^3.0.2",
     "flatpickr": "^4.6.13",
     "iyzipay": "^2.0.67",
     "lucide-react": "^1.8.0",
