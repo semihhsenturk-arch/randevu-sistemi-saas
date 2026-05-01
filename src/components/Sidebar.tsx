@@ -60,6 +60,7 @@ export function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean; setIsOpen?: (
   };
 
   return (
+    <>
       {/* Sidebar Overlay for Mobile */}
       {isOpen && (
         <div 
