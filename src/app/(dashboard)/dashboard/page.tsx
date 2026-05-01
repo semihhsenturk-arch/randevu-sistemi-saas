@@ -37,7 +37,6 @@ export default function DashboardAnalyticsPage() {
       setEndDate(savedEnd);
       setAppliedEndDate(savedEnd);
     }
-    setIsClient(true);
     setIsMounted(true);
     
     const cachedApts = getCacheSync<Appointment[]>(CACHE_KEYS.APPOINTMENTS);
@@ -50,11 +49,11 @@ export default function DashboardAnalyticsPage() {
   }, []);
 
   useEffect(() => {
-    if (isClient) {
+    if (isMounted) {
       localStorage.setItem("dashboard_startDate", appliedStartDate);
       localStorage.setItem("dashboard_endDate", appliedEndDate);
     }
-  }, [appliedStartDate, appliedEndDate, isClient]);
+  }, [appliedStartDate, appliedEndDate, isMounted]);
 
   const handleUpdate = () => {
     setAppliedStartDate(startDate);
