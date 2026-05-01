@@ -400,12 +400,12 @@ function RegisterContent() {
                 )}
 
                 {/* Alt Butonlar */}
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => { setStep(1); setErrorMsg(""); }}
-                    className="h-12 px-6 font-bold"
+                    className="h-12 px-6 font-bold w-full sm:w-auto order-2 sm:order-1"
                   >
                     <ArrowLeft className="mr-2 w-4 h-4" />
                     Geri
@@ -414,9 +414,9 @@ function RegisterContent() {
                     type="button"
                     disabled={loading}
                     onClick={handleRegister}
-                    className="flex-1 h-12 text-base font-bold bg-[#0a3d34] hover:bg-[#072b25]"
+                    className="flex-1 h-12 text-base font-bold bg-[#0a3d34] hover:bg-[#072b25] order-1 sm:order-2"
                   >
-                    {loading ? "Hesap Oluşturuluyor..." : `${PLAN_PRICES[selectedPlan].name} ile Kayıt Ol`}
+                    {loading ? "Hesap Oluşturuluyor..." : "Kayıt Ol"}
                   </Button>
                 </div>
               </div>
