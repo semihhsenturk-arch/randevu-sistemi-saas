@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useDatabase, Appointment, Service, getCacheSync, CACHE_KEYS } from "@/hooks/use-database";
-import { CalendarCheck, Banknote, Star, TrendingUp } from "lucide-react";
+import { CalendarCheck, Banknote, Star, TrendingUp, Loader2 } from "lucide-react";
 import { format, startOfMonth, parseISO, isValid } from "date-fns";
 import { tr } from "date-fns/locale/tr";
 import { useAuth } from "@/hooks/use-auth";

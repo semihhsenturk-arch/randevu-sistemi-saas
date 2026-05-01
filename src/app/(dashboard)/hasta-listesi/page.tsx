@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Contact, Search, Package, Users, Clock, CheckCircle2, History, Pill, FileText, Box, Trash2, Plus, X, Edit2, Notebook as Emerald } from "lucide-react";
+import { Contact, Search, Package, Users, Clock, CheckCircle2, History, Pill, FileText, Box, Trash2, Plus, X, Edit2, Notebook as Emerald, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale/tr";
 import { useAuth } from "@/hooks/use-auth";
