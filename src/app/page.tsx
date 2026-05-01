@@ -17,10 +17,19 @@ import {
 } from "lucide-react";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function LandingPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const promoImages = ["/promo-1.png", "/promo-2.png", "/promo-3.png"];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % promoImages.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <div className="min-h-screen bg-white text-slate-900 selection:bg-emerald-100 selection:text-emerald-900">
@@ -108,14 +117,24 @@ export default function LandingPage() {
           <div className="flex-1 relative w-full max-w-2xl lg:max-w-none">
             <div className="absolute -top-10 -right-10 md:-top-20 md:-right-20 w-[300px] h-[300px] md:w-[600px] md:h-[600px] bg-emerald-100/50 rounded-full blur-3xl -z-1" />
             <div className="relative bg-white border border-slate-100 rounded-[24px] md:rounded-[32px] p-2 shadow-2xl shadow-slate-200/60 overflow-hidden">
-              <Image 
-                src="/landing-hero.png" 
-                alt="Clinic Management Dashboard" 
-                width={1024} 
-                height={1024}
-                priority
-                className="rounded-[20px] md:rounded-[28px] border border-slate-50 w-full h-auto"
-              />
+              <div className="relative aspect-square w-full overflow-hidden rounded-[20px] md:rounded-[28px]">
+                {promoImages.map((src, index) => (
+                  <div 
+                    key={src}
+                    className={`absolute inset-0 transition-opacity duration-1000 ${
+                      index === currentImageIndex ? "opacity-100 z-10" : "opacity-0 z-0"
+                    }`}
+                  >
+                    <Image 
+                      src={src} 
+                      alt={`Promo ${index + 1}`} 
+                      fill
+                      className="object-cover"
+                      priority={index === 0}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
