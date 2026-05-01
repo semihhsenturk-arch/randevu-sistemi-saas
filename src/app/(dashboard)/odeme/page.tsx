@@ -19,9 +19,16 @@ function OdemeContent() {
   const checkoutRef = useRef<HTMLDivElement>(null);
   const successHandledRef = useRef(false);
 
-  // URL params'dan callback durumu kontrol
-  const callbackStatus = searchParams.get("status");
-  const callbackMessage = searchParams.get("message");
+  // URL params'dan callback durumu kontrol - useSearchParams bazen gecikebilir veya Suspense hatası verebilir
+  const [callbackStatus, setCallbackStatus] = useState<string | null>(null);
+  const [callbackMessage, setCallbackMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Client-side'da window.location'dan doğrudan al
+    const params = new URLSearchParams(window.location.search);
+    setCallbackStatus(params.get("status"));
+    setCallbackMessage(params.get("message"));
+  }, []);
 
   // Ödeme başarılıysa profili yenile ve yönlendir
 
@@ -127,15 +134,8 @@ function OdemeContent() {
     }
   }, [checkoutHTML]);
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
-      </div>
-    );
-  }
-
-  // Başarı durumu
+  // Başarı durumunu her şeyden önce göster (isLoading olsa bile)
+  // Bu "beyaz ekran" sorununu önler çünkü yüklenmeyi beklemeden render eder
   if (callbackStatus === "success") {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -149,12 +149,13 @@ function OdemeContent() {
             </div>
             <div>
               <h2 className="text-2xl font-extrabold text-slate-900 mb-2">Ödeme Başarılı! 🎉</h2>
-              <p className="text-slate-500">Hesabınız aktif edildi. Yönlendiriliyorsunuz...</p>
+              <p className="text-slate-500 font-medium">Hesabınız aktif edildi. Takvime yönlendiriliyorsunuz...</p>
+              <p className="text-[10px] text-slate-400 mt-2">Otomatik yönlendirme başlamazsa aşağıdaki butona tıklayın.</p>
             </div>
             <div className="pt-4">
               <Button 
                 onClick={() => window.location.href = "/takvim"}
-                className="bg-emerald-600 hover:bg-emerald-700 font-bold"
+                className="bg-emerald-600 hover:bg-emerald-700 font-bold px-8"
               >
                 Takvime Git
                 <ArrowRight className="ml-2 w-4 h-4" />
@@ -162,6 +163,14 @@ function OdemeContent() {
             </div>
           </CardContent>
         </Card>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
       </div>
     );
   }
