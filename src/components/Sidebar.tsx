@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { CalendarDays, Contact, Warehouse, ChartPie, HelpCircle, LogOut, Users, Lock, CreditCard, Layers } from "lucide-react";
+import { CalendarDays, Contact, Warehouse, ChartPie, HelpCircle, LogOut, Users, Lock, CreditCard, Layers, X } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
-export function Sidebar() {
+export function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean; setIsOpen?: (open: boolean) => void }) {
   const pathname = usePathname();
   const router = useRouter();
   const { signOut, user, profile, isLoading, checkAccess } = useAuth();
@@ -60,15 +60,32 @@ export function Sidebar() {
   };
 
   return (
-    <>
-      <nav className="fixed top-0 left-0 h-screen w-[280px] bg-[#1e293b] text-[#f8fafc] p-6 lg:flex flex-col z-[2000] shadow-[4px_0_20px_rgba(0,0,0,0.15)] hidden">
-        <div className="pb-10">
-          <div className="text-[0.65rem] tracking-[0.12rem] text-[#94a3b8] font-bold mb-1 uppercase">
-            Klinik Yönetimi
+      {/* Sidebar Overlay for Mobile */}
+      {isOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[1999] animate-in fade-in duration-300"
+          onClick={() => setIsOpen?.(false)}
+        />
+      )}
+
+      <nav className={`fixed top-0 left-0 h-screen w-[280px] bg-[#1e293b] text-[#f8fafc] p-6 flex flex-col z-[2000] shadow-[4px_0_20px_rgba(0,0,0,0.15)] transition-transform duration-300 lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="flex items-center justify-between lg:block pb-10">
+          <div>
+            <div className="text-[0.65rem] tracking-[0.12rem] text-[#94a3b8] font-bold mb-1 uppercase">
+              Klinik Yönetimi
+            </div>
+            <div className="text-[1.15rem] font-extrabold leading-snug uppercase">
+              {(profile?.clinic_name || "Klinik").toUpperCase()}
+            </div>
           </div>
-          <div className="text-[1.15rem] font-extrabold leading-snug uppercase">
-            {(profile?.clinic_name || "Klinik").toUpperCase()}
-          </div>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="lg:hidden text-[#94a3b8] hover:text-white"
+            onClick={() => setIsOpen?.(false)}
+          >
+            <X className="w-6 h-6" />
+          </Button>
         </div>
 
         <ul className="flex-1 list-none m-0 p-0 flex flex-col gap-2">
@@ -82,6 +99,7 @@ export function Sidebar() {
               <li key={item.href}>
                 <Link
                   href={item.href}
+                  onClick={() => setIsOpen?.(false)}
                   className={`flex items-center justify-between p-3 rounded-xl text-[0.9rem] font-medium transition-all duration-250 ${
                     isActive
                       ? "bg-[#f8fafc] text-[#1e293b] font-bold shadow-[0_4px_12px_rgba(0,0,0,0.1)]"
@@ -101,7 +119,7 @@ export function Sidebar() {
 
         <div className="pt-5 mt-auto border-t border-white/10 flex gap-2">
           <button
-            onClick={() => setSupportOpen(true)}
+            onClick={() => { setSupportOpen(true); setIsOpen?.(false); }}
             className="flex-1 flex items-center justify-center gap-2 p-2.5 rounded-lg bg-transparent border border-white/15 text-[#94a3b8] text-xs font-semibold hover:bg-white/10 hover:text-white hover:border-white/30 transition-all"
           >
             <HelpCircle className="w-3.5 h-3.5" />
@@ -116,12 +134,6 @@ export function Sidebar() {
           </button>
         </div>
       </nav>
-
-      {/* Mobile Nav Top Bar Placeholder if needed */}
-      <div className="lg:hidden w-full h-[60px] bg-[#1e293b] fixed top-0 flex items-center justify-between px-4 z-[2000] text-white">
-        <div className="font-bold text-sm uppercase">{(profile?.clinic_name || "Klinik").toUpperCase()}</div>
-        {/* Mobile menu logic could be added here */}
-      </div>
 
       <Dialog open={supportOpen} onOpenChange={setSupportOpen}>
         <DialogContent className="sm:max-w-[450px]">

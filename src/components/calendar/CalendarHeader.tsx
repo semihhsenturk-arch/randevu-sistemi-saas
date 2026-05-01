@@ -43,8 +43,8 @@ export function CalendarHeader({
 }: CalendarHeaderProps) {
   return (
     <div className="space-y-4 mb-3">
-      <header className="flex justify-between items-center bg-white/88 backdrop-blur-[20px] p-[14px_24px] rounded-[20px] border border-slate-200/60 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.07)] sticky top-3 z-[40]">
-        <div className="flex flex-col gap-[2px]">
+      <header className="flex flex-col sm:flex-row justify-between items-center bg-white/88 backdrop-blur-[20px] p-4 md:p-[14px_24px] rounded-[20px] border border-slate-200/60 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.07)] sticky top-3 z-[40] gap-4">
+        <div className="flex flex-col gap-[2px] text-center sm:text-left w-full sm:w-auto">
           <div className="text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[#0a3d34] opacity-80 mb-[1px]">
             {(clinicName || "Klinik").toUpperCase()}
           </div>
@@ -102,10 +102,10 @@ export function CalendarHeader({
           </div>
         </div>
 
-        <div className="flex items-center">
+        <div className="flex items-center w-full sm:w-auto">
           <Button 
             onClick={() => onNewAppointment(format(new Date(), "yyyy-MM-dd"), "09:00")}
-            className="bg-[#0a3d34] hover:bg-[#072b25] text-white p-[14px_32px] rounded-xl font-bold text-[1rem] uppercase tracking-[0.05em] shadow-[0_6px_20px_-4px_rgba(10,61,52,0.4)] transition-all hover:-translate-y-[2px] active:scale-95 h-auto"
+            className="w-full sm:w-auto bg-[#0a3d34] hover:bg-[#072b25] text-white p-4 sm:p-[14px_32px] rounded-xl font-bold text-[0.9rem] sm:text-[1rem] uppercase tracking-[0.05em] shadow-[0_6px_20px_-4px_rgba(10,61,52,0.4)] transition-all hover:-translate-y-[2px] active:scale-95 h-auto"
           >
             <Plus className="w-5 h-5 mr-2" />
             RANDEVU

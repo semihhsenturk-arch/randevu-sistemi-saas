@@ -62,6 +62,7 @@ export default function CalendarPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [currentApt, setCurrentApt] = useState<Partial<Appointment>>({});
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
+  const [selectedDayIndex, setSelectedDayIndex] = useState(0); // For mobile single day view
   const [isMounted, setIsMounted] = useState(false);
 
   // Client-side initialization
@@ -365,15 +366,33 @@ export default function CalendarPage() {
         {/* Sol Kolon: Takvim Alanı */}
         <div className="flex-1 w-full bg-transparent min-w-0">
           <DndContext sensors={sensors} collisionDetection={pointerWithin} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+            {/* Mobile Day Selector */}
+            <div className="lg:hidden grid grid-cols-7 gap-1 mb-2">
+              {weekDays.map((d, i) => (
+                <button
+                  key={i}
+                  onClick={() => setSelectedDayIndex(i)}
+                  className={`flex flex-col items-center py-2 rounded-xl transition-all ${
+                    selectedDayIndex === i 
+                      ? 'bg-[#0a3d34] text-white shadow-md' 
+                      : 'bg-white text-slate-400 border border-slate-100'
+                  }`}
+                >
+                  <span className="text-[0.6rem] font-bold uppercase">{format(d, "EEE", { locale: tr })}</span>
+                  <span className="text-sm font-black">{format(d, "d")}</span>
+                </button>
+              ))}
+            </div>
+
             <div className="flex items-stretch gap-2 mb-2">
-              <div className="w-[70px] shrink-0 flex items-center justify-center">
-                 <Button variant="outline" size="icon" className={`h-11 w-11 ${syncing ? 'border-[#0a3d34] text-[#0a3d34]' : 'text-slate-400'}`} onClick={handleSync}>
+              <div className="w-[60px] md:w-[70px] shrink-0 flex items-center justify-center">
+                 <Button variant="outline" size="icon" className={`h-10 w-10 md:h-11 md:w-11 ${syncing ? 'border-[#0a3d34] text-[#0a3d34]' : 'text-slate-400'}`} onClick={handleSync}>
                     <RefreshCw className={`w-5 h-5 ${syncing ? 'animate-spin' : ''}`} />
                  </Button>
               </div>
-              <div className="flex-1 grid grid-cols-7 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+              <div className="flex-1 grid grid-cols-1 lg:grid-cols-7 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
                 {weekDays.map((d, i) => (
-                  <div key={i} className={`p-3 text-center border-l border-slate-100 first:border-0 ${format(d, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd") ? 'bg-emerald-50/50' : ''}`}>
+                  <div key={i} className={`p-3 text-center border-l border-slate-100 first:border-0 ${format(d, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd") ? 'bg-emerald-50/50' : ''} ${selectedDayIndex === i ? 'block' : 'hidden lg:block'}`}>
                     <div className="text-[0.68rem] font-bold uppercase text-slate-500 mb-0.5 tracking-wider">{format(d, "EEEE", { locale: tr })}</div>
                     <div className="text-[1.2rem] font-extrabold text-slate-900">{format(d, "d")}</div>
                   </div>
@@ -381,7 +400,7 @@ export default function CalendarPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-[70px_1fr] bg-white border border-slate-200 rounded-2xl shadow-sm h-[900px] overflow-y-auto no-scrollbar relative mb-10">
+            <div className="grid grid-cols-[60px_1fr] md:grid-cols-[70px_1fr] bg-white border border-slate-200 rounded-2xl shadow-sm h-[700px] md:h-[900px] overflow-y-auto no-scrollbar relative mb-10">
               <div className="flex flex-col border-r border-slate-100 bg-slate-50/50">
                 {SHIFTS.map((t, i) => {
                   if (t === "12:30") return <div key="lunch-l" className="h-[100px] flex items-center justify-center text-[0.65rem] font-bold text-slate-400 [writing-mode:vertical-rl] rotate-180 bg-slate-100">ÖĞLE ARASI</div>;
@@ -389,12 +408,12 @@ export default function CalendarPage() {
                   return <div key={i} className="h-[50px] flex items-center justify-center text-[0.7rem] font-semibold text-slate-400 border-b border-slate-100">{t}</div>
                 })}
               </div>
-              <div className="grid grid-cols-7 relative">
+              <div className="grid grid-cols-1 lg:grid-cols-7 relative">
                 {weekDays.map((d, i) => {
                   const dStr = format(d, "yyyy-MM-dd");
                   const colApts = appointments.filter(a => a.tarih === dStr && (a.durum === "onaylandi" || a.durum === "beklemede"));
                   return (
-                    <div key={i} className="flex flex-col border-l border-slate-100 relative min-h-[900px]">
+                    <div key={i} className={`flex flex-col border-l border-slate-100 relative min-h-[700px] md:min-h-[900px] ${selectedDayIndex === i ? 'block' : 'hidden lg:block'}`}>
                       {SHIFTS.map((t, j) => {
                         if (t === "12:30") return <div key="lunch-s" className="h-[100px] bg-[repeating-linear-gradient(-45deg,transparent,transparent_4px,#f1f5f9_4px,#f1f5f9_5px)] border-y border-slate-200 flex items-center justify-center text-[0.65rem] uppercase font-bold text-slate-400 tracking-wider">Öğle Arası</div>;
                         if (t === "13:00") return null;

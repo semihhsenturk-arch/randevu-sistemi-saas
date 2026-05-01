@@ -114,16 +114,16 @@ export default function StockManagementPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <header className="flex justify-between items-center bg-white/88 backdrop-blur-[20px] p-[14px_24px] rounded-[20px] border border-slate-200/60 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.07)] sticky top-3 z-[40]">
-        <div className="flex flex-col gap-[2px]">
+      <header className="flex flex-col md:flex-row justify-between items-center bg-white/88 backdrop-blur-[20px] p-4 md:p-[14px_24px] rounded-[20px] border border-slate-200/60 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.07)] sticky top-3 z-[40] gap-4">
+        <div className="flex flex-col gap-[2px] text-center md:text-left w-full md:w-auto">
           <span className="text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[#0a3d34] opacity-80 mb-[1px]">{(profile?.clinic_name || "Klinik").toUpperCase()}</span>
           <h1 className="text-[1.25rem] font-extrabold text-[#1e293b]">Stok Yönetimi</h1>
           <div className="text-[0.78rem] font-medium text-[#64748b]">
             {format(new Date(), "d MMMM yyyy, eeee", { locale: tr })}
           </div>
         </div>
-        <div className="mt-4 md:mt-0 flex gap-4 w-full md:w-auto">
-           <div className="relative flex-1 md:w-[300px]">
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+           <div className="relative flex-1 md:w-[260px]">
              <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
              <Input 
                 placeholder="Malzeme ara..." 
@@ -132,7 +132,7 @@ export default function StockManagementPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
              />
            </div>
-           <Button onClick={() => setModalOpen(true)} className="bg-[#0a3d34] hover:bg-[#072b25] h-11 px-6 rounded-xl font-bold">
+           <Button onClick={() => setModalOpen(true)} className="bg-[#0a3d34] hover:bg-[#072b25] h-11 px-6 rounded-xl font-bold w-full sm:w-auto">
              <Plus className="w-4 h-4 mr-2" /> Yeni Kalem
            </Button>
         </div>
@@ -184,7 +184,61 @@ export default function StockManagementPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden relative min-h-[400px]">
+      <div className="block md:hidden space-y-3">
+        {filteredItems.length === 0 ? (
+          <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-500 italic">Kayıt bulunamadı.</div>
+        ) : filteredItems.map(item => {
+          const qty = inventory.stock[item.id] || 0;
+          const crit = item.kritik_stok || 10;
+          const isLow = qty <= crit;
+          return (
+            <div key={item.id} className={`bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 ${isLow ? 'border-red-200 bg-red-50/10' : ''}`}>
+              <div className="flex justify-between items-start">
+                <div>
+                  <div className="font-extrabold text-slate-900 text-lg">{item.ad}</div>
+                  <div className="text-[0.65rem] font-black text-slate-400 uppercase tracking-widest">{item.birim}</div>
+                </div>
+                {isLow ? (
+                  <span className="bg-red-100 text-red-600 px-3 py-1 rounded-full text-[0.65rem] font-black flex items-center gap-1">
+                    <AlertTriangle className="w-3 h-3" /> KRİTİK
+                  </span>
+                ) : (
+                  <span className="bg-emerald-100 text-emerald-600 px-3 py-1 rounded-full text-[0.65rem] font-black flex items-center gap-1">
+                    <CheckCircle className="w-3 h-3" /> GÜVENLİ
+                  </span>
+                )}
+              </div>
+              
+              <div className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100">
+                <div className="flex flex-col">
+                  <span className="text-[0.6rem] font-bold text-slate-400 uppercase">Mevcut Stok</span>
+                  <span className="text-xl font-black text-slate-900">{qty} {item.birim}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Button size="icon" variant="outline" className="h-10 w-10 bg-white border-slate-200 rounded-xl" onClick={() => handleStockAdjust(item, -(adjustAmounts[item.id] || 1))} disabled={qty <= 0}>-</Button>
+                  <Input 
+                    type="number" 
+                    min={1} 
+                    value={adjustAmounts[item.id] || 1} 
+                    onChange={(e) => setAdjustAmounts(prev => ({ ...prev, [item.id]: Number(e.target.value) }))}
+                    className="w-12 h-10 text-center font-black p-0 border-slate-200 bg-white"
+                  />
+                  <Button size="icon" variant="outline" className="h-10 w-10 bg-white border-slate-200 rounded-xl" onClick={() => handleStockAdjust(item, (adjustAmounts[item.id] || 1))}>+</Button>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center pt-2">
+                 <div className="text-[0.7rem] font-bold text-slate-400">Kritik Limit: <span className="text-slate-900">{crit}</span></div>
+                 <Button variant="ghost" size="sm" className="h-8 text-red-500 hover:bg-red-50" onClick={() => confirmDelete(item)}>
+                   <Trash2 className="w-4 h-4 mr-1.5" /> Sil
+                 </Button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="hidden md:block bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden relative min-h-[400px]">
         <table className="w-full">
             <thead>
                 <tr className="bg-gradient-to-r from-[#0c4a40] to-[#177567] text-white">

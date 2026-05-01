@@ -11,25 +11,31 @@ import {
   CheckCircle2, 
   ArrowRight,
   Database,
-  Brain
+  Brain,
+  Menu,
+  X as CloseIcon
 } from "lucide-react";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
 export default function LandingPage() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-white text-slate-900 selection:bg-emerald-100 selection:text-emerald-900">
       {/* Navbar */}
-      <nav className="fixed top-6 w-full z-[1000] px-6">
-        <div className="max-w-7xl mx-auto h-24 bg-white/90 backdrop-blur-xl border border-[#0a3d34]/15 rounded-[32px] px-10 flex items-center justify-between shadow-2xl shadow-[#0a3d34]/5 transition-all duration-300">
+      <nav className="fixed top-4 md:top-6 w-full z-[1000] px-4 md:px-6">
+        <div className="max-w-7xl mx-auto h-20 md:h-24 bg-white/90 backdrop-blur-xl border border-[#0a3d34]/15 rounded-[24px] md:rounded-[32px] px-6 md:px-10 flex items-center justify-between shadow-2xl shadow-[#0a3d34]/5 transition-all duration-300">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-[#0a3d34] rounded-2xl flex items-center justify-center shadow-xl shadow-[#0a3d34]/20">
-              <CalendarDays className="text-white w-7 h-7" />
+            <div className="w-10 h-10 md:w-12 md:h-12 bg-[#0a3d34] rounded-xl md:rounded-2xl flex items-center justify-center shadow-xl shadow-[#0a3d34]/20">
+              <CalendarDays className="text-white w-6 h-6 md:w-7 md:h-7" />
             </div>
-            <span className="font-black text-2xl tracking-tighter text-[#0a3d34]">BiCalendar</span>
+            <span className="font-black text-xl md:text-2xl tracking-tighter text-[#0a3d34]">BiCalendar</span>
           </div>
           
-          <div className="flex-1 flex justify-center">
+          <div className="flex-1 flex justify-end md:justify-center">
+            {/* Desktop Menu */}
             <div className="hidden md:flex items-center gap-12 text-lg font-bold text-slate-600">
               <a href="#ozellikler" className="hover:text-[#0a3d34] transition-colors relative group">
                 Özellikler
@@ -48,27 +54,47 @@ export default function LandingPage() {
                 </Button>
               </Link>
             </div>
+
+            {/* Mobile Menu Toggle */}
+            <button 
+              className="md:hidden p-2 text-[#0a3d34]" 
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? <CloseIcon className="w-8 h-8" /> : <Menu className="w-8 h-8" />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Menu Overlay */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden absolute top-28 left-4 right-4 bg-white border border-slate-100 rounded-3xl shadow-2xl p-8 flex flex-col gap-6 z-[1001] animate-in fade-in slide-in-from-top-4 duration-300">
+            <a href="#ozellikler" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-bold text-slate-900 border-b border-slate-50 pb-4">Özellikler</a>
+            <a href="#fiyatlandirma" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-bold text-slate-900 border-b border-slate-50 pb-4">Fiyatlandırma</a>
+            <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-black text-[#0a3d34]">Giriş Yap</Link>
+            <Link href="/register" onClick={() => setIsMobileMenuOpen(false)}>
+              <Button className="w-full bg-[#0a3d34] py-8 rounded-2xl text-xl font-black shadow-xl shadow-[#0a3d34]/20">Hemen Başla</Button>
+            </Link>
+          </div>
+        )}
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-40 pb-20 px-6 overflow-hidden">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-16">
-          <div className="flex-1 text-center md:text-left space-y-8">
+      <section className="pt-32 md:pt-40 pb-20 px-6 overflow-hidden">
+        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-12 md:gap-16">
+          <div className="flex-1 text-center lg:text-left space-y-6 md:space-y-8">
             <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider">
               <Zap className="w-4 h-4 fill-current" />
               Klinik Yönetiminde Yeni Nesil Dönem
             </div>
-            <h1 className="text-4xl md:text-6xl font-extrabold text-slate-900 leading-[1.1] tracking-tight">
+            <h1 className="text-4xl md:text-5xl lg:text-7xl font-extrabold text-slate-900 leading-[1.1] tracking-tight">
               Klinik İşlerinizi <span className="text-[#0a3d34]">Otomatiğe</span> Alın.
             </h1>
-            <p className="text-lg md:text-xl text-slate-500 max-w-xl leading-relaxed">
+            <p className="text-lg md:text-xl text-slate-500 max-w-xl mx-auto lg:mx-0 leading-relaxed">
               Randevu takibi, hasta kayıtları, stok yönetimi ve analizler. Hepsi tek bir platformda, her yerden erişilebilir.
             </p>
-            <div className="flex flex-col sm:flex-row items-center gap-4 justify-center md:justify-start">
-              <Link href="/register">
-                <Button className="w-full sm:w-auto bg-[#0a3d34] hover:bg-[#072b25] text-white px-8 py-7 rounded-2xl text-lg font-bold shadow-2xl shadow-[#0a3d34]/20 hover:-translate-y-1 transition-all group">
+            <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
+              <Link href="/register" className="w-full sm:w-auto">
+                <Button className="w-full bg-[#0a3d34] hover:bg-[#072b25] text-white px-8 py-7 rounded-2xl text-lg font-bold shadow-2xl shadow-[#0a3d34]/20 hover:-translate-y-1 transition-all group">
                   Hemen Başla
                   <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
@@ -79,16 +105,16 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="flex-1 relative">
-            <div className="absolute -top-20 -right-20 w-[600px] h-[600px] bg-emerald-100/50 rounded-full blur-3xl -z-1" />
-            <div className="relative bg-white border border-slate-100 rounded-[32px] p-2 shadow-2xl shadow-slate-200/60">
+          <div className="flex-1 relative w-full max-w-2xl lg:max-w-none">
+            <div className="absolute -top-10 -right-10 md:-top-20 md:-right-20 w-[300px] h-[300px] md:w-[600px] md:h-[600px] bg-emerald-100/50 rounded-full blur-3xl -z-1" />
+            <div className="relative bg-white border border-slate-100 rounded-[24px] md:rounded-[32px] p-2 shadow-2xl shadow-slate-200/60 overflow-hidden">
               <Image 
                 src="/landing-hero.png" 
                 alt="Clinic Management Dashboard" 
                 width={1024} 
                 height={1024}
                 priority
-                className="rounded-[28px] border border-slate-50"
+                className="rounded-[20px] md:rounded-[28px] border border-slate-50 w-full h-auto"
               />
             </div>
           </div>
@@ -103,7 +129,7 @@ export default function LandingPage() {
             <p className="text-slate-500 text-base md:text-lg">Karmaşık süreçleri basitleştirin, sadece hastalarınıza odaklanın.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {[
               {
                 icon: CalendarDays,
@@ -161,7 +187,7 @@ export default function LandingPage() {
             <p className="text-slate-500 text-base md:text-lg">İhtiyacınıza en uygun paketi seçin, işinizi büyütmeye odaklanın.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             
             {/* Starter Paket */}
             <div className="flex flex-col h-full bg-white rounded-[40px] border-2 border-slate-100 px-7 py-6 hover:border-emerald-200 shadow-sm hover:shadow-xl hover:shadow-emerald-500/5 transition-all">

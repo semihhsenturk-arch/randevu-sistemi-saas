@@ -35,6 +35,14 @@
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
+
+  /* Fluid Spacing & Typography Utilities */
+  --font-size-fluid-h1: clamp(2rem, 5vw + 1rem, 4.5rem);
+  --font-size-fluid-h2: clamp(1.5rem, 3vw + 1rem, 3rem);
+  --font-size-fluid-body: clamp(0.875rem, 0.5vw + 0.75rem, 1.125rem);
+  
+  --spacing-fluid-gap: clamp(1rem, 2vw, 2.5rem);
+  --spacing-fluid-padding: clamp(1.25rem, 4vw, 5rem);
 }
 
 :root {
@@ -131,6 +139,22 @@
       radial-gradient(at 100% 0%, hsla(170, 70%, 40%, 0.05) 0, transparent 50%);
     background-attachment: fixed;
     min-height: 100vh;
+    font-size: var(--font-size-fluid-body);
+  }
+
+  h1 { font-size: var(--font-size-fluid-h1); }
+  h2 { font-size: var(--font-size-fluid-h2); }
+}
+
+@layer utilities {
+  .mobile-only {
+    @apply block md:hidden;
+  }
+  .desktop-only {
+    @apply hidden md:block;
+  }
+  .fluid-container {
+    @apply max-w-7xl mx-auto px-[var(--spacing-fluid-gap)];
   }
 }
 

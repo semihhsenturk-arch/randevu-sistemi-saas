@@ -146,8 +146,8 @@ export default function DashboardAnalyticsPage() {
 
   return (
     <div className="flex flex-col gap-2">
-      <header className="flex justify-between items-center bg-white/88 backdrop-blur-[20px] p-[14px_24px] rounded-[20px] border border-slate-200/60 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.07)] sticky top-3 z-[40] mb-6">
-        <div className="flex flex-col gap-[2px]">
+      <header className="flex flex-col md:flex-row justify-between items-center bg-white/88 backdrop-blur-[20px] p-4 md:p-[14px_24px] rounded-[20px] border border-slate-200/60 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.07)] sticky top-3 z-[40] mb-6 gap-4">
+        <div className="flex flex-col gap-[2px] text-center md:text-left w-full md:w-auto">
           <span className="text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[#0a3d34] opacity-80 mb-[1px]">{(profile?.clinic_name || "Klinik").toUpperCase()}</span>
           <h1 className="text-[1.25rem] font-extrabold text-[#1e293b]">Analiz Paneli</h1>
           <div className="text-[0.78rem] font-medium text-[#64748b]">
@@ -157,29 +157,31 @@ export default function DashboardAnalyticsPage() {
       </header>
 
       {/* Tarih Filtre Barı - Sola Yaslı */}
-      <div className="bg-white/50 backdrop-blur-sm px-6 py-3 rounded-2xl mb-8 flex flex-wrap items-center gap-6 shadow-sm border border-slate-200/60">
-        <div className="flex items-center gap-3">
-          <label className="text-[0.65rem] font-black uppercase tracking-[0.1em] text-slate-500">BAŞLANGIÇ</label>
-          <FlatPicker 
-            value={startDate} 
-            onChange={(val) => setStartDate(val)}
-            className="w-[160px]"
-          />
+      <div className="bg-white/50 backdrop-blur-sm px-4 md:px-6 py-4 rounded-2xl mb-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-6 shadow-sm border border-slate-200/60">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-1">
+          <div className="flex flex-col gap-1.5 flex-1">
+            <label className="text-[0.6rem] font-black uppercase tracking-[0.1em] text-slate-500 ml-1">BAŞLANGIÇ</label>
+            <FlatPicker 
+              value={startDate} 
+              onChange={(val) => setStartDate(val)}
+              className="w-full sm:w-[160px]"
+            />
+          </div>
+          <div className="flex flex-col gap-1.5 flex-1">
+            <label className="text-[0.6rem] font-black uppercase tracking-[0.1em] text-slate-500 ml-1">BİTİŞ</label>
+            <FlatPicker 
+              value={endDate} 
+              onChange={(val) => setEndDate(val)}
+              className="w-full sm:w-[160px]"
+            />
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <label className="text-[0.65rem] font-black uppercase tracking-[0.1em] text-slate-500">BİTİŞ</label>
-          <FlatPicker 
-            value={endDate} 
-            onChange={(val) => setEndDate(val)}
-            className="w-[160px]"
-          />
-          <button 
-            onClick={handleUpdate}
-            className="bg-[#0a3d34] text-white h-11 px-6 rounded-xl text-sm font-bold shadow-md hover:bg-[#0a3d34]/90 transition-all hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:shadow-md flex items-center justify-center ml-1"
-          >
-            Güncelle
-          </button>
-        </div>
+        <button 
+          onClick={handleUpdate}
+          className="bg-[#0a3d34] text-white h-11 px-8 rounded-xl text-sm font-bold shadow-md hover:bg-[#0a3d34]/90 transition-all hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:shadow-md flex items-center justify-center sm:mt-5"
+        >
+          Güncelle
+        </button>
       </div>
 
 

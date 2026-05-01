@@ -291,15 +291,15 @@ export default function PatientListPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <header className="flex justify-between items-center bg-white/88 backdrop-blur-[20px] p-[14px_24px] rounded-[20px] border border-slate-200/60 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.07)] sticky top-3 z-[40]">
-        <div className="flex flex-col gap-[2px]">
+      <header className="flex flex-col md:flex-row justify-between items-center bg-white/88 backdrop-blur-[20px] p-4 md:p-[14px_24px] rounded-[20px] border border-slate-200/60 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.07)] sticky top-3 z-[40] gap-4">
+        <div className="flex flex-col gap-[2px] text-center md:text-left w-full md:w-auto">
           <span className="text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[#0a3d34] opacity-80 mb-[1px]">{(profile?.clinic_name || "Klinik").toUpperCase()}</span>
           <h1 className="text-[1.25rem] font-extrabold text-[#1e293b]">Hasta Listesi</h1>
           <div className="text-[0.78rem] font-medium text-[#64748b]">
             {format(new Date(), "d MMMM yyyy, eeee", { locale: tr })}
           </div>
         </div>
-        <div className="mt-4 md:mt-0 flex gap-4 w-full md:w-auto">
+        <div className="flex gap-4 w-full md:w-auto">
            <div className="relative flex-1 md:w-[300px]">
              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
              <Input 
@@ -313,7 +313,32 @@ export default function PatientListPage() {
       </header>
 
 
-      <div className="bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden relative">
+      <div className="block md:hidden space-y-3">
+        {filteredPatients.length === 0 && !loading ? (
+          <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-500 italic">Kayıt bulunamadı.</div>
+        ) : filteredPatients.map(p => {
+          const h = services.find(x => x.id.toString() === p.hizmetId.toString());
+          return (
+            <div key={p.id} className={`bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 ${p.durum === 'beklemede' ? 'border-amber-200 bg-amber-50/10' : ''}`}>
+              <div className="flex justify-between items-start">
+                <div className="flex flex-col">
+                  <span className="font-extrabold text-[#0a3d34] text-lg" onClick={() => openProfile(p.musteriAdi, p.telefon || "")}>{p.musteriAdi}</span>
+                  <span className="text-sm font-medium text-slate-500">{p.telefon || "Telefon Yok"}</span>
+                </div>
+                <span className="bg-slate-100 text-[#1e293b] px-3 py-1 rounded-lg text-[0.8rem] font-black">{p.saat}</span>
+              </div>
+              <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-3 py-1 rounded-full text-[0.7rem] font-bold">{h?.ad}</span>
+                <Button variant="outline" size="sm" className="h-9 px-4 text-xs bg-[#0a3d34] text-white font-bold hover:bg-[#072b25] transition-all rounded-xl" onClick={() => openMaterial(p.musteriAdi)}>
+                  <Package className="w-3.5 h-3.5 mr-1.5" /> Malzeme
+                </Button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="hidden md:block bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden relative">
         <Table>
           <TableHeader className="bg-gradient-to-r from-[#0c4a40] to-[#177567] hover:bg-transparent">
             <TableRow className="hover:bg-transparent border-none">
