@@ -133,35 +133,41 @@ export default function CalendarPage() {
         let newAptsCount = 0;
         for (const row of rawData.data) {
           const ad = row["Ad Soyad"] || row["Ad"] || row["Müşteri Adı"] || row["İsim"] || "";
-          let tel = row["Telefon Numarası"] || row["Telefon"] || row["Tel"] || row["İletişim"] || "";
-          let tarihRaw = row["Tercih Edilen Tarih"] || row["Tarih"] || row["Randevu Tarihi"] || "";
-          let tarih = tarihRaw;
-          let saat = row["Saat"] || row["Randevu Saati"] || "";
+          let tel = (row["Telefon Numarası"] || row["Telefon"] || row["Tel"] || row["İletişim"] || "").toString();
+          
+          let tarihRaw = (row["Tercih Edilen Tarih"] || row["Tarih"] || row["Randevu Tarihi"] || "").toString();
+          let tarih = "";
+          let saat = (row["Saat"] || row["Randevu Saati"] || "").toString();
 
-          if (tarihRaw?.includes && tarihRaw.includes(" ")) {
+          // Tarih ve saat ayıklama (Örn: "2026-05-02 10:00" -> tarih: 2026-05-02, saat: 10:00)
+          if (tarihRaw.includes(" ")) {
             const parts = tarihRaw.split(" ");
             tarih = parts[0];
             if (!saat) saat = parts[1];
+          } else {
+            tarih = tarihRaw;
           }
+
+          if (tarih.includes(".")) {
+            const parts = tarih.split(".");
+            if (parts.length === 3) tarih = `${parts[2]}-${parts[1]}-${parts[0]}`;
+          }
+          
+          // Sadece YYYY-MM-DD kısmını al (varsa fazlalıkları temizle)
+          if (tarih.length > 10) tarih = tarih.substring(0, 10);
 
           if (!saat || saat === "00:00") saat = "09:00";
           if (saat.length > 5) saat = saat.substring(0, 5);
 
-          if (tarih?.includes(".")) {
-            const parts = tarih.split(".");
-            if (parts.length === 3) tarih = `${parts[2]}-${parts[1]}-${parts[0]}`;
-          }
+          if (!ad || !tarih || tarih === "undefined") continue;
 
-          if (!ad || !tarih) continue;
-
-          // Senkronizasyonda gelen veriyi her zaman "beklemede" durumuna çekiyoruz (bekleme odasına düşmesi için)
+          // Senkronizasyonda gelen veriyi her zaman "beklemede" durumuna çekiyoruz
           let durum: "beklemede" | "onaylandi" | "iptal" = "beklemede";
 
           const hizmetAd = row["İlgilendiği Tedavi"] || row["Hizmet"] || row["Hizmet Tipi"] || row["İşlem"] || "";
           let notlar = row["Notlar"] || row["Not"] || row["Açıklama"] || "";
           if (hizmetAd) notlar = notlar ? `İstek: ${hizmetAd}\n${notlar}` : `İstek: ${hizmetAd}`;
 
-          // Hizmet eşleştirme: "Muayene" hizmetini bul, yoksa ilk hizmeti al, o da yoksa 1 kullan
           let hId: string | number = services[0]?.id || 1;
           const muayeneHizmet = services.find(h => h.ad.toLowerCase().includes("muayene"));
           if (muayeneHizmet) hId = muayeneHizmet.id;
@@ -169,7 +175,6 @@ export default function CalendarPage() {
           const sheetRowId = "gs_" + (row["_sheetRowIndex"] || Math.random().toString(36).substr(2, 9));
           const existingIdx = freshApts.findIndex(a => a.id === sheetRowId || (a.tarih === tarih && a.saat === saat && a.musteriAdi === ad));
 
-          // Eğer kayıt zaten sistemde varsa ve Onaylandı/İptal edildiyse, tekrar bekleme odasına getirme
           if (existingIdx > -1) {
             const existing = freshApts[existingIdx];
             if (existing.durum === "onaylandi" || existing.durum === "iptal") {
@@ -192,7 +197,7 @@ export default function CalendarPage() {
             freshApts[existingIdx] = { ...freshApts[existingIdx], ...newData };
             try { 
               await saveAppointment(newData as Appointment); 
-            } catch(saveErr: any) {
+            } catch(saveErr) {
               console.error("Güncelleme hatası:", saveErr);
             }
           } else {
@@ -209,10 +214,10 @@ export default function CalendarPage() {
           }
         }
         setAppointments(freshApts);
-        const processedNames = rawData.data.map((r: any) => r["Ad Soyad"] || r["Ad"] || "İsimsiz").join(", ");
         toast.success("Senkronizasyon Başarılı", {
-          description: `${rawData.data.length} adet randevu işlendi: ${processedNames}`,
+          description: newAptsCount > 0 ? `${newAptsCount} adet yeni randevu bekleme odasına aktarıldı.` : "Veriler güncel.",
         });
+      }
       }
     } catch (e) {
       console.error(e);
