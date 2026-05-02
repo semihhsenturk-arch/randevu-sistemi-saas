@@ -168,6 +168,14 @@ export default function CalendarPage() {
           const sheetRowId = "gs_" + (row["_sheetRowIndex"] || Math.random().toString(36).substr(2, 9));
           const existingIdx = freshApts.findIndex(a => a.id === sheetRowId || (a.tarih === tarih && a.saat === saat && a.musteriAdi === ad));
 
+          // Eğer kayıt zaten sistemde varsa ve Onaylandı/İptal edildiyse, tekrar bekleme odasına getirme
+          if (existingIdx > -1) {
+            const existing = freshApts[existingIdx];
+            if (existing.durum === "onaylandi" || existing.durum === "iptal") {
+              continue; 
+            }
+          }
+
           const newData = {
             id: existingIdx > -1 ? freshApts[existingIdx].id : sheetRowId,
             musteriAdi: ad,
