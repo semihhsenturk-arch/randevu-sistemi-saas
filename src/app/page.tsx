@@ -360,9 +360,9 @@ export default function LandingPage() {
           <div className="space-y-4">
             <h4 className="text-white font-semibold uppercase tracking-widest text-xs">Yasal</h4>
             <div className="flex flex-col gap-2.5 text-sm">
-                <a href="#" className="hover:text-emerald-400 transition-colors">Gizlilik Sözleşmesi</a>
-                <a href="#" className="hover:text-emerald-400 transition-colors">KVKK ve Güvenlik</a>
-                <a href="#" className="hover:text-emerald-400 transition-colors">Kullanım Şartları</a>
+                <Link href="/legal/gizlilik-sozlesmesi" className="hover:text-emerald-400 transition-colors">Gizlilik Sözleşmesi</Link>
+                <Link href="/legal/kvkk" className="hover:text-emerald-400 transition-colors">KVKK ve Güvenlik</Link>
+                <Link href="/legal/kullanim-sartlari" className="hover:text-emerald-400 transition-colors">Kullanım Şartları</Link>
             </div>
           </div>
         </div>

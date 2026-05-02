@@ -50,6 +50,7 @@ function RegisterContent() {
   const [errorMsg, setErrorMsg] = useState("");
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [agreed, setAgreed] = useState(false);
 
   // URL'den paket parametresini oku
   useEffect(() => {
@@ -400,25 +401,48 @@ function RegisterContent() {
                 )}
 
                 {/* Alt Butonlar */}
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => { setStep(1); setErrorMsg(""); }}
-                    className="h-12 px-6 font-bold w-full sm:w-auto order-2 sm:order-1"
-                  >
-                    <ArrowLeft className="mr-2 w-4 h-4" />
-                    Geri
-                  </Button>
-                  <Button
-                    type="button"
-                    disabled={loading}
-                    onClick={handleRegister}
-                    className="flex-1 h-12 text-base font-bold bg-[#0a3d34] hover:bg-[#072b25] order-1 sm:order-2"
-                  >
-                    {loading ? "Hesap Oluşturuluyor..." : "Kayıt Ol"}
-                  </Button>
-                </div>
+                  <div className="space-y-6">
+                    <div className="flex items-start gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-200 transition-all hover:border-emerald-200 group">
+                      <div className="relative flex items-center h-5">
+                        <input
+                          id="legal-agree"
+                          type="checkbox"
+                          checked={agreed}
+                          onChange={(e) => setAgreed(e.target.checked)}
+                          className="w-5 h-5 rounded border-slate-300 text-[#0a3d34] focus:ring-[#0a3d34] transition-all cursor-pointer"
+                        />
+                      </div>
+                      <label htmlFor="legal-agree" className="text-[11px] leading-relaxed text-slate-600 cursor-pointer select-none">
+                        <Link href="/legal/kullanim-sartlari" className="text-[#0a3d34] font-bold hover:underline" target="_blank">Kullanım Şartlarını</Link>,{" "}
+                        <Link href="/legal/gizlilik-sozlesmesi" className="text-[#0a3d34] font-bold hover:underline" target="_blank">Gizlilik Sözleşmesini</Link> ve{" "}
+                        <Link href="/legal/kvkk" className="text-[#0a3d34] font-bold hover:underline" target="_blank">KVKK Aydınlatma Metnini</Link> okudum, özel nitelikli verilerimin yurtdışı sunucularında işlenmesini ve aktarılmasını kabul ediyorum.
+                      </label>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => { setStep(1); setErrorMsg(""); }}
+                        className="h-12 px-6 font-bold w-full sm:w-auto order-2 sm:order-1"
+                      >
+                        <ArrowLeft className="mr-2 w-4 h-4" />
+                        Geri
+                      </Button>
+                      <Button
+                        type="button"
+                        disabled={loading || !agreed}
+                        onClick={handleRegister}
+                        className={`flex-1 h-12 text-base font-bold order-1 sm:order-2 transition-all ${
+                          agreed 
+                            ? "bg-[#0a3d34] hover:bg-[#072b25] text-white" 
+                            : "bg-slate-200 text-slate-400 cursor-not-allowed"
+                        }`}
+                      >
+                        {loading ? "Hesap Oluşturuluyor..." : "Kayıt Ol"}
+                      </Button>
+                    </div>
+                  </div>
               </div>
             )}
           </CardContent>
