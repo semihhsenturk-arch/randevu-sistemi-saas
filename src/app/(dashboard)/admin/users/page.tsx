@@ -68,13 +68,20 @@ export default function AdminUsersPage() {
   };
 
   const toggleApproval = async (id: string, currentStatus: boolean) => {
+    const updateData: any = { is_approved: !currentStatus };
+    
+    // Eğer kullanıcı onaylanıyorsa (ve daha önce onaylanmamışsa veya tarih yoksa) onay tarihini set et
+    if (!currentStatus) {
+      updateData.approved_at = new Date().toISOString();
+    }
+
     const { error } = await supabase
       .from('profiles')
-      .update({ is_approved: !currentStatus })
+      .update(updateData)
       .eq('id', id);
 
     if (!error) {
-      const updatedUsers = users.map(u => u.id === id ? { ...u, is_approved: !currentStatus } : u);
+      const updatedUsers = users.map(u => u.id === id ? { ...u, ...updateData } : u);
       setUsers(updatedUsers);
       if (typeof window !== 'undefined') {
         localStorage.setItem(CACHE_KEYS.ADMIN_USERS, JSON.stringify(updatedUsers));
@@ -182,7 +189,7 @@ export default function AdminUsersPage() {
                   <TableHead className="font-semibold text-slate-700">Klinik Adı / Ünvan</TableHead>
                   <TableHead className="font-semibold text-slate-700">E-posta</TableHead>
                   <TableHead className="font-semibold text-slate-700">Hizmet Paketi</TableHead>
-                  <TableHead className="font-semibold text-slate-700">Ödeme</TableHead>
+                  <TableHead className="font-semibold text-slate-700">Ödeme / Deneme</TableHead>
                   <TableHead className="font-semibold text-slate-700">Rol</TableHead>
                   <TableHead className="font-semibold text-slate-700">Durum</TableHead>
                   <TableHead className="text-right font-semibold text-slate-700">İşlem</TableHead>
@@ -243,7 +250,20 @@ export default function AdminUsersPage() {
                         {u.role === 'admin' ? (
                           <span className="text-xs text-slate-400 italic">—</span>
                         ) : (
-                          getPaymentBadge(u.payment_status)
+                          <div className="flex flex-col gap-1">
+                            {getPaymentBadge(u.payment_status)}
+                            {u.approved_at && u.payment_status !== 'paid' && (
+                              <div className="text-[10px] font-medium text-slate-500">
+                                {(() => {
+                                  const diff = new Date().getTime() - new Date(u.approved_at!).getTime();
+                                  const days = 7 - Math.floor(diff / (1000 * 60 * 60 * 24));
+                                  return days > 0 
+                                    ? `Deneme: ${days} gün kaldı` 
+                                    : "Deneme süresi doldu";
+                                })()}
+                              </div>
+                            )}
+                          </div>
                         )}
                       </TableCell>
                       <TableCell>

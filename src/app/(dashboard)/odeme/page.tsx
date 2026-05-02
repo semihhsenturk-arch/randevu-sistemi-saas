@@ -213,6 +213,14 @@ function OdemeContent() {
   const PlanIcon = plan === "starter" ? Zap : plan === "professional" ? ShieldCheck : Star;
   const planColor = plan === "starter" ? "text-amber-500" : plan === "professional" ? "text-emerald-500" : "text-purple-500";
 
+  const isTrialActive = profile?.approved_at 
+    ? (new Date().getTime() - new Date(profile.approved_at).getTime()) < 7 * 24 * 60 * 60 * 1000
+    : false;
+  
+  const daysLeft = profile?.approved_at
+    ? 7 - Math.floor((new Date().getTime() - new Date(profile.approved_at).getTime()) / (1000 * 60 * 60 * 24))
+    : 0;
+
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-8">
       {/* Ödeme formu gösteriliyorsa */}
@@ -244,10 +252,31 @@ function OdemeContent() {
               <CreditCard className="w-8 h-8 text-[#0a3d34]" />
             </div>
             <div>
-              <CardTitle className="text-2xl font-extrabold text-slate-900 mb-2">Ödeme Yapın</CardTitle>
-              <p className="text-sm text-slate-500">
-                Hesabınız onaylandı! Aşağıdaki paketiniz için ödeme yaparak tüm özelliklere erişim sağlayın.
-              </p>
+              <CardTitle className="text-2xl font-extrabold text-slate-900 mb-2">
+                {isTrialActive ? "Deneme Süreniz Başladı! 🎁" : "Ödeme Yapın"}
+              </CardTitle>
+              {isTrialActive ? (
+                <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 mb-4">
+                  <p className="text-sm font-bold text-emerald-800 flex items-center justify-center gap-2">
+                    <Sparkles className="w-4 h-4" />
+                    7 Günlük ücretsiz deneme sürenizin {daysLeft} günü kaldı.
+                  </p>
+                  <p className="text-xs text-emerald-600 mt-1">
+                    Bu süre boyunca sistemi ücretsiz kullanabilir, dilediğiniz zaman ödeme yaparak üyeliğinizi kalıcı hale getirebilirsiniz.
+                  </p>
+                  <Button 
+                    variant="link" 
+                    onClick={() => router.push('/takvim')}
+                    className="text-emerald-700 font-bold mt-2 h-auto p-0"
+                  >
+                    Şimdi Sisteme Git <ArrowRight className="w-3 h-3 ml-1" />
+                  </Button>
+                </div>
+              ) : (
+                <p className="text-sm text-slate-500">
+                  {profile?.approved_at ? "Deneme süreniz sona erdi." : "Hesabınız onaylandı!"} Aşağıdaki paketiniz için ödeme yaparak tüm özelliklere erişim sağlayın.
+                </p>
+              )}
             </div>
           </CardHeader>
 

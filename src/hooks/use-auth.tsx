@@ -22,6 +22,7 @@ export interface UserProfile {
   plan?: PlanType;
   payment_status?: "pending" | "paid";
   billing_cycle?: "monthly" | "yearly";
+  approved_at?: string;
 }
 
 interface AuthContextType {
@@ -191,11 +192,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               router.replace("/login");
             }
           } else if (currentPath === "/login" || currentPath === "/register" || currentPath === "/") {
-            const target = (currentProfile && currentProfile.payment_status !== 'paid' && currentProfile.role !== 'admin')
+            const isTrialActive = currentProfile?.approved_at 
+              ? (new Date().getTime() - new Date(currentProfile.approved_at).getTime()) < 7 * 24 * 60 * 60 * 1000
+              : false;
+
+            const target = (currentProfile && currentProfile.payment_status !== 'paid' && !isTrialActive && currentProfile.role !== 'admin')
               ? "/odeme"
               : "/takvim";
             
-            console.log(`Redirecting to ${target} from ${currentPath}`);
+            console.log(`Redirecting to ${target} from ${currentPath} (Trial Active: ${isTrialActive})`);
             router.replace(target);
             
             // Wait a bit before refreshing to let navigation settle
