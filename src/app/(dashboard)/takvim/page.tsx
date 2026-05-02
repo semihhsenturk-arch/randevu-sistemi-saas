@@ -209,8 +209,9 @@ export default function CalendarPage() {
           }
         }
         setAppointments(freshApts);
+        const processedNames = rawData.data.map((r: any) => r["Ad Soyad"] || r["Ad"] || "İsimsiz").join(", ");
         toast.success("Senkronizasyon Başarılı", {
-          description: newAptsCount > 0 ? `${newAptsCount} adet yeni randevu bekleme odasına aktarıldı.` : "Veriler güncel.",
+          description: `${rawData.data.length} adet randevu işlendi: ${processedNames}`,
         });
       }
     } catch (e) {
