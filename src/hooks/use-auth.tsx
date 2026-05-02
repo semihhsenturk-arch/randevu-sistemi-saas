@@ -169,7 +169,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               setProfile(null);
               setCachedProfile(null);
               setIsLoading(false);
-              if (currentPath !== "/login" && currentPath !== "/register" && currentPath !== "/") {
+              if (currentPath !== "/login" && currentPath !== "/register" && currentPath !== "/" && !currentPath.startsWith("/legal")) {
                 router.replace("/login");
               }
             }
@@ -191,7 +191,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
           // Navigation logic - Only redirect if necessary to prevent loops
           if (!session) {
-            if (currentPath !== "/login" && currentPath !== "/register" && currentPath !== "/") {
+            if (currentPath !== "/login" && currentPath !== "/register" && currentPath !== "/" && !currentPath.startsWith("/legal")) {
               router.replace("/login");
             }
           } else if (currentPath === "/login" || currentPath === "/register" || currentPath === "/") {
