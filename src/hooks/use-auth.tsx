@@ -23,6 +23,7 @@ export interface UserProfile {
   payment_status?: "pending" | "paid";
   billing_cycle?: "monthly" | "yearly";
   approved_at?: string;
+  google_sheet_url?: string;
 }
 
 interface AuthContextType {

@@ -18,8 +18,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { RefreshCw, Check, X, AlertTriangle, Trash2, Loader2 } from "lucide-react";
+import { RefreshCw, Check, X, AlertTriangle, Trash2, Loader2, Settings } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
 // DND Kit Imports
@@ -64,6 +65,14 @@ export default function CalendarPage() {
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [selectedDayIndex, setSelectedDayIndex] = useState(0); // For mobile single day view
   const [isMounted, setIsMounted] = useState(false);
+  const [sheetModalOpen, setSheetModalOpen] = useState(false);
+  const [sheetUrl, setSheetUrl] = useState(profile?.google_sheet_url || "");
+
+  useEffect(() => {
+    if (profile?.google_sheet_url) {
+      setSheetUrl(profile.google_sheet_url);
+    }
+  }, [profile?.google_sheet_url]);
 
   // Client-side initialization
   useEffect(() => {
@@ -109,7 +118,15 @@ export default function CalendarPage() {
   const handleSync = async () => {
     setSyncing(true);
     try {
-      const response = await fetch(GOOGLE_WEB_APP_URL);
+      const targetUrl = profile?.google_sheet_url;
+      if (!targetUrl) {
+        toast.error("Google Sheet Bağlı Değil", {
+          description: "Lütfen ayarlar ikonuna tıklayarak Google Sheet URL'nizi girin.",
+        });
+        setSyncing(false);
+        return;
+      }
+      const response = await fetch(targetUrl);
       const rawData = await response.json();
       if (rawData.status === "success" && rawData.data) {
         let freshApts = [...appointments];
@@ -308,6 +325,23 @@ export default function CalendarPage() {
     setModalOpen(false);
   };
 
+  const handleSaveSheetUrl = async () => {
+    if (!profile?.id) return;
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ google_sheet_url: sheetUrl })
+        .eq('id', profile.id);
+      
+      if (error) throw error;
+      toast.success("Ayarlar Kaydedildi", { description: "Google Sheet URL'niz güncellendi." });
+      setSheetModalOpen(false);
+    } catch (e) {
+      console.error(e);
+      toast.error("Hata", { description: "Ayarlar kaydedilemedi." });
+    }
+  };
+
   const getWeekRange = () => {
     const today = new Date();
     const monday = addDays(startOfWeek(today, { weekStartsOn: 1 }), weekOffset * 7);
@@ -385,9 +419,12 @@ export default function CalendarPage() {
             </div>
 
             <div className="flex items-stretch gap-2 mb-2">
-              <div className="w-[60px] md:w-[70px] shrink-0 flex items-center justify-center">
+              <div className="w-[60px] md:w-[70px] shrink-0 flex flex-col items-center justify-center gap-2">
                  <Button variant="outline" size="icon" className={`h-10 w-10 md:h-11 md:w-11 ${syncing ? 'border-[#0a3d34] text-[#0a3d34]' : 'text-slate-400'}`} onClick={handleSync}>
                     <RefreshCw className={`w-5 h-5 ${syncing ? 'animate-spin' : ''}`} />
+                 </Button>
+                 <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-[#0a3d34]" onClick={() => setSheetModalOpen(true)}>
+                    <Settings className="w-4 h-4" />
                  </Button>
               </div>
               <div className="flex-1 grid grid-cols-1 lg:grid-cols-7 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
@@ -670,6 +707,58 @@ export default function CalendarPage() {
               >
                 Evet, Sil
               </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={sheetModalOpen} onOpenChange={setSheetModalOpen}>
+        <DialogContent className="sm:max-w-[480px] p-0 overflow-hidden border-none shadow-[0_20px_40px_-8px_rgba(0,0,0,0.18)] rounded-[20px] bg-white">
+          <div className="p-8">
+            <div className="flex justify-between items-center mb-5">
+              <DialogTitle className="text-[1.3rem] font-extrabold text-[#1e293b]">
+                Google Sheet Ayarları
+              </DialogTitle>
+              <button 
+                type="button"
+                onClick={() => setSheetModalOpen(false)}
+                className="w-[30px] h-[30px] bg-[#f1f5f9] text-[#64748b] rounded-full flex items-center justify-center hover:bg-[#e2e8f0] transition-all"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-[0.75rem] font-bold text-[#64748b] uppercase tracking-wider">
+                  Google Apps Script Web App URL
+                </Label>
+                <Input 
+                  placeholder="https://script.google.com/macros/s/.../exec"
+                  value={sheetUrl}
+                  onChange={(e) => setSheetUrl(e.target.value)}
+                  className="h-12 border-slate-200 rounded-xl focus:ring-[#0a3d34]"
+                />
+                <p className="text-[0.7rem] text-slate-500 leading-relaxed">
+                  Randevularınızı Google Sheets'ten senkronize etmek için yayınladığınız Web App URL'sini buraya girin.
+                </p>
+              </div>
+              
+              <div className="flex gap-3 pt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setSheetModalOpen(false)}
+                  className="flex-1 h-12 rounded-xl font-bold"
+                >
+                  Vazgeç
+                </Button>
+                <Button 
+                  onClick={handleSaveSheetUrl}
+                  className="flex-1 h-12 rounded-xl font-bold bg-[#0a3d34] hover:bg-[#072b25]"
+                >
+                  Kaydet
+                </Button>
+              </div>
             </div>
           </div>
         </DialogContent>
