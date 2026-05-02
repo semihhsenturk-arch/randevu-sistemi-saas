@@ -213,7 +213,6 @@ export default function CalendarPage() {
           description: newAptsCount > 0 ? `${newAptsCount} adet yeni randevu bekleme odasına aktarıldı.` : "Veriler güncel.",
         });
       }
-      }
     } catch (e) {
       console.error(e);
       toast.error("Senkronizasyon Hatası", {
