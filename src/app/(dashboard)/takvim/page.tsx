@@ -131,6 +131,8 @@ export default function CalendarPage() {
       if (rawData.status === "success" && rawData.data) {
         let freshApts = [...appointments];
         let newAptsCount = 0;
+        let skippedCount = 0;
+
         for (const row of rawData.data) {
           const ad = row["Ad Soyad"] || row["Ad"] || row["Müşteri Adı"] || row["İsim"] || "";
           let tel = (row["Telefon Numarası"] || row["Telefon"] || row["Tel"] || row["İletişim"] || "").toString();
@@ -139,7 +141,6 @@ export default function CalendarPage() {
           let tarih = "";
           let saat = (row["Saat"] || row["Randevu Saati"] || "").toString();
 
-          // Tarih ve saat ayıklama (Örn: "2026-05-02 10:00" -> tarih: 2026-05-02, saat: 10:00)
           if (tarihRaw.includes(" ")) {
             const parts = tarihRaw.split(" ");
             tarih = parts[0];
@@ -153,17 +154,17 @@ export default function CalendarPage() {
             if (parts.length === 3) tarih = `${parts[2]}-${parts[1]}-${parts[0]}`;
           }
           
-          // Sadece YYYY-MM-DD kısmını al (varsa fazlalıkları temizle)
           if (tarih.length > 10) tarih = tarih.substring(0, 10);
 
           if (!saat || saat === "00:00") saat = "09:00";
           if (saat.length > 5) saat = saat.substring(0, 5);
 
-          if (!ad || !tarih || tarih === "undefined") continue;
+          if (!ad || !tarih || tarih === "undefined") {
+            skippedCount++;
+            continue;
+          }
 
-          // Senkronizasyonda gelen veriyi her zaman "beklemede" durumuna çekiyoruz
           let durum: "beklemede" | "onaylandi" | "iptal" = "beklemede";
-
           const hizmetAd = row["İlgilendiği Tedavi"] || row["Hizmet"] || row["Hizmet Tipi"] || row["İşlem"] || "";
           let notlar = row["Notlar"] || row["Not"] || row["Açıklama"] || "";
           if (hizmetAd) notlar = notlar ? `İstek: ${hizmetAd}\n${notlar}` : `İstek: ${hizmetAd}`;
@@ -172,7 +173,8 @@ export default function CalendarPage() {
           const muayeneHizmet = services.find(h => h.ad.toLowerCase().includes("muayene"));
           if (muayeneHizmet) hId = muayeneHizmet.id;
 
-          const sheetRowId = "gs_" + (row["_sheetRowIndex"] || Math.random().toString(36).substr(2, 9));
+          // Eşsiz ID üretimi için hem index hem de isim/tarih kullanıyoruz
+          const sheetRowId = "gs_" + (row["_sheetRowIndex"] || Math.random().toString(36).substr(2, 5));
           const existingIdx = freshApts.findIndex(a => a.id === sheetRowId || (a.tarih === tarih && a.saat === saat && a.musteriAdi === ad));
 
           if (existingIdx > -1) {
@@ -195,27 +197,18 @@ export default function CalendarPage() {
 
           if (existingIdx > -1) {
             freshApts[existingIdx] = { ...freshApts[existingIdx], ...newData };
-            try { 
-              await saveAppointment(newData as Appointment); 
-            } catch(saveErr) {
-              console.error("Güncelleme hatası:", saveErr);
-            }
+            await saveAppointment(newData as Appointment).catch(e => console.error(e));
           } else {
             freshApts.push(newData);
             newAptsCount++;
-            try { 
-              await saveAppointment(newData as Appointment); 
-            } catch(saveErr: any) {
-              console.error("Yeni kayıt hatası:", saveErr);
-              toast.error("Kayıt Hatası: " + ad, {
-                description: saveErr.message || "Veritabanına kaydedilemedi.",
-              });
-            }
+            await saveAppointment(newData as Appointment).catch(err => {
+              toast.error("Kayıt Başarısız: " + ad, { description: err.message });
+            });
           }
         }
         setAppointments(freshApts);
-        toast.success("Senkronizasyon Başarılı", {
-          description: newAptsCount > 0 ? `${newAptsCount} adet yeni randevu bekleme odasına aktarıldı.` : "Veriler güncel.",
+        toast.success("Senkronizasyon Tamamlandı", {
+          description: `${newAptsCount} yeni kayıt eklendi. (Atlanan: ${skippedCount})`,
         });
       }
     } catch (e) {
