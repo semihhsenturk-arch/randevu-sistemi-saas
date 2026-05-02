@@ -153,10 +153,8 @@ export default function CalendarPage() {
 
           if (!ad || !tarih) continue;
 
-          let durumRaw = (row["Durum"] || "").toString().toLowerCase();
+          // Senkronizasyonda gelen veriyi her zaman "beklemede" durumuna çekiyoruz (bekleme odasına düşmesi için)
           let durum: "beklemede" | "onaylandi" | "iptal" = "beklemede";
-          if (durumRaw.includes("onay") || durumRaw.includes("tamam")) durum = "onaylandi";
-          if (durumRaw.includes("iptal")) durum = "iptal";
 
           const hizmetAd = row["İlgilendiği Tedavi"] || row["Hizmet"] || row["Hizmet Tipi"] || row["İşlem"] || "";
           let notlar = row["Notlar"] || row["Not"] || row["Açıklama"] || "";
@@ -169,14 +167,6 @@ export default function CalendarPage() {
 
           const sheetRowId = "gs_" + (row["_sheetRowIndex"] || Math.random().toString(36).substr(2, 9));
           const existingIdx = freshApts.findIndex(a => a.id === sheetRowId || (a.tarih === tarih && a.saat === saat && a.musteriAdi === ad));
-
-          // Eğer kayıt zaten işlenmişse (onay veya iptal), sayfadan gelen 'beklemede' durumuyla ezmiyoruz
-          if (existingIdx > -1) {
-            const existing = freshApts[existingIdx];
-            if (existing.durum === "onaylandi" || existing.durum === "iptal") {
-              continue; 
-            }
-          }
 
           const newData = {
             id: existingIdx > -1 ? freshApts[existingIdx].id : sheetRowId,
@@ -191,21 +181,26 @@ export default function CalendarPage() {
 
           if (existingIdx > -1) {
             freshApts[existingIdx] = { ...freshApts[existingIdx], ...newData };
+            try { 
+              await saveAppointment(newData as Appointment); 
+            } catch(saveErr: any) {
+              console.error("Güncelleme hatası:", saveErr);
+            }
           } else {
             freshApts.push(newData);
             try { 
               await saveAppointment(newData as Appointment); 
             } catch(saveErr: any) {
-              console.error("Kayıt sırasında hata oluştu (Ad: " + ad + "):", saveErr);
+              console.error("Yeni kayıt hatası:", saveErr);
               toast.error("Kayıt Hatası: " + ad, {
-                description: saveErr.message || "Veritabanına kaydedilemedi. Hizmet tanımlarınızı kontrol edin.",
+                description: saveErr.message || "Veritabanına kaydedilemedi.",
               });
             }
           }
         }
         setAppointments(freshApts);
         toast.success("Senkronizasyon Başarılı", {
-          description: `${rawData.data.length} adet randevu işlendi.`,
+          description: `${rawData.data.length} adet randevu bekleme odasına aktarıldı.`,
         });
       }
     } catch (e) {
