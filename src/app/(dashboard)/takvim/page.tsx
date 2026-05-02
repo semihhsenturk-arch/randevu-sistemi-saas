@@ -130,6 +130,7 @@ export default function CalendarPage() {
       const rawData = await response.json();
       if (rawData.status === "success" && rawData.data) {
         let freshApts = [...appointments];
+        let newAptsCount = 0;
         for (const row of rawData.data) {
           const ad = row["Ad Soyad"] || row["Ad"] || row["Müşteri Adı"] || row["İsim"] || "";
           let tel = row["Telefon Numarası"] || row["Telefon"] || row["Tel"] || row["İletişim"] || "";
@@ -196,6 +197,7 @@ export default function CalendarPage() {
             }
           } else {
             freshApts.push(newData);
+            newAptsCount++;
             try { 
               await saveAppointment(newData as Appointment); 
             } catch(saveErr: any) {
@@ -208,8 +210,9 @@ export default function CalendarPage() {
         }
         setAppointments(freshApts);
         toast.success("Senkronizasyon Başarılı", {
-          description: `${rawData.data.length} adet randevu bekleme odasına aktarıldı.`,
+          description: newAptsCount > 0 ? `${newAptsCount} adet yeni randevu bekleme odasına aktarıldı.` : "Veriler güncel.",
         });
+      }
       }
     } catch (e) {
       console.error(e);
