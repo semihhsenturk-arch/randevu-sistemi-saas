@@ -162,9 +162,10 @@ export default function CalendarPage() {
           let notlar = row["Notlar"] || row["Not"] || row["Açıklama"] || "";
           if (hizmetAd) notlar = notlar ? `İstek: ${hizmetAd}\n${notlar}` : `İstek: ${hizmetAd}`;
 
-          let hId: string | number = 1;
-          const findHizmet = services.find(h => ad.toLowerCase().includes(h.ad.toLowerCase()) || (hizmetAd && h.ad.toLowerCase().includes(hizmetAd.toLowerCase())));
-          if (findHizmet) hId = findHizmet.id;
+          // Hizmet eşleştirme: "Muayene" hizmetini bul, yoksa ilk hizmeti al, o da yoksa 1 kullan
+          let hId: string | number = services[0]?.id || 1;
+          const muayeneHizmet = services.find(h => h.ad.toLowerCase().includes("muayene"));
+          if (muayeneHizmet) hId = muayeneHizmet.id;
 
           const sheetRowId = "gs_" + (row["_sheetRowIndex"] || Math.random().toString(36).substr(2, 9));
           const existingIdx = freshApts.findIndex(a => a.id === sheetRowId || (a.tarih === tarih && a.saat === saat && a.musteriAdi === ad));
@@ -204,7 +205,7 @@ export default function CalendarPage() {
         }
         setAppointments(freshApts);
         toast.success("Senkronizasyon Başarılı", {
-          description: "Google Sheets verileri güncellendi.",
+          description: `${rawData.data.length} adet randevu işlendi.`,
         });
       }
     } catch (e) {
