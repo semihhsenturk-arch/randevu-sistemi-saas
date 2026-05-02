@@ -192,7 +192,14 @@ export default function CalendarPage() {
             freshApts[existingIdx] = { ...freshApts[existingIdx], ...newData };
           } else {
             freshApts.push(newData);
-            try { await saveAppointment(newData as Appointment); } catch(e) {}
+            try { 
+              await saveAppointment(newData as Appointment); 
+            } catch(saveErr: any) {
+              console.error("Kayıt sırasında hata oluştu (Ad: " + ad + "):", saveErr);
+              toast.error("Kayıt Hatası: " + ad, {
+                description: saveErr.message || "Veritabanına kaydedilemedi. Hizmet tanımlarınızı kontrol edin.",
+              });
+            }
           }
         }
         setAppointments(freshApts);
