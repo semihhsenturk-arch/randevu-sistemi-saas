@@ -109,7 +109,7 @@ export default function LandingPage() {
                 </Button>
               </Link>
               <div className="text-base font-medium text-slate-500 italic">
-                14 Gün Ücretsiz Deneyin
+                7 Gün Ücretsiz Deneyin
               </div>
             </div>
           </div>
