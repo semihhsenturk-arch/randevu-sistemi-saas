@@ -51,7 +51,7 @@ export default function LandingPage() {
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#0a3d34] transition-all group-hover:w-full" />
               </a>
               <a href="#fiyatlandirma" className="hover:text-[#0a3d34] transition-colors relative group">
-                Fiyatlandırma
+                Paketler
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#0a3d34] transition-all group-hover:w-full" />
               </a>
               <Link href="/login" className="text-lg font-black text-[#0a3d34] hover:text-[#072b25] transition-colors px-2">
@@ -78,7 +78,7 @@ export default function LandingPage() {
         {isMobileMenuOpen && (
           <div className="md:hidden absolute top-28 left-4 right-4 bg-white border border-slate-100 rounded-3xl shadow-2xl p-8 flex flex-col gap-6 z-[1001] animate-in fade-in slide-in-from-top-4 duration-300">
             <a href="#ozellikler" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-bold text-slate-900 border-b border-slate-50 pb-4">Özellikler</a>
-            <a href="#fiyatlandirma" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-bold text-slate-900 border-b border-slate-50 pb-4">Fiyatlandırma</a>
+            <a href="#fiyatlandirma" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-bold text-slate-900 border-b border-slate-50 pb-4">Paketler</a>
             <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-black text-[#0a3d34]">Giriş Yap</Link>
             <Link href="/register" onClick={() => setIsMobileMenuOpen(false)}>
               <Button className="w-full bg-[#0a3d34] py-8 rounded-2xl text-xl font-black shadow-xl shadow-[#0a3d34]/20">Hemen Başla</Button>
@@ -202,7 +202,7 @@ export default function LandingPage() {
       <section id="fiyatlandirma" className="py-12">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center max-w-3xl mx-auto mb-8 space-y-3">
-            <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">Şeffaf Fiyatlandırma</h2>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">Paketler</h2>
             <p className="text-slate-500 text-base md:text-lg">İhtiyacınıza en uygun paketi seçin, işinizi büyütmeye odaklanın.</p>
           </div>
 
@@ -352,7 +352,7 @@ export default function LandingPage() {
             <h4 className="text-white font-semibold uppercase tracking-widest text-xs">Bağlantılar</h4>
             <div className="flex flex-col gap-2.5 text-sm">
                 <a href="#ozellikler" className="hover:text-emerald-400 transition-colors">Özellikler</a>
-                <a href="#fiyatlandirma" className="hover:text-emerald-400 transition-colors">Fiyatlandırma</a>
+                <a href="#fiyatlandirma" className="hover:text-emerald-400 transition-colors">Paketler</a>
                 <Link href="/login" className="hover:text-emerald-400 transition-colors">Giriş Yap</Link>
             </div>
           </div>
