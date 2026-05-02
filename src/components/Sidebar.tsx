@@ -12,14 +12,14 @@ import { Textarea } from "@/components/ui/textarea";
 export function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean; setIsOpen?: (open: boolean) => void }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { signOut, user, profile, isLoading, checkAccess } = useAuth();
+  const { signOut, user, profile, isLoading, checkAccess, isTrialActive } = useAuth();
   const [supportOpen, setSupportOpen] = useState(false);
   const [supportMessage, setSupportMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [hasSent, setHasSent] = useState(false);
 
-  // Ödeme yapılmamışsa /odeme dışındaki sayfalara erişimi engelle
-  const needsPayment = !isLoading && profile && profile.payment_status !== 'paid' && profile.role !== 'admin';
+  // Ödeme yapılmamışsa VE deneme süresi aktif değilse /odeme dışındaki sayfalara erişimi engelle
+  const needsPayment = !isLoading && profile && profile.payment_status !== 'paid' && !isTrialActive && profile.role !== 'admin';
 
   useEffect(() => {
     if (needsPayment && pathname !== '/odeme') {

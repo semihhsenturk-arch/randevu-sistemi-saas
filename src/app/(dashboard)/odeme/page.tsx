@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle, CreditCard, Loader2, AlertCircle, ArrowRight, Shield, Zap, ShieldCheck, Star, Sparkles } from "lucide-react";
 
 function OdemeContent() {
-  const { profile, user, isLoading, refreshProfile } = useAuth();
+  const { profile, user, isLoading, refreshProfile, isTrialActive } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [checkoutHTML, setCheckoutHTML] = useState<string | null>(null);
@@ -213,10 +213,6 @@ function OdemeContent() {
   const PlanIcon = plan === "starter" ? Zap : plan === "professional" ? ShieldCheck : Star;
   const planColor = plan === "starter" ? "text-amber-500" : plan === "professional" ? "text-emerald-500" : "text-purple-500";
 
-  const isTrialActive = profile?.approved_at 
-    ? (new Date().getTime() - new Date(profile.approved_at).getTime()) < 7 * 24 * 60 * 60 * 1000
-    : false;
-  
   const daysLeft = profile?.approved_at
     ? 7 - Math.floor((new Date().getTime() - new Date(profile.approved_at).getTime()) / (1000 * 60 * 60 * 24))
     : 0;

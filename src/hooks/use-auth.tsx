@@ -33,6 +33,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<UserProfile | null>;
   checkAccess: (minTier: PlanType) => boolean;
+  isTrialActive: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -43,6 +44,7 @@ const AuthContext = createContext<AuthContextType>({
   signOut: async () => {},
   refreshProfile: async () => null,
   checkAccess: () => false,
+  isTrialActive: false,
 });
 
 const PROFILE_CACHE_KEY = "cached_user_profile";
@@ -314,8 +316,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return userLevel >= requiredLevel;
   }, [profile]);
 
+  const isTrialActive = profile?.approved_at 
+    ? (new Date().getTime() - new Date(profile.approved_at).getTime()) < 7 * 24 * 60 * 60 * 1000
+    : false;
+
   return (
-    <AuthContext.Provider value={{ user, profile, session, isLoading, signOut, refreshProfile, checkAccess }}>
+    <AuthContext.Provider value={{ user, profile, session, isLoading, signOut, refreshProfile, checkAccess, isTrialActive }}>
       {children}
     </AuthContext.Provider>
   );
