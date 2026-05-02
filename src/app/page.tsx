@@ -211,11 +211,11 @@ export default function LandingPage() {
             {/* Starter Paket */}
             <div className="flex flex-col h-full bg-white rounded-[40px] border-2 border-slate-100 px-7 py-6 hover:border-emerald-200 shadow-sm hover:shadow-xl hover:shadow-emerald-500/5 transition-all">
               <div className="space-y-3 flex-1">
-                <div>
-                  <h3 className="text-xl font-extrabold mb-1 text-slate-900">Starter Paketi</h3>
+                <div className="text-center">
+                  <h3 className="text-xl font-extrabold mb-1 text-slate-900">Starter</h3>
                   <p className="text-slate-500 text-sm h-8">Bireysel hekimler ve yeni başlayan klinikler için.</p>
                 </div>
-                <div className="flex items-baseline gap-1">
+                <div className="flex items-baseline justify-center gap-1">
                   <span className="text-4xl font-black">999 ₺</span>
                   <span className="text-slate-400 font-bold text-sm">/ Ay</span>
                 </div>
@@ -253,11 +253,11 @@ export default function LandingPage() {
             {/* Professional Paket */}
             <div className="flex flex-col h-full bg-white rounded-[40px] border-2 border-[#0a3d34]/10 px-7 py-6 hover:border-[#0a3d34]/40 shadow-sm hover:shadow-xl hover:shadow-emerald-500/5 transition-all">
               <div className="space-y-3 flex-1">
-                <div>
-                  <h3 className="text-xl font-extrabold mb-1 text-slate-900">Professional Paketi</h3>
+                <div className="text-center">
+                  <h3 className="text-xl font-extrabold mb-1 text-slate-900">Professional</h3>
                   <p className="text-slate-500 text-sm h-8">Hasta takibi gerektiren büyüyen klinikler için.</p>
                 </div>
-                <div className="flex items-baseline gap-1">
+                <div className="flex items-baseline justify-center gap-1">
                   <span className="text-4xl font-black">1.999 ₺</span>
                   <span className="text-slate-400 font-bold text-sm">/ Ay</span>
                 </div>
@@ -298,11 +298,11 @@ export default function LandingPage() {
                 TAM PAKET
               </div>
               <div className="space-y-3 flex-1 text-white">
-                <div>
-                  <h3 className="text-xl font-extrabold mb-1">Advanced Paketi</h3>
+                <div className="text-center">
+                  <h3 className="text-xl font-extrabold mb-1">Advanced</h3>
                   <p className="text-[#94a3b8] text-sm h-8">Tüm özelliklere ihtiyaç duyan profesyonel klinikler için.</p>
                 </div>
-                <div className="flex items-baseline gap-1">
+                <div className="flex items-baseline justify-center gap-1">
                   <span className="text-4xl font-black">2.999 ₺</span>
                   <span className="text-[#94a3b8] font-bold text-sm">/ Ay</span>
                 </div>
