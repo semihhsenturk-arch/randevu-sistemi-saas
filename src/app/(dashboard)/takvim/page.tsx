@@ -173,8 +173,10 @@ export default function CalendarPage() {
           const muayeneHizmet = services.find(h => h.ad.toLowerCase().includes("muayene"));
           if (muayeneHizmet) hId = muayeneHizmet.id;
 
-          // Eşsiz ID üretimi için hem index hem de isim/tarih kullanıyoruz
-          const sheetRowId = "gs_" + (row["_sheetRowIndex"] || Math.random().toString(36).substr(2, 5));
+          // ID'yi daha garanti hale getirelim: İsim + Tarih + Saat + Varsa Satır No
+          const uniqueKey = `${ad}-${tarih}-${saat}`.replace(/\s+/g, '_').toLowerCase();
+          const sheetRowId = "gs_" + (row["_sheetRowIndex"] || uniqueKey);
+          
           const existingIdx = freshApts.findIndex(a => a.id === sheetRowId || (a.tarih === tarih && a.saat === saat && a.musteriAdi === ad));
 
           if (existingIdx > -1) {
@@ -202,13 +204,13 @@ export default function CalendarPage() {
             freshApts.push(newData);
             newAptsCount++;
             await saveAppointment(newData as Appointment).catch(err => {
-              toast.error("Kayıt Başarısız: " + ad, { description: err.message });
+              console.error("Save error for", ad, err);
             });
           }
         }
         setAppointments(freshApts);
         toast.success("Senkronizasyon Tamamlandı", {
-          description: `${newAptsCount} yeni kayıt eklendi. (Atlanan: ${skippedCount})`,
+          description: `${newAptsCount} yeni kayıt bekleme odasına aktarıldı.`,
         });
       }
     } catch (e) {
