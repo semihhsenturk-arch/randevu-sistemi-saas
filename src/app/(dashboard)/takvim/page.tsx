@@ -49,6 +49,60 @@ const SHIFTS = Array.from({ length: 18 }, (_, i) => {
   return `${hour.toString().padStart(2, "0")}:${min.toString().padStart(2, "0")}`;
 });
 
+const normalizeSyncDate = (raw: string) => {
+  if (!raw) return "";
+  let d = raw.trim();
+  
+  // Handle Turkish months
+  const months: Record<string, string> = {
+    "ocak": "01", "şubat": "02", "mart": "03", "nisan": "04", "mayıs": "05", "haziran": "06",
+    "temmuz": "07", "ağustos": "08", "eylül": "09", "ekim": "10", "kasım": "11", "aralık": "12"
+  };
+
+  // Convert to lowercase and replace dots/slashes with spaces temporarily
+  d = d.toLowerCase().replace(/[\.\/]/g, " ");
+  const parts = d.split(/\s+/);
+
+  if (parts.length === 3) {
+    let day = parts[0].padStart(2, "0");
+    let month = parts[1];
+    let year = parts[2];
+
+    // If month is a name, convert to number
+    if (months[month]) {
+      month = months[month];
+    } else {
+      month = month.padStart(2, "0");
+    }
+
+    // Handle 2-digit years
+    if (year.length === 2) year = "20" + year;
+
+    // Standard YYYY-MM-DD
+    if (year.length === 4 && parseInt(day) <= 31 && parseInt(month) <= 12) {
+      return `${year}-${month}-${day}`;
+    }
+  }
+  
+  // Standard format check (YYYY-MM-DD)
+  if (raw.match(/^\d{4}-\d{2}-\d{2}/)) return raw.substring(0, 10);
+  
+  // Clean up any remaining dots/slashes if it was close but not quite
+  if (raw.includes(".") || raw.includes("/")) {
+      const p = raw.replace(/\//g, ".").split(".");
+      if (p.length === 3) {
+          const dd = p[0].padStart(2, "0");
+          const mm = p[1].padStart(2, "0");
+          let yy = p[2];
+          if (yy.length === 2) yy = "20" + yy;
+          return `${yy}-${mm}-${dd}`;
+      }
+  }
+
+  return raw;
+};
+
+
 export default function CalendarPage() {
   const { profile } = useAuth();
   const { getAppointments, saveAppointment, deleteAppointment, getServices } = useDatabase();
@@ -131,49 +185,46 @@ export default function CalendarPage() {
       if (rawData.status === "success" && rawData.data) {
         let freshApts = [...appointments];
         let newAptsCount = 0;
-        let skippedCount = 0;
+        let updatedCount = 0;
 
         for (const row of rawData.data) {
-          const ad = row["Ad Soyad"] || row["Ad"] || row["Müşteri Adı"] || row["İsim"] || "";
-          let tel = (row["Telefon Numarası"] || row["Telefon"] || row["Tel"] || row["İletişim"] || "").toString();
+          const ad = (row["Ad Soyad"] || row["Ad"] || row["Müşteri Adı"] || row["İsim"] || "").trim();
+          let tel = (row["Telefon Numarası"] || row["Telefon"] || row["Tel"] || row["İletişim"] || "").toString().trim();
           
-          let tarihRaw = (row["Tercih Edilen Tarih"] || row["Tarih"] || row["Randevu Tarihi"] || "").toString();
-          let tarih = "";
-          let saat = (row["Saat"] || row["Randevu Saati"] || "").toString();
+          let tarihRaw = (row["Tercih Edilen Tarih"] || row["Tarih"] || row["Randevu Tarihi"] || "").toString().trim();
+          let saatRaw = (row["Saat"] || row["Randevu Saati"] || "").toString().trim();
 
+          let tarih = "";
+          let saat = "";
+
+          // Date & Time extraction
           if (tarihRaw.includes(" ")) {
             const parts = tarihRaw.split(" ");
-            tarih = parts[0];
-            if (!saat) saat = parts[1];
+            tarih = normalizeSyncDate(parts[0]);
+            saat = parts[1];
           } else {
-            tarih = tarihRaw;
+            tarih = normalizeSyncDate(tarihRaw);
+            saat = saatRaw;
           }
-
-          if (tarih.includes(".")) {
-            const parts = tarih.split(".");
-            if (parts.length === 3) tarih = `${parts[2]}-${parts[1]}-${parts[0]}`;
-          }
-          
-          if (tarih.length > 10) tarih = tarih.substring(0, 10);
 
           if (!saat || saat === "00:00") saat = "09:00";
           if (saat.length > 5) saat = saat.substring(0, 5);
 
           if (!ad || !tarih || tarih === "undefined") {
-            skippedCount++;
+            console.log("Sync: Skipped row due to missing data", { ad, tarih, row });
             continue;
           }
 
           let durum: "beklemede" | "onaylandi" | "iptal" = "beklemede";
           const hizmetAd = row["İlgilendiği Tedavi"] || row["Hizmet"] || row["Hizmet Tipi"] || row["İşlem"] || "";
-          let notlar = row["Notlar"] || row["Not"] || row["Açıklama"] || "";
+          let notlar = (row["Notlar"] || row["Not"] || row["Açıklama"] || "").toString();
           if (hizmetAd) notlar = notlar ? `İstek: ${hizmetAd}\n${notlar}` : `İstek: ${hizmetAd}`;
 
           let hId: string | number = services[0]?.id || 1;
           const muayeneHizmet = services.find(h => h.ad.toLowerCase().includes("muayene"));
           if (muayeneHizmet) hId = muayeneHizmet.id;
 
-          // ID'yi daha garanti hale getirelim: İsim + Tarih + Saat + Varsa Satır No
+          // Stable ID generation using normalized date
           const uniqueKey = `${ad}-${tarih}-${saat}`.replace(/\s+/g, '_').toLowerCase();
           const sheetRowId = "gs_" + (row["_sheetRowIndex"] || uniqueKey);
           
@@ -181,7 +232,9 @@ export default function CalendarPage() {
 
           if (existingIdx > -1) {
             const existing = freshApts[existingIdx];
+            // Eğer daha önce onaylandıysa veya iptal edildiyse, bekleme odasına geri getirme
             if (existing.durum === "onaylandi" || existing.durum === "iptal") {
+              console.log(`Sync: Skipping handled appointment for ${ad} on ${tarih} (Status: ${existing.durum})`);
               continue; 
             }
           }
@@ -197,22 +250,30 @@ export default function CalendarPage() {
             notlar
           };
 
-          if (existingIdx > -1) {
-            freshApts[existingIdx] = { ...freshApts[existingIdx], ...newData };
-            await saveAppointment(newData as Appointment).catch(e => console.error(e));
-          } else {
-            freshApts.push(newData);
-            newAptsCount++;
-            await saveAppointment(newData as Appointment).catch(err => {
-              console.error("Save error for", ad, err);
-            });
+          try {
+            if (existingIdx > -1) {
+              freshApts[existingIdx] = { ...freshApts[existingIdx], ...newData };
+              await saveAppointment(newData as Appointment);
+              updatedCount++;
+            } else {
+              freshApts.push(newData as Appointment);
+              await saveAppointment(newData as Appointment);
+              newAptsCount++;
+            }
+            // Update local state incrementally to show progress if it's a long list
+            if (newAptsCount % 5 === 0 || updatedCount % 5 === 0) {
+                setAppointments([...freshApts]);
+            }
+          } catch (err) {
+            console.error("Sync: Save error for", ad, err);
           }
         }
         setAppointments(freshApts);
         toast.success("Senkronizasyon Tamamlandı", {
-          description: `${newAptsCount} yeni kayıt bekleme odasına aktarıldı.`,
+          description: `${newAptsCount} yeni, ${updatedCount} güncellenmiş kayıt işlendi.`,
         });
       }
+
     } catch (e) {
       console.error(e);
       toast.error("Senkronizasyon Hatası", {
