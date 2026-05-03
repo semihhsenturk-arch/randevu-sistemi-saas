@@ -241,7 +241,7 @@ export default function StockManagementPage() {
       <div className="hidden md:block bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden relative min-h-[400px]">
         <table className="w-full">
             <thead>
-                <tr className="bg-gradient-to-r from-[#0c4a40] to-[#177567] text-white">
+                <tr className="bg-gradient-to-r from-slate-700 to-slate-800 text-white">
                     <th className="py-4 px-6 text-[0.72rem] font-bold uppercase tracking-wider text-center">Malzeme / Birim</th>
                     <th className="py-4 px-6 text-[0.72rem] font-bold uppercase tracking-wider text-center">Mevcut Miktar</th>
                     <th className="py-4 px-6 text-[0.72rem] font-bold uppercase tracking-wider text-center">Kritik Limit</th>

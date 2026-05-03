@@ -144,13 +144,13 @@ export default function HizmetYonetimiPage() {
 
       <div className="bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden relative">
         <Table>
-          <TableHeader className="bg-gradient-to-r from-slate-50 to-slate-100/50 hover:bg-transparent">
+          <TableHeader className="bg-gradient-to-r from-slate-700 to-slate-800 hover:bg-transparent">
             <TableRow className="hover:bg-transparent border-none">
-              <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-[0.72rem] py-4">Renk</TableHead>
-              <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-[0.72rem] py-4">Hizmet Adı</TableHead>
-              <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-[0.72rem] py-4">Süre (Dk)</TableHead>
-              <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-[0.72rem] py-4">Fiyat (₺)</TableHead>
-              <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-[0.72rem] py-4 text-right">İşlemler</TableHead>
+              <TableHead className="font-bold text-white uppercase tracking-wider text-[0.72rem] py-4">Renk</TableHead>
+              <TableHead className="font-bold text-white uppercase tracking-wider text-[0.72rem] py-4">Hizmet Adı</TableHead>
+              <TableHead className="font-bold text-white uppercase tracking-wider text-[0.72rem] py-4">Süre (Dk)</TableHead>
+              <TableHead className="font-bold text-white uppercase tracking-wider text-[0.72rem] py-4">Fiyat (₺)</TableHead>
+              <TableHead className="font-bold text-white uppercase tracking-wider text-[0.72rem] py-4 text-right">İşlemler</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

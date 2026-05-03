@@ -175,24 +175,24 @@ export default function AdminUsersPage() {
         <p className="text-slate-500 mt-1">Sisteme kayıt olan tüm klinikleri onayla veya reddet.</p>
       </div>
 
-      <Card className="border-emerald-100 shadow-sm">
-        <CardHeader className="bg-emerald-50/50 border-b border-emerald-100 pb-4">
-          <CardTitle className="text-lg font-bold text-emerald-900">Kayıtlı Klinikler</CardTitle>
-          <CardDescription>
+      <Card className="border-slate-200 shadow-sm">
+        <CardHeader className="bg-gradient-to-r from-slate-700 to-slate-800 border-b border-slate-700 pb-4">
+          <CardTitle className="text-lg font-bold text-white">Kayıtlı Klinikler</CardTitle>
+          <CardDescription className="text-slate-300">
             Sisteme yeni kayıt olan klinikleri buradan onaylayarak erişim verebilirsiniz.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0 relative min-h-[200px]">
           <Table>
-              <TableHeader className="bg-slate-50">
+              <TableHeader className="bg-gradient-to-r from-slate-600 to-slate-700">
                 <TableRow>
-                  <TableHead className="font-semibold text-slate-700">Klinik Adı / Ünvan</TableHead>
-                  <TableHead className="font-semibold text-slate-700">E-posta</TableHead>
-                  <TableHead className="font-semibold text-slate-700">Hizmet Paketi</TableHead>
-                  <TableHead className="font-semibold text-slate-700">Ödeme / Deneme</TableHead>
-                  <TableHead className="font-semibold text-slate-700">Rol</TableHead>
-                  <TableHead className="font-semibold text-slate-700">Durum</TableHead>
-                  <TableHead className="text-right font-semibold text-slate-700">İşlem</TableHead>
+                  <TableHead className="font-semibold text-white text-center">Klinik Adı / Ünvan</TableHead>
+                  <TableHead className="font-semibold text-white text-center">E-posta</TableHead>
+                  <TableHead className="font-semibold text-white text-center">Hizmet Paketi</TableHead>
+                  <TableHead className="font-semibold text-white text-center">Ödeme / Deneme</TableHead>
+                  <TableHead className="font-semibold text-white text-center">Rol</TableHead>
+                  <TableHead className="font-semibold text-white text-center">Durum</TableHead>
+                  <TableHead className="text-center font-semibold text-white">İşlem</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

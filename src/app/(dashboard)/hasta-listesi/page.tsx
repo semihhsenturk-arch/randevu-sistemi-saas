@@ -340,7 +340,7 @@ export default function PatientListPage() {
 
       <div className="hidden md:block bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden relative">
         <Table>
-          <TableHeader className="bg-gradient-to-r from-[#0c4a40] to-[#177567] hover:bg-transparent">
+          <TableHeader className="bg-gradient-to-r from-slate-700 to-slate-800 hover:bg-transparent">
             <TableRow className="hover:bg-transparent border-none">
               <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">Hasta Adı Soyadı</TableHead>
               <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">İletişim Numarası</TableHead>
