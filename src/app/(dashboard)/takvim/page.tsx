@@ -303,7 +303,7 @@ export default function CalendarPage() {
                 setAppointments([...freshApts]);
             }
           } catch (err) {
-            console.error("Sync: Save error for", ad, err);
+            console.error("Sync: Save error for", tamAd, err);
           }
         }
         setAppointments(freshApts);
