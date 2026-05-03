@@ -200,11 +200,18 @@ export default function CalendarPage() {
         let skippedHandledCount = 0;
 
         for (const row of rawData.data) {
-          // Daha esnek kolon adı eşleşmesi
-          const ad = (
-            row["Ad Soyad"] || row["Ad"] || row["Müşteri Adı"] || row["İsim"] || 
-            row["Hasta Adı"] || row["Hasta Adı Soyadı"] || row["İsim Soyisim"] || ""
+          // Robust Name and Surname Extraction
+          const rawAd = (row["Ad"] || row["İsim"] || row["Hasta Adı"] || "").toString().trim();
+          const rawSoyad = (row["Soyad"] || row["Soyisim"] || row["Hasta Soyadı"] || "").toString().trim();
+          const rawAdSoyad = (
+            row["Ad Soyad"] || row["Hasta Adı Soyadı"] || row["İsim Soyisim"] || 
+            row["Müşteri Adı"] || row["İsim"] || ""
           ).toString().trim();
+          
+          let tamAd = rawAdSoyad;
+          if (!tamAd && (rawAd || rawSoyad)) {
+            tamAd = `${rawAd} ${rawSoyad}`.trim();
+          }
 
           let tel = (
             row["Telefon Numarası"] || row["Telefon"] || row["Tel"] || row["İletişim"] || 
@@ -236,8 +243,8 @@ export default function CalendarPage() {
           if (!saat || saat === "00:00") saat = "09:00";
           if (saat.length > 5) saat = saat.substring(0, 5);
 
-          if (!ad || !tarih || tarih === "undefined") {
-            console.log("Sync: Skipped row due to missing data", { ad, tarih, row });
+          if (!tamAd || !tarih || tarih === "undefined") {
+            console.log("Sync: Skipped row due to missing data", { tamAd, tarih, row });
             continue;
           }
 
@@ -250,17 +257,21 @@ export default function CalendarPage() {
           const muayeneHizmet = services.find(h => h.ad.toLowerCase().includes("muayene"));
           if (muayeneHizmet) hId = muayeneHizmet.id;
 
-          // Stable ID generation using normalized date
-          const uniqueKey = `${ad}-${tarih}-${saat}`.replace(/\s+/g, '_').toLowerCase();
-          const sheetRowId = "gs_" + (row["_sheetRowIndex"] || uniqueKey);
+          // Robust Unique Identifier (Name + Date + Time)
+          // We lowercase and slugify it to create a stable, collision-free ID for Sheets records
+          const uniqueId = `${tamAd}-${tarih}-${saat}`.replace(/\s+/g, '_').toLowerCase();
+          const sheetRowId = "gs_" + uniqueId;
           
-          const existingIdx = freshApts.findIndex(a => a.id === sheetRowId || (a.tarih === tarih && a.saat === saat && a.musteriAdi === ad));
+          const existingIdx = freshApts.findIndex(a => 
+            a.id === sheetRowId || 
+            (a.tarih === tarih && a.saat === saat && a.musteriAdi.toLowerCase().trim() === tamAd.toLowerCase().trim())
+          );
 
           if (existingIdx > -1) {
             const existing = freshApts[existingIdx];
             // Eğer daha önce onaylandıysa veya iptal edildiyse, bekleme odasına geri getirme
             if (existing.durum === "onaylandi" || existing.durum === "iptal") {
-              console.log(`Sync: Skipping handled appointment for ${ad} on ${tarih} (Status: ${existing.durum})`);
+              console.log(`Sync: Skipping handled appointment for ${tamAd} on ${tarih} (Status: ${existing.durum})`);
               skippedHandledCount++;
               continue; 
             }
@@ -268,7 +279,7 @@ export default function CalendarPage() {
 
           const newData = {
             id: existingIdx > -1 ? freshApts[existingIdx].id : sheetRowId,
-            musteriAdi: ad,
+            musteriAdi: tamAd,
             telefon: tel,
             hizmetId: hId.toString(),
             tarih,
