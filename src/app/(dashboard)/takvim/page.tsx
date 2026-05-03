@@ -180,19 +180,45 @@ export default function CalendarPage() {
         setSyncing(false);
         return;
       }
-      const response = await fetch(targetUrl);
+      // Cache-busting: Google Script sonuçlarını tarayıcı önbelleğinden korumak için zaman damgası ekleyelim
+      const fetchUrl = targetUrl + (targetUrl.includes('?') ? '&' : '?') + 't=' + Date.now();
+      const response = await fetch(fetchUrl);
       const rawData = await response.json();
+      
+      console.log("Sync: Received data from Sheets", rawData);
+
       if (rawData.status === "success" && rawData.data) {
+        if (rawData.data.length === 0) {
+            toast.info("Google Sheet Boş", { description: "Bağlı sayfada herhangi bir randevu kaydı bulunamadı." });
+            setSyncing(false);
+            return;
+        }
+
         let freshApts = [...appointments];
         let newAptsCount = 0;
         let updatedCount = 0;
+        let skippedHandledCount = 0;
 
         for (const row of rawData.data) {
-          const ad = (row["Ad Soyad"] || row["Ad"] || row["Müşteri Adı"] || row["İsim"] || "").trim();
-          let tel = (row["Telefon Numarası"] || row["Telefon"] || row["Tel"] || row["İletişim"] || "").toString().trim();
+          // Daha esnek kolon adı eşleşmesi
+          const ad = (
+            row["Ad Soyad"] || row["Ad"] || row["Müşteri Adı"] || row["İsim"] || 
+            row["Hasta Adı"] || row["Hasta Adı Soyadı"] || row["İsim Soyisim"] || ""
+          ).toString().trim();
+
+          let tel = (
+            row["Telefon Numarası"] || row["Telefon"] || row["Tel"] || row["İletişim"] || 
+            row["Numara"] || ""
+          ).toString().trim();
           
-          let tarihRaw = (row["Tercih Edilen Tarih"] || row["Tarih"] || row["Randevu Tarihi"] || "").toString().trim();
-          let saatRaw = (row["Saat"] || row["Randevu Saati"] || "").toString().trim();
+          let tarihRaw = (
+            row["Tercih Edilen Tarih"] || row["Tarih"] || row["Randevu Tarihi"] || 
+            row["Gün"] || row["Tarih Bilgisi"] || ""
+          ).toString().trim();
+
+          let saatRaw = (
+            row["Saat"] || row["Randevu Saati"] || row["Zaman"] || ""
+          ).toString().trim();
 
           let tarih = "";
           let saat = "";
@@ -235,6 +261,7 @@ export default function CalendarPage() {
             // Eğer daha önce onaylandıysa veya iptal edildiyse, bekleme odasına geri getirme
             if (existing.durum === "onaylandi" || existing.durum === "iptal") {
               console.log(`Sync: Skipping handled appointment for ${ad} on ${tarih} (Status: ${existing.durum})`);
+              skippedHandledCount++;
               continue; 
             }
           }
@@ -270,8 +297,10 @@ export default function CalendarPage() {
         }
         setAppointments(freshApts);
         toast.success("Senkronizasyon Tamamlandı", {
-          description: `${newAptsCount} yeni, ${updatedCount} güncellenmiş kayıt işlendi.`,
+          description: `${newAptsCount} yeni, ${updatedCount} güncellenmiş kayıt. (${skippedHandledCount} kayıt önceden işlendiği için atlandı)`,
         });
+      } else {
+        toast.error("Sheets Hatası", { description: rawData.message || "Script hata döndürdü." });
       }
 
     } catch (e) {
