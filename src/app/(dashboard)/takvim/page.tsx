@@ -208,9 +208,9 @@ export default function CalendarPage() {
             row["Müşteri Adı"] || row["İsim"] || ""
           ).toString().trim();
           
-          let tamAd = rawAdSoyad;
+          let tamAd = rawAdSoyad.toLocaleUpperCase("tr-TR");
           if (!tamAd && (rawAd || rawSoyad)) {
-            tamAd = `${rawAd} ${rawSoyad}`.trim();
+            tamAd = `${rawAd} ${rawSoyad}`.trim().toLocaleUpperCase("tr-TR");
           }
 
           let tel = (
@@ -671,7 +671,10 @@ export default function CalendarPage() {
                   placeholder="Hasta Adı ve Soyadı"
                   className="h-12 border-slate-200 rounded-xl focus-visible:ring-[#0a3d34] focus-visible:ring-offset-0"
                   value={currentApt.musteriAdi || ""} 
-                  onChange={e => setCurrentApt(prev => ({...prev, musteriAdi: e.target.value}))} 
+                  onChange={e => {
+                    const val = e.target.value.toLocaleUpperCase("tr-TR");
+                    setCurrentApt(prev => ({...prev, musteriAdi: val}));
+                  }} 
                 />
               </div>
 

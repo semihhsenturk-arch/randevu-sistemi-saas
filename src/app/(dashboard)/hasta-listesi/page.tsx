@@ -11,10 +11,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Contact, Search, Package, Users, Clock, CheckCircle2, History, Pill, FileText, Box, Trash2, Plus, X, Edit2, Notebook as Emerald, Loader2 } from "lucide-react";
-import { format } from "date-fns";
+import { format, parseISO, isValid } from "date-fns";
 import { tr } from "date-fns/locale/tr";
+import { DatePicker } from "@/components/ui/date-picker";
+import { InputDatePicker } from "@/components/ui/input-date-picker";
 import { useAuth } from "@/hooks/use-auth";
 import { UpgradeScreen } from "@/components/UpgradeScreen";
+import { toast } from "sonner";
 
 export default function PatientListPage() {
   const { profile, isLoading, checkAccess } = useAuth();
@@ -33,7 +36,7 @@ export default function PatientListPage() {
 
   // Patient Modal
   const [modalOpen, setModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"timeline" | "meds" | "notes" | "stock">("timeline");
+  const [activeTab, setActiveTab] = useState<"info" | "timeline" | "meds" | "notes" | "stock">("info");
   const [selectedPatientName, setSelectedPatientName] = useState("");
   const [selectedPatientPhone, setSelectedPatientPhone] = useState("");
 
@@ -51,6 +54,12 @@ export default function PatientListPage() {
   const [noteSikayet, setNoteSikayet] = useState("");
   const [noteHikaye, setNoteHikaye] = useState("");
   const [noteMuayene, setNoteMuayene] = useState("");
+  
+  // Patient Info Fields
+  const [pPhone, setPPhone] = useState("");
+  const [pTC, setPTC] = useState("");
+  const [pBirthDate, setPBirthDate] = useState("");
+  const [pAddress, setPAddress] = useState("");
 
   // Note Editing
   const [editingNoteIndex, setEditingNoteIndex] = useState<number | null>(null);
@@ -98,8 +107,8 @@ export default function PatientListPage() {
     return appointments.filter(a => {
       const isToday = a.tarih === todayStr;
       const isActive = a.durum === "onaylandi" || a.durum === "beklemede";
-      const search = searchTerm.toLowerCase();
-      const matchesSearch = a.musteriAdi.toLowerCase().includes(search) || (a.telefon && a.telefon.includes(search));
+      const search = searchTerm.toLocaleUpperCase("tr-TR");
+      const matchesSearch = a.musteriAdi.toLocaleUpperCase("tr-TR").includes(search) || (a.telefon && a.telefon.includes(searchTerm));
       return isToday && isActive && matchesSearch;
     }).sort((a,b) => a.saat.localeCompare(b.saat));
   }, [appointments, todayStr, searchTerm]);
@@ -110,16 +119,23 @@ export default function PatientListPage() {
     done: filteredPatients.filter(a => a.durum === "onaylandi").length
   }), [filteredPatients]);
 
-  const openProfile = (name: string, phone: string) => {
+  const openProfile = (rawName: string, phone: string) => {
+    const name = rawName.toLocaleUpperCase("tr-TR");
     setSelectedPatientName(name);
     setSelectedPatientPhone(phone);
     const prof = profiles[name] || { notes_list: [], meds: [], stock_history: [] };
-    // Load last note into fields if needed, or leave blank for new entry
+    
+    // Load demographic fields
+    setPPhone(prof.phone || phone || "");
+    setPTC(prof.tc_no || "");
+    setPBirthDate(prof.birth_date || "");
+    setPAddress(prof.address || "");
+
     setNoteSikayet("");
     setNoteHikaye("");
     setNoteMuayene("");
     setModalOpen(true);
-    setActiveTab("timeline");
+    setActiveTab("info");
   };
 
   const openMaterial = (name: string) => {
@@ -145,6 +161,29 @@ export default function PatientListPage() {
     setNewMedName(""); setNewMedUsage("");
 
     savePatientProfile(selectedPatientName, updated).catch(err => console.error("Background save err:", err));
+  };
+
+  const handleUpdatePatientInfo = async () => {
+    setIsSubmitting(true);
+    const current = profiles[selectedPatientName] || { notes_list: [], meds: [], stock_history: [] };
+    const updated = { 
+      ...current, 
+      phone: pPhone, 
+      tc_no: pTC, 
+      birth_date: pBirthDate, 
+      address: pAddress 
+    };
+    
+    try {
+      setProfiles(prev => ({ ...prev, [selectedPatientName]: updated }));
+      await savePatientProfile(selectedPatientName, updated);
+      toast.success("Hasta bilgileri başarıyla güncellendi.");
+    } catch (err: any) {
+      console.error("Update info failed:", err);
+      toast.error(`Güncelleme başarısız: ${err.message || "Bilinmeyen bir hata oluştu"}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleAddNote = async () => {
@@ -306,7 +345,7 @@ export default function PatientListPage() {
                 placeholder="Hasta ara..." 
                 className="pl-9 h-11 bg-slate-50 border-slate-200 focus-visible:ring-[#0a3d34] rounded-xl"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => setSearchTerm(e.target.value.toLocaleUpperCase("tr-TR"))}
              />
            </div>
         </div>
@@ -403,6 +442,7 @@ export default function PatientListPage() {
              {/* Navigation */}
              <div className="flex flex-row md:flex-col gap-2 w-full overflow-x-auto md:overflow-visible pb-2 md:pb-0 no-scrollbar">
                 {[
+                  { id: 'info', label: 'Hasta Bilgileri', icon: Users, color: 'emerald' },
                   { id: 'timeline', label: 'Geçmiş İşlemler', icon: History, color: 'blue' },
                   { id: 'meds', label: 'İlaçlar / Reçete', icon: Pill, color: 'rose' },
                   { id: 'notes', label: 'Muayene / Notlar', icon: Emerald, color: 'emerald' },
@@ -441,6 +481,7 @@ export default function PatientListPage() {
           <div className="flex-1 bg-white flex flex-col h-[550px] relative">
              <div className="flex items-center justify-between px-8 py-6 border-b border-slate-100 shrink-0">
                <h3 className="text-lg font-extrabold text-[#1e293b]">
+                 {activeTab === 'info' && 'Hasta Bilgileri'}
                  {activeTab === 'timeline' && 'Geçmiş İşlemler'}
                  {activeTab === 'meds' && 'İlaçlar ve Reçete'}
                  {activeTab === 'notes' && 'Muayene ve Notlar'}
@@ -449,6 +490,45 @@ export default function PatientListPage() {
              </div>
 
              <div className="flex-1 p-8 overflow-y-auto no-scrollbar bg-slate-50/30">
+               {activeTab === 'info' && (
+                 <div className="space-y-6">
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                     <div className="space-y-2">
+                       <Label className="text-xs font-bold text-slate-500">Adı Soyadı</Label>
+                       <Input value={selectedPatientName} disabled className="bg-slate-50 border-slate-200 font-bold text-[#0a3d34]" />
+                     </div>
+                     <div className="space-y-2">
+                       <Label className="text-xs font-bold text-slate-500">Telefon Numarası</Label>
+                       <Input value={pPhone} onChange={e => setPPhone(e.target.value)} className="bg-white border-slate-200" placeholder="05xx xxx xx xx" />
+                     </div>
+                     <div className="space-y-2">
+                       <Label className="text-xs font-bold text-slate-500">TC Kimlik No</Label>
+                       <Input value={pTC} onChange={e => setPTC(e.target.value)} maxLength={11} className="bg-white border-slate-200" placeholder="11 haneli TC No" />
+                     </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold text-slate-500">Doğum Tarihi</Label>
+                        <InputDatePicker 
+                          date={pBirthDate && isValid(parseISO(pBirthDate)) ? parseISO(pBirthDate) : undefined} 
+                          setDate={(val) => setPBirthDate(val ? format(val, "yyyy-MM-dd") : "")}
+                          placeholder="GG.AA.YYYY"
+                        />
+                      </div>
+                     <div className="md:col-span-2 space-y-2">
+                       <Label className="text-xs font-bold text-slate-500">Adres Bilgisi</Label>
+                       <Textarea value={pAddress} onChange={e => setPAddress(e.target.value)} className="bg-white border-slate-200 min-h-[80px] resize-none" placeholder="Hastanın açık adresi..." />
+                     </div>
+                   </div>
+                    <Button 
+                      onClick={handleUpdatePatientInfo} 
+                      disabled={isSubmitting}
+                      className="w-full bg-[#0a3d34] hover:bg-[#072b25] h-11 font-bold shadow-lg shadow-[#0a3d34]/20 rounded-xl"
+                    >
+                      {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                      {isSubmitting ? "Güncelleniyor..." : "Bilgileri Güncelle"}
+                    </Button>
+                 </div>
+               )}
+
                {activeTab === 'timeline' && (
                  <div className="space-y-6">
                     {hstAppointments.length === 0 ? <div className="text-center py-10 italic text-slate-400 bg-white border border-slate-100 rounded-xl shadow-sm">Henüz işlem geçmişi bulunamadı.</div> : (

@@ -15,6 +15,10 @@ export type Appointment = {
 export type PatientProfile = {
   id?: string;
   patient_name: string;
+  phone?: string;
+  tc_no?: string;
+  birth_date?: string;
+  address?: string;
   meds: any[];
   notes_list: { date: string; content: string }[];
   stock_history: any[];
@@ -115,7 +119,7 @@ export function useDatabase() {
 
     const payload: any = {
       user_id: userId,
-      musteri_adi: apt.musteriAdi,
+      musteri_adi: apt.musteriAdi.toLocaleUpperCase("tr-TR"),
       telefon: apt.telefon,
       hizmet_id: parseInt(apt.hizmetId.toString()) || 1,
       tarih: apt.tarih,
@@ -184,6 +188,10 @@ export function useDatabase() {
         const profiles: Record<string, Omit<PatientProfile, "patient_name">> = {};
         data.forEach((p: any) => {
           profiles[p.patient_name] = {
+            phone: p.phone,
+            tc_no: p.tc_no,
+            birth_date: p.birth_date,
+            address: p.address,
             meds: p.meds,
             notes_list: p.notes_list,
             stock_history: p.stock_history,
@@ -199,8 +207,9 @@ export function useDatabase() {
     return getCache<Record<string, Omit<PatientProfile, "patient_name">>>(CACHE_KEYS.PROFILES) || {};
   }, [userId]);
 
-  const savePatientProfile = useCallback(async (name: string, profile: Omit<PatientProfile, "patient_name">) => {
+  const savePatientProfile = useCallback(async (rawName: string, profile: Omit<PatientProfile, "patient_name">) => {
     if (!userId) return;
+    const name = rawName.toLocaleUpperCase("tr-TR");
 
     const { data: existing } = await supabase
       .from("patient_profiles")
@@ -212,6 +221,10 @@ export function useDatabase() {
     const payload: any = {
       user_id: userId,
       patient_name: name,
+      phone: profile.phone || "",
+      tc_no: profile.tc_no || "",
+      birth_date: profile.birth_date || "",
+      address: profile.address || "",
       meds: profile.meds || [],
       notes_list: profile.notes_list || [],
       stock_history: profile.stock_history || [],
@@ -220,11 +233,14 @@ export function useDatabase() {
     if (existing) payload.id = existing.id;
 
     const { error } = await supabase.from("patient_profiles").upsert(payload, { onConflict: "id" });
-    if (!error) {
-      const cached = getCache<Record<string, Omit<PatientProfile, "patient_name">>>(CACHE_KEYS.PROFILES) || {};
-      cached[name] = profile;
-      setCache(CACHE_KEYS.PROFILES, cached);
+    if (error) {
+      console.error("Supabase Save Patient Profile Error:", error);
+      throw error;
     }
+    
+    const cached = getCache<Record<string, Omit<PatientProfile, "patient_name">>>(CACHE_KEYS.PROFILES) || {};
+    cached[name] = profile;
+    setCache(CACHE_KEYS.PROFILES, cached);
   }, [userId]);
 
   // ─── Inventory ─────────────────────────────────────────────────
