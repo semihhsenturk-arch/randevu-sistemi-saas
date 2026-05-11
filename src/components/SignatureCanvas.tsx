@@ -69,9 +69,23 @@ export const SignatureCanvas = forwardRef<SignatureCanvasHandle, Props>(
     const startDrawing = useCallback(
       (e: React.MouseEvent | React.TouchEvent) => {
         e.preventDefault();
+        const canvas = canvasRef.current;
+        const ctx = canvas?.getContext("2d");
+        if (!ctx) return;
+
         const point = getPoint(e);
         lastPoint.current = point;
         setIsDrawing(true);
+
+        // Start a new path and place a dot at the starting point
+        ctx.beginPath();
+        ctx.moveTo(point.x, point.y);
+        // Draw a tiny dot so single taps are visible
+        ctx.lineTo(point.x + 0.1, point.y + 0.1);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(point.x, point.y);
+
         if (!hasDrawn) {
           setHasDrawn(true);
           onDrawStart?.();
@@ -90,16 +104,13 @@ export const SignatureCanvas = forwardRef<SignatureCanvasHandle, Props>(
 
         const currentPoint = getPoint(e);
 
-        // Smooth line with quadratic Bezier curve
-        const midPoint = {
-          x: (lastPoint.current.x + currentPoint.x) / 2,
-          y: (lastPoint.current.y + currentPoint.y) / 2,
-        };
-
-        ctx.beginPath();
-        ctx.moveTo(lastPoint.current.x, lastPoint.current.y);
-        ctx.quadraticCurveTo(lastPoint.current.x, lastPoint.current.y, midPoint.x, midPoint.y);
+        // Draw a continuous line segment from last point to current point
+        ctx.lineTo(currentPoint.x, currentPoint.y);
         ctx.stroke();
+
+        // Continue the path from the current point (keeps the line connected)
+        ctx.beginPath();
+        ctx.moveTo(currentPoint.x, currentPoint.y);
 
         lastPoint.current = currentPoint;
       },
@@ -107,9 +118,14 @@ export const SignatureCanvas = forwardRef<SignatureCanvasHandle, Props>(
     );
 
     const stopDrawing = useCallback(() => {
+      const canvas = canvasRef.current;
+      const ctx = canvas?.getContext("2d");
+      if (ctx && isDrawing) {
+        ctx.closePath();
+      }
       setIsDrawing(false);
       lastPoint.current = null;
-    }, []);
+    }, [isDrawing]);
 
     const clear = useCallback(() => {
       const canvas = canvasRef.current;
