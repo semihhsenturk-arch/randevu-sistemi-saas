@@ -93,7 +93,10 @@ export default function PatientListPage() {
     loadData();
   }, [getAppointments, getPatientProfiles, getInventory, getServices]);
 
+  const [filterType, setFilterType] = useState<"today" | "all">("today");
+
   const loadData = async () => {
+    setLoading(true);
     try {
       const [list, profs, inv, svcs] = await Promise.all([
         getAppointments(),
@@ -107,6 +110,8 @@ export default function PatientListPage() {
       if (svcs) setServices(svcs);
     } catch (e) {
       console.error("Data load failed:", e);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -117,9 +122,20 @@ export default function PatientListPage() {
       const isActive = a.durum === "onaylandi" || a.durum === "beklemede";
       const search = searchTerm.toLocaleUpperCase("tr-TR");
       const matchesSearch = a.musteriAdi.toLocaleUpperCase("tr-TR").includes(search) || (a.telefon && a.telefon.includes(searchTerm));
-      return isToday && isActive && matchesSearch;
-    }).sort((a,b) => a.saat.localeCompare(b.saat));
-  }, [appointments, todayStr, searchTerm]);
+      
+      if (filterType === "today") {
+        return isToday && isActive && matchesSearch;
+      } else {
+        // "Tümü" seçildiğinde durumu ne olursa olsun (geçmiş/gelecek) arama eşleşiyorsa göster
+        return matchesSearch;
+      }
+    }).sort((a,b) => {
+      // Önce tarihe, sonra saate göre sırala
+      const dateCompare = b.tarih.localeCompare(a.tarih);
+      if (dateCompare !== 0) return dateCompare;
+      return a.saat.localeCompare(b.saat);
+    });
+  }, [appointments, todayStr, searchTerm, filterType]);
 
   const stats = useMemo(() => ({
     total: filteredPatients.length,
@@ -312,10 +328,11 @@ export default function PatientListPage() {
       await savePatientProfile(selectedPatientName, updatedProf);
 
       // Deduct from Inventory sequentially to prevent cache or network clobber
+      // BUG-10 FIX: newStockMap'teki doğru değeri kullan (closure'daki eski inventory.stock yerine)
       for (const c of finalCart) {
         const item = inventory.items.find(i => i.id === c.id);
         if (item) {
-          const newQty = (inventory.stock[c.id] || 0) - c.amount;
+          const newQty = Math.max(0, newStockMap[c.id] ?? 0);
           await saveInventoryItem(item, newQty);
         }
       }
@@ -352,19 +369,36 @@ export default function PatientListPage() {
       <header className="flex flex-col md:flex-row justify-between items-center bg-white/88 backdrop-blur-[20px] p-4 md:p-[14px_24px] rounded-[20px] border border-slate-200/60 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.07)] sticky top-3 z-[40] gap-4">
         <div className="flex flex-col gap-[2px] text-center md:text-left w-full md:w-auto">
           <span className="text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[#0a3d34] opacity-80 mb-[1px]">{(profile?.clinic_name || "Klinik").toUpperCase()}</span>
-          <h1 className="text-[1.25rem] font-extrabold text-[#1e293b]">Hasta Listesi</h1>
+          <div className="flex items-center justify-center md:justify-start gap-3">
+             <h1 className="text-[1.25rem] font-extrabold text-[#1e293b]">Hasta Listesi</h1>
+             {loading && <Loader2 className="w-4 h-4 text-emerald-500 animate-spin" />}
+          </div>
           <div className="text-[0.78rem] font-medium text-[#64748b]">
             {format(new Date(), "d MMMM yyyy, eeee", { locale: tr })}
           </div>
         </div>
-        <div className="flex gap-4 w-full md:w-auto">
+        <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+           <div className="flex bg-slate-100 p-1 rounded-xl h-11 shrink-0 items-center">
+              <button 
+                onClick={() => setFilterType("today")} 
+                className={`px-4 h-full text-sm font-bold rounded-lg transition-all ${filterType === "today" ? "bg-white shadow-sm text-emerald-700" : "text-slate-500"}`}
+              >
+                Bugün
+              </button>
+              <button 
+                onClick={() => setFilterType("all")} 
+                className={`px-4 h-full text-sm font-bold rounded-lg transition-all ${filterType === "all" ? "bg-white shadow-sm text-emerald-700" : "text-slate-500"}`}
+              >
+                Tümü
+              </button>
+           </div>
            <div className="relative flex-1 md:w-[300px]">
              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
              <Input 
-                placeholder="Hasta ara..." 
+                placeholder="Hasta adı veya no ara..." 
                 className="pl-9 h-11 bg-slate-50 border-slate-200 focus-visible:ring-[#0a3d34] rounded-xl"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value.toLocaleUpperCase("tr-TR"))}
+                onChange={(e) => setSearchTerm(e.target.value)}
              />
            </div>
         </div>

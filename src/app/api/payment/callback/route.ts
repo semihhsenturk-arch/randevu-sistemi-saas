@@ -4,6 +4,8 @@ import { createClient } from "@supabase/supabase-js";
 
 // Client-side redirect helper to break out of POST context and avoid white screens
 function clientRedirect(url: string) {
+  // BUG-03 FIX: Sanitize URL to prevent XSS injection
+  const safeUrl = encodeURI(url).replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;');
   return new NextResponse(
     `<html>
       <body style="background: #f8fafc; display: flex; items-center; justify-content; min-height: 100vh; font-family: sans-serif;">
@@ -14,7 +16,7 @@ function clientRedirect(url: string) {
         <style>
           @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         </style>
-        <script>window.location.href = "${url}";</script>
+        <script>window.location.href = "${safeUrl}";</script>
       </body>
     </html>`,
     {

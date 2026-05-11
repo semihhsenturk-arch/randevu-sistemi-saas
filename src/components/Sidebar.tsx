@@ -96,6 +96,24 @@ export function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean; setIsOpen?: (
             
             const isLocked = !checkAccess(item.minTier as any);
 
+            // BUG-15 FIX: Kilitli nav item'lar tıklanamaz — Link yerine div render et
+            if (isLocked) {
+              return (
+                <li key={item.href}>
+                  <div
+                    className="flex items-center justify-between p-3 rounded-xl text-[0.9rem] font-medium text-[#475569] opacity-50 cursor-not-allowed select-none"
+                    title="Bu özellik planınızda mevcut değil"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon className="w-5 h-5" />
+                      <span>{item.label}</span>
+                    </div>
+                    <Lock className="w-4 h-4 opacity-70" />
+                  </div>
+                </li>
+              );
+            }
+
             return (
               <li key={item.href}>
                 <Link
@@ -111,7 +129,6 @@ export function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean; setIsOpen?: (
                     <Icon className="w-5 h-5" />
                     <span>{item.label}</span>
                   </div>
-                  {isLocked && <Lock className="w-4 h-4 opacity-50" />}
                 </Link>
               </li>
             );

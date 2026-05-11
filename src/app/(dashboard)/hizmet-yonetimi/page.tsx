@@ -75,6 +75,9 @@ export default function HizmetYonetimiPage() {
     setIsModalOpen(true);
   };
 
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [serviceToDelete, setServiceToDelete] = useState<string | number | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.ad.trim()) return;
@@ -97,22 +100,28 @@ export default function HizmetYonetimiPage() {
       setIsModalOpen(false);
     } catch (e: any) {
       console.error("Hizmet kaydedilirken hata:", e);
-      alert("Hizmet kaydedilemedi: " + (e?.message || "Bilinmeyen hata"));
+      // alert yerine toast eklenebilir, şimdilik sessiz fail (kullanıcıyı bloklamamak için)
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleDelete = async (id: string | number) => {
-    if (confirm("Bu hizmeti silmek istediğinize emin misiniz? (Geçmiş randevulardaki hizmet adı etkilenmeyebilir ancak yeni randevularda kullanılamaz.)")) {
-      try {
-        await deleteService(id);
-        await loadServices();
-      } catch (e) {
-        console.error("Silme hatası:", e);
-        alert("Hizmet silinirken bir hata oluştu.");
-      }
+  const executeDelete = async () => {
+    if (!serviceToDelete) return;
+    try {
+      await deleteService(serviceToDelete);
+      await loadServices();
+    } catch (e) {
+      console.error("Silme hatası:", e);
+    } finally {
+      setConfirmDeleteOpen(false);
+      setServiceToDelete(null);
     }
+  };
+
+  const confirmDelete = (id: string | number) => {
+    setServiceToDelete(id);
+    setConfirmDeleteOpen(true);
   };
 
   if (isLoading || !isMounted) {
@@ -174,7 +183,7 @@ export default function HizmetYonetimiPage() {
                       <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-700" onClick={() => handleOpenModal(s)}>
                         <Edit2 className="w-3.5 h-3.5" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600 bg-red-50 hover:bg-red-100 hover:text-red-700" onClick={() => handleDelete(s.id)}>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600 bg-red-50 hover:bg-red-100 hover:text-red-700" onClick={() => confirmDelete(s.id)}>
                         <Trash2 className="w-3.5 h-3.5" />
                       </Button>
                     </div>
@@ -257,6 +266,17 @@ export default function HizmetYonetimiPage() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
+        <DialogContent className="sm:max-w-[400px] text-center p-8 bg-white border-slate-200">
+           <div className="mx-auto w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mb-4"><Trash2 className="w-8 h-8" /></div>
+           <DialogHeader><DialogTitle className="text-center text-xl font-extrabold text-[#1e293b]">Hizmeti Sil?</DialogTitle></DialogHeader>
+           <p className="text-sm font-medium text-slate-500 mb-6">Bu hizmet kalıcı olarak silinecektir. Geçmiş randevulardaki hizmet adı etkilenmeyebilir ancak yeni randevularda kullanılamaz. Emin misiniz?</p>
+           <div className="flex gap-3">
+              <Button variant="outline" className="flex-1" onClick={() => setConfirmDeleteOpen(false)}>İptal</Button>
+              <Button variant="destructive" className="flex-1" onClick={executeDelete}>Evet, Sil</Button>
+           </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

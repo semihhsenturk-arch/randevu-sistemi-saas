@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lock, ShieldCheck, Star, Zap, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/use-auth";
 import { PLAN_PRICES, PlanType, BillingCycle } from "@/lib/iyzico-config";
 
@@ -24,23 +23,29 @@ export function UpgradeScreen({ title, description, requiredPlan = "Advanced" }:
     if (!profile || !user) return;
     setLoadingPlan(selectedPlan);
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ 
-          plan: selectedPlan, 
-          payment_status: "pending", 
-          billing_cycle: cycle 
-        })
-        .eq("id", profile.id);
+      // BUG-05 FIX: Client tarafından doğrudan profiles güncellemesi yerine
+      // server-side API route kullanıyoruz. Bu sayede payment_status manipülasyonu önlenir.
+      const res = await fetch("/api/auth/set-plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.id,
+          plan: selectedPlan,
+          billingCycle: cycle,
+          email: profile.email || user.email,
+        }),
+      });
 
-      if (!error) {
+      const data = await res.json();
+
+      if (res.ok && data.success) {
         await refreshProfile();
         // State güncellemelerinin (Sidebar yönlendirmesi vs) Next.js router ile çakışıp ekranı kilitlemesini (transition freeze) önlemek için push işlemini mikro-gecikmeyle (timeout) kuyruğa alıyoruz.
         setTimeout(() => {
           router.push("/odeme");
         }, 100);
       } else {
-        alert("Paket güncellenirken bir hata oluştu.");
+        alert(data.error || "Paket güncellenirken bir hata oluştu.");
       }
     } catch (err) {
       console.error(err);
