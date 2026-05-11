@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useDatabase, Appointment, PatientProfile, InventoryItem, Service, getCacheSync, CACHE_KEYS } from "@/hooks/use-database";
+import { useDatabase, Appointment, PatientProfile, InventoryItem, Service, ConsentRecord, getCacheSync, CACHE_KEYS } from "@/hooks/use-database";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +10,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Contact, Search, Package, Users, Clock, CheckCircle2, History, Pill, FileText, Box, Trash2, Plus, X, Edit2, Notebook as Emerald, Loader2 } from "lucide-react";
+import { Contact, Search, Package, Users, Clock, CheckCircle2, History, Pill, FileText, Box, Trash2, Plus, X, Edit2, Notebook as Emerald, Loader2, Shield } from "lucide-react";
+import { ConsentFormModal } from "@/components/ConsentFormModal";
 import { format, parseISO, isValid } from "date-fns";
 import { tr } from "date-fns/locale/tr";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -25,7 +26,7 @@ export default function PatientListPage() {
   const isLocked = !checkAccess("professional");
   const canUseInventory = checkAccess("advanced");
   
-  const { getAppointments, getPatientProfiles, savePatientProfile, getInventory, saveInventoryItem, getServices } = useDatabase();
+  const { getAppointments, getPatientProfiles, savePatientProfile, getInventory, saveInventoryItem, getServices, getConsentRecords } = useDatabase();
   
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [profiles, setProfiles] = useState<Record<string, Omit<PatientProfile, "patient_name">>>({});
@@ -36,9 +37,16 @@ export default function PatientListPage() {
 
   // Patient Modal
   const [modalOpen, setModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"info" | "timeline" | "meds" | "notes" | "stock">("info");
+  const [activeTab, setActiveTab] = useState<"info" | "timeline" | "meds" | "notes" | "stock" | "consent">("info");
   const [selectedPatientName, setSelectedPatientName] = useState("");
   const [selectedPatientPhone, setSelectedPatientPhone] = useState("");
+
+  // Consent
+  const [consentModalOpen, setConsentModalOpen] = useState(false);
+  const [consentAppointment, setConsentAppointment] = useState<Appointment | null>(null);
+  const [patientConsents, setPatientConsents] = useState<ConsentRecord[]>([]);
+  const [consentDetailOpen, setConsentDetailOpen] = useState(false);
+  const [selectedConsent, setSelectedConsent] = useState<ConsentRecord | null>(null);
 
   // Material Modal
   const [materialModalOpen, setMaterialModalOpen] = useState(false);
@@ -136,6 +144,17 @@ export default function PatientListPage() {
     setNoteMuayene("");
     setModalOpen(true);
     setActiveTab("info");
+
+    // Load consent records for this patient
+    getConsentRecords(name).then(records => setPatientConsents(records)).catch(() => {});
+  };
+
+  const openConsent = (apt: Appointment) => {
+    const name = apt.musteriAdi.toLocaleUpperCase("tr-TR");
+    setSelectedPatientName(name);
+    setSelectedPatientPhone(apt.telefon || "");
+    setConsentAppointment(apt);
+    setConsentModalOpen(true);
   };
 
   const openMaterial = (name: string) => {
@@ -368,9 +387,14 @@ export default function PatientListPage() {
               </div>
               <div className="flex items-center justify-between pt-2 border-t border-slate-100">
                 <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-3 py-1 rounded-full text-[0.7rem] font-bold">{h?.ad}</span>
-                <Button variant="outline" size="sm" className="h-9 px-4 text-xs bg-[#0a3d34] text-white font-bold hover:bg-[#072b25] transition-all rounded-xl" onClick={() => openMaterial(p.musteriAdi)}>
-                  <Package className="w-3.5 h-3.5 mr-1.5" /> Malzeme
-                </Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" className="h-9 px-3 text-xs bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-all rounded-xl border-indigo-600" onClick={() => openConsent(p)}>
+                    <Shield className="w-3.5 h-3.5 mr-1" /> Onam
+                  </Button>
+                  <Button variant="outline" size="sm" className="h-9 px-3 text-xs bg-[#0a3d34] text-white font-bold hover:bg-[#072b25] transition-all rounded-xl" onClick={() => openMaterial(p.musteriAdi)}>
+                    <Package className="w-3.5 h-3.5 mr-1" /> Malzeme
+                  </Button>
+                </div>
               </div>
             </div>
           );
@@ -408,9 +432,14 @@ export default function PatientListPage() {
                   </TableCell>
                   <TableCell className="text-center py-4 font-extrabold text-[#111827]">{p.saat}</TableCell>
                   <TableCell className="text-center py-4">
-                     <Button variant="outline" size="sm" className="h-8 text-xs bg-slate-50 border-slate-200 text-[#0a3d34] font-bold hover:bg-[#0a3d34] hover:text-white transition-all shadow-none" onClick={() => openMaterial(p.musteriAdi)}>
-                        <Package className="w-3.5 h-3.5 mr-1" /> Malzeme
-                     </Button>
+                     <div className="flex items-center justify-center gap-2">
+                       <Button variant="outline" size="sm" className="h-8 text-xs bg-indigo-50 border-indigo-200 text-indigo-700 font-bold hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all shadow-none" onClick={() => openConsent(p)}>
+                         <Shield className="w-3.5 h-3.5 mr-1" /> Onam
+                       </Button>
+                       <Button variant="outline" size="sm" className="h-8 text-xs bg-slate-50 border-slate-200 text-[#0a3d34] font-bold hover:bg-[#0a3d34] hover:text-white transition-all shadow-none" onClick={() => openMaterial(p.musteriAdi)}>
+                         <Package className="w-3.5 h-3.5 mr-1" /> Malzeme
+                       </Button>
+                     </div>
                   </TableCell>
                 </TableRow>
               )
@@ -443,6 +472,7 @@ export default function PatientListPage() {
              <div className="flex flex-row md:flex-col gap-2 w-full overflow-x-auto md:overflow-visible pb-2 md:pb-0 no-scrollbar">
                 {[
                   { id: 'info', label: 'Hasta Bilgileri', icon: Users, color: 'emerald' },
+                  { id: 'consent', label: 'Onam Formları', icon: Shield, color: 'indigo' },
                   { id: 'timeline', label: 'Geçmiş İşlemler', icon: History, color: 'blue' },
                   { id: 'meds', label: 'İlaçlar / Reçete', icon: Pill, color: 'rose' },
                   { id: 'notes', label: 'Muayene / Notlar', icon: Emerald, color: 'emerald' },
@@ -454,12 +484,14 @@ export default function PatientListPage() {
                     rose: isActive ? 'bg-rose-50 text-rose-700 border-rose-200' : 'text-slate-500 hover:bg-rose-50/50 hover:text-rose-600',
                     emerald: isActive ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'text-slate-500 hover:bg-emerald-50/50 hover:text-emerald-600',
                     amber: isActive ? 'bg-amber-50 text-amber-700 border-amber-200' : 'text-slate-500 hover:bg-amber-50/50 hover:text-amber-600',
+                    indigo: isActive ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'text-slate-500 hover:bg-indigo-50/50 hover:text-indigo-600',
                   };
                   const iconColors: Record<string, string> = {
                     blue: isActive ? 'text-blue-600' : 'text-blue-400 group-hover:text-blue-600',
                     rose: isActive ? 'text-rose-600' : 'text-rose-400 group-hover:text-rose-600',
                     emerald: isActive ? 'text-emerald-600' : 'text-emerald-400 group-hover:text-emerald-600',
                     amber: isActive ? 'text-amber-600' : 'text-amber-400 group-hover:text-amber-600',
+                    indigo: isActive ? 'text-indigo-600' : 'text-indigo-400 group-hover:text-indigo-600',
                   };
 
                   return (
@@ -482,6 +514,7 @@ export default function PatientListPage() {
              <div className="flex items-center justify-between px-8 py-6 border-b border-slate-100 shrink-0">
                <h3 className="text-lg font-extrabold text-[#1e293b]">
                  {activeTab === 'info' && 'Hasta Bilgileri'}
+                 {activeTab === 'consent' && 'Onam Formları'}
                  {activeTab === 'timeline' && 'Geçmiş İşlemler'}
                  {activeTab === 'meds' && 'İlaçlar ve Reçete'}
                  {activeTab === 'notes' && 'Muayene ve Notlar'}
@@ -526,6 +559,47 @@ export default function PatientListPage() {
                       {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                       {isSubmitting ? "Güncelleniyor..." : "Bilgileri Güncelle"}
                     </Button>
+                 </div>
+               )}
+
+               {activeTab === 'consent' && (
+                 <div className="space-y-4">
+                   {patientConsents.length === 0 ? (
+                     <div className="text-center py-16 bg-white border border-slate-100 rounded-2xl flex flex-col items-center justify-center gap-3">
+                       <div className="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-400">
+                         <Shield className="w-7 h-7" />
+                       </div>
+                       <span className="italic text-sm text-slate-400 font-medium">Bu hastaya ait onam formu kaydı bulunmuyor.</span>
+                     </div>
+                   ) : patientConsents.map((c: any, i: number) => (
+                     <div key={c.id || i} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm hover:border-indigo-200 hover:shadow-md transition-all cursor-pointer" onClick={() => { setSelectedConsent(c); setConsentDetailOpen(true); }}>
+                       <div className="flex items-start justify-between mb-3">
+                         <div className="flex items-center gap-3">
+                           <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 shrink-0 border border-indigo-100">
+                             <Shield className="w-5 h-5" />
+                           </div>
+                           <div>
+                             <div className="text-[0.85rem] font-extrabold text-[#1e293b]">Aydınlatılmış Onam Formu</div>
+                             <div className="text-[0.7rem] font-bold text-slate-400 mt-0.5">
+                               {c.appointment_date || ''} {c.appointment_time ? `· ${c.appointment_time}` : ''}
+                             </div>
+                           </div>
+                         </div>
+                         <div className="flex items-center gap-1.5 bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-full text-[0.65rem] font-bold border border-emerald-100">
+                           <CheckCircle2 className="w-3 h-3" />
+                           İmzalandı
+                         </div>
+                       </div>
+                       {c.signature_data && (
+                         <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                           <img src={c.signature_data} alt="İmza" className="h-12 w-auto opacity-70" />
+                         </div>
+                       )}
+                       <div className="text-[0.65rem] text-slate-400 font-medium mt-3">
+                         {c.signed_at ? format(new Date(c.signed_at), "d MMMM yyyy, HH:mm", { locale: tr }) : ''}
+                       </div>
+                     </div>
+                   ))}
                  </div>
                )}
 
@@ -760,6 +834,71 @@ export default function PatientListPage() {
            <div className="flex gap-3 mt-2">
               <Button className="flex-1 bg-[#0a3d34] hover:bg-[#072b25] shadow-md shadow-[#0a3d34]/20" onClick={() => setUpgradeModalOpen(false)}>Tamam, Anladım</Button>
            </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Consent Form Modal */}
+      <ConsentFormModal
+        open={consentModalOpen}
+        onOpenChange={setConsentModalOpen}
+        patientName={selectedPatientName}
+        patientTC={profiles[selectedPatientName]?.tc_no || pTC}
+        patientPhone={selectedPatientPhone || pPhone}
+        appointmentId={consentAppointment?.id}
+        appointmentDate={consentAppointment?.tarih}
+        appointmentTime={consentAppointment?.saat}
+        clinicName={profile?.clinic_name}
+        onSuccess={() => {
+          // Reload consents for the patient
+          getConsentRecords(selectedPatientName).then(records => setPatientConsents(records)).catch(() => {});
+        }}
+      />
+
+      {/* Consent Detail Dialog */}
+      <Dialog open={consentDetailOpen} onOpenChange={setConsentDetailOpen}>
+        <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto bg-white border-slate-200">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-extrabold text-[#1e293b] flex items-center gap-2">
+              <Shield className="w-5 h-5 text-indigo-600" />
+              Onam Formu Detayı
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-500">
+              {selectedConsent?.signed_at ? format(new Date(selectedConsent.signed_at), "d MMMM yyyy, HH:mm", { locale: tr }) : ""}
+              {selectedConsent?.appointment_date ? ` — Randevu: ${selectedConsent.appointment_date}` : ""}
+              {selectedConsent?.appointment_time ? ` ${selectedConsent.appointment_time}` : ""}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            {/* Consent Text */}
+            <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 max-h-[300px] overflow-y-auto no-scrollbar">
+              <p className="text-[0.8rem] text-slate-600 whitespace-pre-wrap leading-relaxed font-medium">
+                {selectedConsent?.consent_text}
+              </p>
+            </div>
+
+            {/* Checkboxes Status */}
+            <div className="bg-emerald-50/50 rounded-2xl p-4 border border-emerald-100">
+              <h4 className="text-[0.7rem] font-extrabold uppercase text-emerald-700 tracking-wider mb-3">Onaylanan Maddeler</h4>
+              <div className="space-y-2">
+                {selectedConsent?.checkboxes && Object.entries(selectedConsent.checkboxes).map(([key, val]) => (
+                  <div key={key} className="flex items-center gap-2 text-[0.78rem] font-medium text-slate-700">
+                    <CheckCircle2 className={`w-4 h-4 ${val ? 'text-emerald-500' : 'text-slate-300'}`} />
+                    {key === 'bilgilendirme_okundu' && 'Bilgilendirme okundu ve anlaşıldı'}
+                    {key === 'soru_sorma_hakki' && 'Soru sorma hakkı biliniyor'}
+                    {key === 'kvkk_onay' && 'KVKK onayı verildi'}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Signature */}
+            {selectedConsent?.signature_data && (
+              <div className="bg-white rounded-2xl p-5 border-2 border-slate-200">
+                <h4 className="text-[0.7rem] font-extrabold uppercase text-slate-500 tracking-wider mb-3">Dijital İmza</h4>
+                <img src={selectedConsent.signature_data} alt="Hasta İmzası" className="max-h-[120px] w-auto mx-auto" />
+              </div>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>

@@ -39,12 +39,27 @@ export type Service = {
   renk: string;
 };
 
+export type ConsentRecord = {
+  id?: string;
+  patient_name: string;
+  appointment_id?: string;
+  appointment_date?: string;
+  appointment_time?: string;
+  consent_text: string;
+  signature_data?: string;
+  checkboxes: Record<string, boolean>;
+  patient_tc?: string;
+  patient_phone?: string;
+  signed_at?: string;
+};
+
 export const CACHE_KEYS = {
   APPOINTMENTS: "cache_appointments",
   PROFILES: "cache_patient_profiles",
   INVENTORY: "cache_inventory",
   ADMIN_USERS: "cache_admin_users",
   SERVICES: "cache_services",
+  CONSENTS: "cache_consent_records",
 };
 
 export function getCacheSync<T>(key: string): T | null {
@@ -397,6 +412,86 @@ export function useDatabase() {
     setCache(CACHE_KEYS.SERVICES, filtered);
   }, [userId]);
 
+  // ─── Consent Records ──────────────────────────────────────────
+
+  const saveConsentRecord = useCallback(async (record: ConsentRecord) => {
+    if (!userId) throw new Error("Oturum kapatılmış, lütfen tekrar giriş yapın.");
+
+    const payload = {
+      user_id: userId,
+      patient_name: record.patient_name,
+      appointment_id: record.appointment_id || null,
+      appointment_date: record.appointment_date || null,
+      appointment_time: record.appointment_time || null,
+      consent_text: record.consent_text,
+      signature_data: record.signature_data || null,
+      checkboxes: record.checkboxes || {},
+      patient_tc: record.patient_tc || null,
+      patient_phone: record.patient_phone || null,
+    };
+
+    const { data, error } = await supabase
+      .from("consent_records")
+      .insert(payload)
+      .select();
+
+    if (error) throw error;
+
+    // Update cache
+    const cached = getCache<ConsentRecord[]>(CACHE_KEYS.CONSENTS) || [];
+    if (data && data[0]) cached.push(data[0]);
+    setCache(CACHE_KEYS.CONSENTS, cached);
+
+    return data?.[0];
+  }, [userId]);
+
+  const getConsentRecords = useCallback(async (patientName?: string): Promise<ConsentRecord[]> => {
+    try {
+      if (!userId) return getCache<ConsentRecord[]>(CACHE_KEYS.CONSENTS) || [];
+
+      let query = supabase
+        .from("consent_records")
+        .select("*")
+        .eq("user_id", userId)
+        .order("signed_at", { ascending: false });
+
+      if (patientName) {
+        query = query.eq("patient_name", patientName);
+      }
+
+      const { data, error } = await query;
+
+      if (!error && data) {
+        if (!patientName) setCache(CACHE_KEYS.CONSENTS, data);
+        return data as ConsentRecord[];
+      }
+    } catch (e) {
+      console.warn("getConsentRecords failed, falling back to cache", e);
+    }
+
+    const cached = getCache<ConsentRecord[]>(CACHE_KEYS.CONSENTS) || [];
+    if (patientName) return cached.filter(c => c.patient_name === patientName);
+    return cached;
+  }, [userId]);
+
+  const getConsentByAppointment = useCallback(async (appointmentId: string): Promise<ConsentRecord | null> => {
+    try {
+      if (!userId) return null;
+
+      const { data, error } = await supabase
+        .from("consent_records")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("appointment_id", appointmentId)
+        .maybeSingle();
+
+      if (!error && data) return data as ConsentRecord;
+    } catch (e) {
+      console.warn("getConsentByAppointment failed", e);
+    }
+    return null;
+  }, [userId]);
+
   return {
     getAppointments,
     fetchFreshAppointments,
@@ -410,5 +505,8 @@ export function useDatabase() {
     getServices,
     saveService,
     deleteService,
+    saveConsentRecord,
+    getConsentRecords,
+    getConsentByAppointment,
   };
 }
