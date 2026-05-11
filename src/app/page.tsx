@@ -23,7 +23,7 @@ import { useState, useEffect } from "react";
 export default function LandingPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const promoImages = ["/promo-1.png", "/promo-2.png", "/promo-3.png", "/promo-4.png"];
+  const promoImages = ["/promo-4.png", "/promo-2.png", "/promo-3.png"];
 
   useEffect(() => {
     const timer = setInterval(() => {
