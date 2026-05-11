@@ -10,8 +10,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Contact, Search, Package, Users, Clock, CheckCircle2, History, Pill, FileText, Box, Trash2, Plus, X, Edit2, Notebook as Emerald, Loader2, Shield } from "lucide-react";
+import { Contact, Search, Package, Users, Clock, CheckCircle2, History, Pill, FileText, Box, Trash2, Plus, X, Edit2, Notebook as Emerald, Loader2, Shield, MessageCircle } from "lucide-react";
 import { ConsentFormModal } from "@/components/ConsentFormModal";
+import { WhatsAppSimulator } from "@/components/WhatsAppSimulator";
 import { format, parseISO, isValid } from "date-fns";
 import { tr } from "date-fns/locale/tr";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -421,7 +422,16 @@ export default function PatientListPage() {
               </div>
               <div className="flex items-center justify-between pt-2 border-t border-slate-100">
                 <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-3 py-1 rounded-full text-[0.7rem] font-bold">{h?.ad}</span>
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-center">
+                  {p.whatsapp_status === 'declined' && (
+                    <span className="text-[0.65rem] font-bold text-rose-600 bg-rose-50 px-2 py-1 rounded-md border border-rose-100 flex items-center gap-1"><X className="w-3 h-3" /> Reddedildi</span>
+                  )}
+                  {p.whatsapp_status === 'sent' && (
+                    <span className="text-[0.65rem] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md border border-blue-100 flex items-center gap-1"><MessageCircle className="w-3 h-3" /> Bekleniyor</span>
+                  )}
+                  {p.whatsapp_status === 'confirmed' && (
+                    <span className="text-[0.65rem] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-100 flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Onaylı</span>
+                  )}
                   <Button variant="outline" size="sm" className="h-9 px-3 text-xs bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-all rounded-xl border-indigo-600" onClick={() => openConsent(p)}>
                     <Shield className="w-3.5 h-3.5 mr-1" /> Onam
                   </Button>
@@ -460,9 +470,20 @@ export default function PatientListPage() {
                   </TableCell>
                   <TableCell className="text-center py-4 font-medium text-slate-600">{p.telefon || "-"}</TableCell>
                   <TableCell className="text-center py-4">
-                     <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-3 py-1 rounded-full text-[0.7rem] font-bold">
-                       {h?.ad}
-                     </span>
+                     <div className="flex flex-col items-center gap-1.5">
+                       <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-3 py-1 rounded-full text-[0.7rem] font-bold">
+                         {h?.ad}
+                       </span>
+                       {p.whatsapp_status === 'declined' && (
+                         <span className="text-[0.6rem] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-100 flex items-center gap-1"><X className="w-3 h-3" /> Reddedildi</span>
+                       )}
+                       {p.whatsapp_status === 'sent' && (
+                         <span className="text-[0.6rem] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100 flex items-center gap-1"><MessageCircle className="w-3 h-3" /> Bekleniyor</span>
+                       )}
+                       {p.whatsapp_status === 'confirmed' && (
+                         <span className="text-[0.6rem] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100 flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> WP Onaylı</span>
+                       )}
+                     </div>
                   </TableCell>
                   <TableCell className="text-center py-4 font-extrabold text-[#111827]">{p.saat}</TableCell>
                   <TableCell className="text-center py-4">
@@ -481,6 +502,7 @@ export default function PatientListPage() {
           </TableBody>
         </Table>
       </div>
+      <WhatsAppSimulator />
 
       {/* Patient Detail Modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
