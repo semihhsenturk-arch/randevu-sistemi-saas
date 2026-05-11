@@ -13,7 +13,8 @@ import {
   Database,
   Brain,
   Menu,
-  X as CloseIcon
+  X as CloseIcon,
+  FileSignature
 } from "lucide-react";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { Button } from "@/components/ui/button";
@@ -184,6 +185,11 @@ export default function LandingPage() {
                 icon: Brain,
                 title: "AI Destekli Hatırlatma",
                 desc: "Randevu kaçırma (no-show) oranlarını AI destekli otomatik hatırlatmalar ile %40'a kadar düşürün."
+              },
+              {
+                icon: FileSignature,
+                title: "Dijital Onam Formu",
+                desc: "Hastalarınıza dijital ortamda onam formu imzalatın. Kağıt israfını bitirin, yasal süreçleri güvence altına alın."
               }
             ].map((f, i) => (
               <div key={i} className="bg-white px-5 py-5 rounded-[20px] border border-slate-100 hover:border-emerald-200 shadow-sm hover:shadow-lg hover:shadow-emerald-500/5 transition-all group">

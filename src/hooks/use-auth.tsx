@@ -77,6 +77,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
   const pathnameRef = useRef(pathname);
   const isProcessingRef = useRef(false);
+  const signingOutRef = useRef(false);
 
   // Load profile from cache on mount (client-side only)
   useEffect(() => {
@@ -141,6 +142,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     async function handleAuthChange(event: string, session: Session | null) {
       if (!mounted || isProcessingRef.current) return;
+      // During sign-out, skip all auth processing to prevent intermediate screens
+      if (signingOutRef.current) return;
       
       console.log(`Auth Event: ${event}`, session?.user?.id ? `User: ${session.user.id}` : "No Session");
       
@@ -243,7 +246,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [router]); // pathname removed - we use pathnameRef instead
 
   const signOut = useCallback(async () => {
-    // Supabase auth key'lerini de manuel temizlemek garanti sağlar
+    // Immediately block auth listener from processing any more events
+    signingOutRef.current = true;
+
+    // Clear React state immediately to prevent any intermediate UI renders
+    setSession(null);
+    setUser(null);
+    setProfile(null);
+
+    // Clear all cached data from localStorage
     const keysToClear = [
       'randevular', 
       'cache_appointments', 
@@ -257,7 +268,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       PROFILE_CACHE_KEY
     ];
 
-    // Sayfada localStorage erişimi olduğundan eminiz (client side)
     if (typeof window !== 'undefined' && window.localStorage) {
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
@@ -273,15 +283,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
     }
 
-    // Supabase oturumunu arka planda sonlandır, askıda (hang) kalmasını bekleme
-    // Network hatası durumunda işlemi tıkamaması için setTimeout ile yarıştıralım veya await'i sınırlandıralım
-    Promise.race([
-      supabase.auth.signOut(),
-      new Promise(resolve => setTimeout(resolve, 500))
-    ]).catch(() => {}).finally(() => {
-      // Yönlendir
-      window.location.href = "/login";
-    });
+    // Redirect to login immediately — no waiting for Supabase
+    window.location.href = "/login";
+
+    // Fire-and-forget: tell Supabase to end the session in the background
+    supabase.auth.signOut().catch(() => {});
   }, []);
 
   const refreshProfile = useCallback(async () => {
