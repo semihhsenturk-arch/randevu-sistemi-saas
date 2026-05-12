@@ -122,7 +122,9 @@ export default function PatientListPage() {
       const isToday = a.tarih === todayStr;
       const isActive = a.durum === "onaylandi" || a.durum === "beklemede";
       const search = searchTerm.toLocaleUpperCase("tr-TR");
-      const matchesSearch = a.musteriAdi.toLocaleUpperCase("tr-TR").includes(search) || (a.telefon && a.telefon.includes(searchTerm));
+      const musteriAdi = a.musteriAdi || "";
+      const telefon = a.telefon || "";
+      const matchesSearch = musteriAdi.toLocaleUpperCase("tr-TR").includes(search) || telefon.includes(searchTerm);
       
       if (filterType === "today") {
         return isToday && isActive && matchesSearch;
@@ -131,10 +133,13 @@ export default function PatientListPage() {
         return matchesSearch;
       }
     }).sort((a,b) => {
-      // Önce tarihe, sonra saate göre sırala
-      const dateCompare = b.tarih.localeCompare(a.tarih);
+      const dateA = a.tarih || "";
+      const dateB = b.tarih || "";
+      const timeA = a.saat || "";
+      const timeB = b.saat || "";
+      const dateCompare = dateB.localeCompare(dateA);
       if (dateCompare !== 0) return dateCompare;
-      return a.saat.localeCompare(b.saat);
+      return timeA.localeCompare(timeB);
     });
   }, [appointments, todayStr, searchTerm, filterType]);
 
@@ -345,7 +350,9 @@ export default function PatientListPage() {
   };
 
   const selProfile = profiles[selectedPatientName] || { notes_list: [], meds: [], stock_history: [] };
-  const hstAppointments = appointments.filter(a => a.musteriAdi === selectedPatientName).sort((a,b) => b.tarih.localeCompare(a.tarih));
+  const hstAppointments = appointments
+    .filter(a => (a.musteriAdi || "") === selectedPatientName)
+    .sort((a,b) => (b.tarih || "").localeCompare(a.tarih || ""));
 
   if (isLoading || !isMounted) {
     return (
@@ -410,7 +417,7 @@ export default function PatientListPage() {
         {filteredPatients.length === 0 && !loading ? (
           <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-500 italic">Kayıt bulunamadı.</div>
         ) : filteredPatients.map(p => {
-          const h = services.find(x => x.id.toString() === p.hizmetId.toString());
+          const h = p.hizmetId ? services.find(x => x.id.toString() === p.hizmetId.toString()) : null;
           return (
             <div key={p.id} className={`bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 ${p.durum === 'beklemede' ? 'border-amber-200 bg-amber-50/10' : ''}`}>
               <div className="flex justify-between items-start">
@@ -460,7 +467,7 @@ export default function PatientListPage() {
             {filteredPatients.length === 0 && !loading ? (
               <TableRow><TableCell colSpan={5} className="h-32 text-center text-slate-500">Kayıt bulunamadı.</TableCell></TableRow>
             ) : filteredPatients.map(p => {
-              const h = services.find(x => x.id.toString() === p.hizmetId.toString());
+              const h = p.hizmetId ? services.find(x => x.id.toString() === p.hizmetId.toString()) : null;
               return (
                 <TableRow key={p.id} className={`hover:bg-emerald-50/30 transition-colors ${p.durum === 'beklemede' ? 'bg-amber-50/20' : ''}`}>
                   <TableCell className="text-center py-4">
@@ -664,7 +671,7 @@ export default function PatientListPage() {
                     {hstAppointments.length === 0 ? <div className="text-center py-10 italic text-slate-400 bg-white border border-slate-100 rounded-xl shadow-sm">Henüz işlem geçmişi bulunamadı.</div> : (
                       <div className="relative border-l-2 border-slate-100 ml-3 space-y-6">
                          {hstAppointments.map(a => {
-                           const h = services.find(x => x.id.toString() === a.hizmetId.toString());
+                           const h = a.hizmetId ? services.find(x => x.id.toString() === a.hizmetId.toString()) : null;
                            const isStatusDone = a.durum === 'onaylandi';
                            return (
                              <div key={a.id} className="relative pl-6">

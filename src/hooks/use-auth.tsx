@@ -163,6 +163,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
           if (pErr || !profileData || profileData.is_approved === false) {
             console.error("Profile check failed or unapproved:", pErr?.message || "Not found/Unapproved");
+            
+            // Eğer hata bir ağ hatası ise (TypeError: Load failed vb.), kullanıcıyı hemen sistemden atmayalım
+            const isNetworkError = pErr?.message?.includes("Load failed") || pErr?.message?.includes("Failed to fetch");
+            
+            if (isNetworkError) {
+              console.warn("Ağ bağlantısı koptu, profil doğrulanamadı. Oturum kapatılmıyor.");
+              if (mounted) {
+                // Sadece yükleme ekranını kapat, kullanıcının mevcut durumunu koru
+                setIsLoading(false);
+              }
+              return;
+            }
+
             if (event === "SIGNED_IN") {
               await supabase.auth.signOut().catch(() => {});
             }

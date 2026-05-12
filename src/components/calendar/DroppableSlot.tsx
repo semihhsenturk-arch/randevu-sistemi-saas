@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { useDroppable } from "@dnd-kit/core";
 
 interface DroppableSlotProps {
@@ -10,7 +11,7 @@ interface DroppableSlotProps {
   children?: React.ReactNode;
 }
 
-export function DroppableSlot({ id, date, time, onClick, children }: DroppableSlotProps) {
+export const DroppableSlot = memo(function DroppableSlot({ id, date, time, onClick, children }: DroppableSlotProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: id,
     data: { date, time }
@@ -25,4 +26,5 @@ export function DroppableSlot({ id, date, time, onClick, children }: DroppableSl
       {children}
     </div>
   );
-}
+});
+

@@ -1,8 +1,8 @@
 "use client";
 
+import { memo } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import { Appointment, Service } from "@/hooks/use-database";
-import { CSS } from "@dnd-kit/utilities";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface DraggableAppointmentProps {
@@ -12,22 +12,37 @@ interface DraggableAppointmentProps {
   style?: React.CSSProperties;
 }
 
-export function DraggableAppointment({ appointment, service, onClick, style }: DraggableAppointmentProps) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+export const DraggableAppointment = memo(function DraggableAppointment({ appointment, service, onClick, style }: DraggableAppointmentProps) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: appointment.id,
     data: { appointment }
   });
 
-  const dndStyle = {
-    // Hide the original element completely during drag to leave no 'trail'
-    opacity: isDragging ? 0 : 1,
-    visibility: isDragging ? "hidden" as const : "visible" as const,
-    pointerEvents: isDragging ? "none" as const : "auto" as const,
-    ...style
+  const dndStyle: React.CSSProperties = {
+    ...style,
+    // GPU layer promotion
+    willChange: 'transform, opacity',
+    transform: 'translate3d(0, 0, 0)',
+    WebkitBackfaceVisibility: 'hidden',
+    backfaceVisibility: 'hidden',
+    transition: 'opacity 0.15s ease, border-color 0.15s ease',
+    // Ghost mode during drag — Teams-style faded dashed card at original position
+    ...(isDragging ? {
+      opacity: 0.25,
+      pointerEvents: 'none' as const,
+      borderStyle: 'dashed',
+      borderWidth: '1.5px',
+      borderLeftWidth: '3px',
+      filter: 'grayscale(0.4)',
+      boxShadow: 'none',
+    } : {
+      opacity: 1,
+      pointerEvents: 'auto' as const,
+    }),
   };
 
   return (
-    <TooltipProvider delayDuration={1000}>
+    <TooltipProvider delayDuration={isDragging ? 99999 : 800}>
       <Tooltip>
         <TooltipTrigger asChild>
           <div
@@ -35,6 +50,7 @@ export function DraggableAppointment({ appointment, service, onClick, style }: D
             {...listeners}
             {...attributes}
             onClick={(e) => {
+              if (isDragging) return;
               e.stopPropagation();
               onClick(appointment);
             }}
@@ -54,4 +70,4 @@ export function DraggableAppointment({ appointment, service, onClick, style }: D
       </Tooltip>
     </TooltipProvider>
   );
-}
+});

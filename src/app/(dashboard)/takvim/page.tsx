@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { format, addDays, startOfWeek, parseISO, isValid } from "date-fns";
 import { tr } from "date-fns/locale/tr";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -33,7 +33,9 @@ import {
   useSensors, 
   DragEndEvent,
   DragOverlay,
-  DragStartEvent
+  DragStartEvent,
+  DragOverEvent,
+  MeasuringStrategy
 } from "@dnd-kit/core";
 
 // Components
@@ -117,6 +119,7 @@ export default function CalendarPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [currentApt, setCurrentApt] = useState<Partial<Appointment>>({});
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
+  const [activeOverSlot, setActiveOverSlot] = useState<{ date: string; time: string } | null>(null);
   const [selectedDayIndex, setSelectedDayIndex] = useState(0); // For mobile single day view
   const [isMounted, setIsMounted] = useState(false);
   const [sheetModalOpen, setSheetModalOpen] = useState(false);
@@ -133,20 +136,34 @@ export default function CalendarPage() {
     setIsMounted(true);
   }, []);
 
-  // DND Sensors - Using specific sensors for better performance and instant response
+  // DND Sensors - Optimized for instant, fluid response
   const mouseSensor = useSensor(MouseSensor, {
     activationConstraint: {
-      distance: 3, // Start dragging after moving 3px
+      distance: 2, // Start dragging after just 2px for snappy response
     },
   });
   const touchSensor = useSensor(TouchSensor, {
     activationConstraint: {
-      delay: 250, // Slight delay for touch to allow scrolling
-      tolerance: 5,
+      delay: 150, // Short delay for touch to allow scrolling
+      tolerance: 8,
     },
   });
   
   const sensors = useSensors(mouseSensor, touchSensor);
+
+  // Custom drop animation for a smooth, polished feel
+  const dropAnimationConfig = useMemo(() => ({
+    duration: 200,
+    easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
+    sideEffects: undefined as any,
+  }), []);
+
+  // Measuring strategy for faster collision detection
+  const measuringConfig = useMemo(() => ({
+    droppable: {
+      strategy: MeasuringStrategy.WhileDragging,
+    },
+  }), []);
 
   useEffect(() => {
     // Load from cache first for instant feedback
@@ -324,13 +341,33 @@ export default function CalendarPage() {
     }
   };
 
-  const handleDragStart = (event: DragStartEvent) => {
+  const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveDragId(event.active.id as string);
-  };
+    setActiveOverSlot(null);
+    document.body.style.cursor = 'grabbing';
+  }, []);
 
-  const handleDragEnd = async (event: DragEndEvent) => {
+  const handleDragOver = useCallback((event: DragOverEvent) => {
+    const { over } = event;
+    if (over?.data?.current) {
+      const { date, time } = over.data.current as { date: string; time: string };
+      setActiveOverSlot({ date, time });
+    } else {
+      setActiveOverSlot(null);
+    }
+  }, []);
+
+  const handleDragCancel = useCallback(() => {
+    setActiveDragId(null);
+    setActiveOverSlot(null);
+    document.body.style.cursor = '';
+  }, []);
+
+  const handleDragEnd = useCallback(async (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveDragId(null);
+    setActiveOverSlot(null);
+    document.body.style.cursor = '';
     if (!over) return;
 
     const aptId = active.id as string;
@@ -360,7 +397,8 @@ export default function CalendarPage() {
     } catch (e) {
       console.error("Sürükleme hatası:", e);
     }
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [appointments, saveAppointment]);
 
   const handleApprove = async (apt: Appointment) => {
     const conflicts = appointments.filter(a => a.tarih === apt.tarih && a.saat === apt.saat && a.id !== apt.id && a.durum === "onaylandi");
@@ -486,7 +524,10 @@ export default function CalendarPage() {
     return appointments.filter(a => a.durum === "beklemede").sort((a,b) => a.tarih.localeCompare(b.tarih) || a.saat.localeCompare(b.saat));
   }, [appointments]);
 
-  const draggedApt = activeDragId ? appointments.find(a => a.id === activeDragId) : null;
+  const draggedApt = useMemo(() => 
+    activeDragId ? appointments.find(a => a.id === activeDragId) : null,
+    [activeDragId, appointments]
+  );
 
   if (!isMounted) {
     return (
@@ -513,7 +554,7 @@ export default function CalendarPage() {
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6 items-start pb-20">
         {/* Sol Kolon: Takvim Alanı */}
         <div className="flex-1 w-full bg-transparent min-w-0">
-          <DndContext sensors={sensors} collisionDetection={pointerWithin} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+          <DndContext sensors={sensors} collisionDetection={pointerWithin} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd} onDragCancel={handleDragCancel} measuring={measuringConfig}>
             {/* Mobile Day Selector */}
             <div className="lg:hidden grid grid-cols-7 gap-1 mb-2">
               {weekDays.map((d, i) => (
@@ -596,19 +637,62 @@ export default function CalendarPage() {
                           />
                         );
                       })}
+
+                      {/* Teams-style: Preview card in the target slot */}
+                      {draggedApt && activeOverSlot && activeOverSlot.date === dStr && (() => {
+                        const previewIdx = SHIFTS.indexOf(activeOverSlot.time);
+                        if (previewIdx === -1) return null;
+                        // Don't show preview at the original position
+                        if (draggedApt.tarih === dStr && draggedApt.saat === activeOverSlot.time) return null;
+                        const dragSvc = services.find(h => h.id.toString() === draggedApt.hizmetId.toString());
+                        const previewTop = previewIdx * 50 + 5;
+                        const previewHeight = ((dragSvc?.sure || 30) / 30) * 50 - 10;
+                        return (
+                          <div 
+                            className="drag-preview-card"
+                            style={{ 
+                              top: `${previewTop}px`, 
+                              height: `${previewHeight}px`,
+                              width: 'calc(100% - 8px)',
+                              left: '4px',
+                            }}
+                          >
+                            <span className="apt-name">{draggedApt.musteriAdi}</span>
+                            <span className="apt-service">{dragSvc?.ad || "Bilinmeyen Hizmet"}</span>
+                          </div>
+                        );
+                      })()}
                     </div>
                   );
                 })}
               </div>
             </div>
 
-            <DragOverlay>
+            <DragOverlay dropAnimation={dropAnimationConfig} zIndex={9999}>
               {draggedApt ? (
-                <div className={`appointment-card-legacy ${draggedApt.durum} opacity-90 cursor-grabbing shadow-2xl scale-105 transition-transform`} style={{ width: '160px', height: '45px', position: 'static', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                  <span className="apt-name">{draggedApt.musteriAdi}</span>
-                  <span className="apt-service text-[0.6rem] opacity-70">
-                    {services.find(h => h.id.toString() === draggedApt.hizmetId.toString())?.ad || "Bilinmeyen Hizmet"}
-                  </span>
+                <div className="drag-overlay-wrapper">
+                  {/* Time badge — shows target time like Teams */}
+                  {activeOverSlot && (
+                    <div className="drag-time-badge">
+                      {activeOverSlot.time}
+                    </div>
+                  )}
+                  <div 
+                    className={`appointment-card-legacy ${draggedApt.durum} drag-overlay-active`} 
+                    style={{ 
+                      width: '170px', 
+                      height: '48px', 
+                      position: 'static', 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <span className="apt-name">{draggedApt.musteriAdi}</span>
+                    <span className="apt-service text-[0.6rem] opacity-70">
+                      {services.find(h => h.id.toString() === draggedApt.hizmetId.toString())?.ad || "Bilinmeyen Hizmet"}
+                    </span>
+                  </div>
                 </div>
               ) : null}
             </DragOverlay>
