@@ -72,22 +72,10 @@ export function InputDatePicker({ date, setDate, placeholder, className }: Input
           sideOffset={8}
         >
           <Calendar
-            mode="single"
-            selected={date}
-            onSelect={(newDate) => {
-              setDate(newDate)
+            value={date || null}
+            onChange={(val) => {
+              setDate(val ? (val as Date) : undefined)
               setIsOpen(false)
-            }}
-            initialFocus
-            locale={tr}
-            className="p-3" // More compact padding
-            classNames={{
-              day: "h-8 w-8 flex items-center justify-center p-0",
-              day_button: "h-8 w-8 p-0 font-bold text-[0.75rem] rounded-xl",
-              weekday: "text-slate-400 font-bold text-[0.6rem] h-8 w-8 flex-1",
-              caption_label: "text-[0.85rem] font-black text-[#0a3d34]",
-              nav: "flex items-center space-x-1",
-              month_caption: "flex justify-center relative items-center mb-4 h-8",
             }}
           />
         </PopoverContent>

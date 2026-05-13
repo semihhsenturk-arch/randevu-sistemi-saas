@@ -1,10 +1,18 @@
 "use client"
 
-import React, { useEffect, useRef } from "react"
-import flatpickr from "flatpickr"
-import { Turkish } from "flatpickr/dist/l10n/tr"
-import "flatpickr/dist/flatpickr.css"
+import React, { useState } from "react"
+import { format, parse, isValid } from "date-fns"
+import { tr } from "date-fns/locale/tr"
+import { Calendar as CalendarIcon } from "lucide-react"
+
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 
 interface FlatPickerProps {
   value?: string
@@ -15,47 +23,44 @@ interface FlatPickerProps {
 }
 
 export function FlatPicker({ value, onChange, placeholder, className, options }: FlatPickerProps) {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const instanceRef = useRef<any>(null)
+  const [isOpen, setIsOpen] = useState(false)
 
-  useEffect(() => {
-    if (inputRef.current) {
-      instanceRef.current = flatpickr(inputRef.current, {
-        locale: Turkish,
-        altInput: true,
-        altFormat: "d-m-Y",
-        dateFormat: "Y-m-d",
-        defaultDate: value,
-        onChange: (selectedDates, dateStr) => {
-          onChange(dateStr)
-        },
-        ...options,
-      })
-    }
+  // value is expected to be "yyyy-MM-dd"
+  const dateValue = value && value.length === 10 ? parse(value, "yyyy-MM-dd", new Date()) : undefined
+  const displayValue = dateValue && isValid(dateValue) ? format(dateValue, "dd-MM-yyyy") : ""
 
-    return () => {
-      if (instanceRef.current) {
-        instanceRef.current.destroy()
-      }
+  const handleSelect = (newDate: Date | null) => {
+    if (newDate) {
+      onChange(format(newDate, "yyyy-MM-dd"))
     }
-  }, []) // Initialize only once
-
-  // Update value if it changes from outside
-  useEffect(() => {
-    if (instanceRef.current && value !== undefined && value !== instanceRef.current.input.value) {
-      instanceRef.current.setDate(value, false)
-    }
-  }, [value])
+    setIsOpen(false)
+  }
 
   return (
-    <input
-      ref={inputRef}
-      placeholder={placeholder}
-      className={cn(
-        "w-full px-3.5 py-2.5 border border-slate-200 rounded-xl font-semibold text-[0.9rem] text-slate-900 bg-white focus:outline-none focus:border-[#0a3d34] focus:ring-3 focus:ring-[#0a3d34]/10 transition-all text-center h-11",
-        className
-      )}
-      style={{ display: 'none' }} // Explicitly hide the original input
-    />
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className={cn(
+            "w-full px-3.5 py-2.5 border border-slate-200 rounded-xl font-semibold text-[0.9rem] text-slate-900 bg-white hover:bg-emerald-50 focus:border-[#0a3d34] focus:ring-3 focus:ring-[#0a3d34]/10 transition-all text-center h-11 justify-between",
+            !displayValue && "text-slate-400 font-medium",
+            className
+          )}
+        >
+          <span>{displayValue || placeholder || "Tarih Seç"}</span>
+          <CalendarIcon className="h-4 w-4 ml-2 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent 
+        className="w-auto p-0 border-none shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)] rounded-[24px] bg-white overflow-hidden" 
+        align="center" 
+        sideOffset={8}
+      >
+        <Calendar
+          value={dateValue || null}
+          onChange={(val) => handleSelect(val as Date)}
+        />
+      </PopoverContent>
+    </Popover>
   )
 }

@@ -45,11 +45,8 @@ export function DatePicker({ date, setDate, placeholder, className }: DatePicker
         sideOffset={12}
       >
         <Calendar
-          mode="single"
-          selected={date}
-          onSelect={setDate}
-          initialFocus
-          locale={tr}
+          value={date || null}
+          onChange={(val) => setDate(val ? (val as Date) : undefined)}
         />
       </PopoverContent>
     </Popover>
