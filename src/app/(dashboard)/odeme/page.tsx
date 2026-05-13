@@ -134,6 +134,69 @@ function OdemeContent() {
     }
   }, [checkoutHTML]);
 
+  // İyzico 3DS popup/overlay elementlerini izle ve stilize et
+  useEffect(() => {
+    if (!checkoutHTML) return;
+
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (!(node instanceof HTMLElement)) return;
+          
+          const style = node.getAttribute("style") || "";
+          const isFixedOverlay = style.includes("position: fixed") || style.includes("position:fixed");
+          const hasHighZIndex = style.includes("z-index");
+          const hasIframe = node.querySelector("iframe");
+          const isIyzicoElement = node.id?.includes("iyzi") || node.className?.includes("iyzi");
+
+          // İyzico'nun 3DS doğrulama overlay'ını yakala
+          if ((isFixedOverlay && hasHighZIndex && hasIframe) || isIyzicoElement) {
+            // Overlay (arka plan) stilini uygula
+            Object.assign(node.style, {
+              background: "rgba(15, 23, 42, 0.55)",
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "background 0.3s ease",
+            });
+
+            // Modal container'ı bul ve stilize et
+            const modalContainer = node.querySelector("div") as HTMLElement;
+            if (modalContainer && modalContainer !== node) {
+              Object.assign(modalContainer.style, {
+                background: "#ffffff",
+                borderRadius: "20px",
+                boxShadow: "0 32px 64px -12px rgba(0,0,0,0.25), 0 0 0 1px rgba(16,185,129,0.1)",
+                border: "1px solid rgba(226,232,240,0.8)",
+                overflow: "hidden",
+                maxWidth: "520px",
+                width: "95vw",
+                animation: "iyzicoModalSlideIn 0.3s cubic-bezier(0.16,1,0.3,1) forwards",
+              });
+            }
+
+            // Iframe'leri stilize et
+            const iframes = node.querySelectorAll("iframe");
+            iframes.forEach((iframe) => {
+              Object.assign((iframe as HTMLElement).style, {
+                border: "none",
+                borderRadius: "16px",
+                width: "100%",
+                minHeight: "400px",
+                background: "#ffffff",
+              });
+            });
+          }
+        });
+      });
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, [checkoutHTML]);
+
   // Başarı durumunu her şeyden önce göster (isLoading olsa bile)
   // Bu "beyaz ekran" sorununu önler çünkü yüklenmeyi beklemeden render eder
   if (callbackStatus === "success") {
@@ -190,9 +253,13 @@ function OdemeContent() {
             </div>
             <Button
               onClick={() => {
-                router.replace("/odeme");
+                // State'leri sıfırla ve sayfayı temiz şekilde yeniden yükle
+                setCallbackStatus(null);
+                setCallbackMessage(null);
                 setCheckoutHTML(null);
                 setError(null);
+                // URL'den query parametrelerini temizle (hard navigation ile tam yenileme)
+                window.history.replaceState({}, '', '/odeme');
               }}
               className="bg-[#0a3d34] hover:bg-[#072b25] font-bold"
             >
@@ -236,7 +303,7 @@ function OdemeContent() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">
-              <div ref={checkoutRef} id="iyzipay-checkout-form" />
+              <div ref={checkoutRef} id="iyzipay-checkout-form" className="responsive" />
             </CardContent>
           </Card>
         </div>

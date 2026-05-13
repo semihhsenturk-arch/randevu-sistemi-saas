@@ -388,4 +388,158 @@
     font-weight: 600 !important;
     font-size: 0.75rem !important;
   }
+  /* ─────────────────────────────────────────────────────────
+     İyzico Checkout Form & 3DS Doğrulama Ekranı Stilleri
+     ───────────────────────────────────────────────────────── */
+  
+  /* Ana checkout form container */
+  #iyzipay-checkout-form {
+    width: 100% !important;
+    min-height: 400px;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  #iyzipay-checkout-form.responsive {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* İyzico'nun inject ettiği iframe */
+  #iyzipay-checkout-form iframe {
+    width: 100% !important;
+    min-height: 500px !important;
+    border: none !important;
+    border-radius: 12px !important;
+    background: #ffffff !important;
+  }
+
+  /* ─── 3DS Doğrulama Popup / Overlay ─── */
+
+  /* İyzico 3DS modal overlay (arka plan karartma) */
+  #iyzico-checkout-form-modal-overlay,
+  .iyzico-overlay,
+  div[id*="iyzico"][id*="overlay"],
+  div[class*="iyzico"][class*="overlay"],
+  div[id*="iyzi"][id*="modal"] ~ div,
+  div[style*="position: fixed"][style*="z-index"][style*="background"]:has(iframe[src*="iyzipay"]),
+  div[style*="position: fixed"][style*="z-index: 9"]:has(iframe) {
+    background: rgba(15, 23, 42, 0.6) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+  }
+
+  /* İyzico 3DS modal container */
+  #iyzico-checkout-form-modal,
+  .iyzico-modal,
+  div[id*="iyzico"][id*="modal"],
+  div[id*="iyzi"][id*="modal"],
+  div[class*="iyzico"][class*="modal"] {
+    background: #ffffff !important;
+    border-radius: 20px !important;
+    box-shadow: 
+      0 32px 64px -12px rgba(0, 0, 0, 0.25),
+      0 0 0 1px rgba(16, 185, 129, 0.1),
+      0 0 80px rgba(10, 61, 52, 0.08) !important;
+    border: 1px solid rgba(226, 232, 240, 0.8) !important;
+    overflow: hidden !important;
+    max-width: 520px !important;
+    width: 95vw !important;
+    margin: auto !important;
+    padding: 0 !important;
+    animation: iyzicoModalSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  }
+
+  /* 3DS modal içindeki iframe */
+  #iyzico-checkout-form-modal iframe,
+  .iyzico-modal iframe,
+  div[id*="iyzico"][id*="modal"] iframe,
+  div[id*="iyzi"][id*="modal"] iframe,
+  div[class*="iyzico"][class*="modal"] iframe {
+    border: none !important;
+    border-radius: 16px !important;
+    width: 100% !important;
+    min-height: 400px !important;
+    background: #ffffff !important;
+  }
+
+  @keyframes iyzicoModalSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(24px) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  /* ─── Genel Popup/Modal stil yakalama (iyzico DOM dinamik) ─── */
+
+  /* iyzico bazen sayfaya doğrudan fixed pozisyonlu div'ler inject eder */
+  body > div[style*="position: fixed"][style*="z-index"]:not([class]):not([id]) {
+    /* Overlay arka planı */
+    &:has(iframe) {
+      background: rgba(15, 23, 42, 0.55) !important;
+      backdrop-filter: blur(8px) !important;
+      -webkit-backdrop-filter: blur(8px) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+  }
+
+  /* iyzico tarafından oluşturulan popup div'lerin içindeki modal container */
+  body > div[style*="position: fixed"][style*="z-index"]:not([class]):not([id]) > div {
+    background: #ffffff !important;
+    border-radius: 20px !important;
+    box-shadow: 
+      0 32px 64px -12px rgba(0, 0, 0, 0.25),
+      0 0 0 1px rgba(16, 185, 129, 0.1) !important;
+    border: 1px solid rgba(226, 232, 240, 0.8) !important;
+    overflow: hidden !important;
+    max-width: 520px !important;
+    width: 95vw !important;
+    animation: iyzicoModalSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  }
+
+  /* Popup içindeki iframe */
+  body > div[style*="position: fixed"][style*="z-index"]:not([class]):not([id]) > div > iframe,
+  body > div[style*="position: fixed"][style*="z-index"]:not([class]):not([id]) iframe {
+    border: none !important;
+    border-radius: 16px !important;
+    width: 100% !important;
+    min-height: 400px !important;
+    background: #ffffff !important;
+  }
+
+  /* ─── Checkout form Close/Cancel butonları ─── */
+  div[id*="iyzico"] button[class*="close"],
+  div[id*="iyzi"] button[class*="close"],
+  div[id*="iyzico"] .close-button,
+  div[id*="iyzi"] .close-button {
+    background: #f1f5f9 !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 50% !important;
+    width: 36px !important;
+    height: 36px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #64748b !important;
+    font-size: 18px !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+    margin: 12px !important;
+  }
+
+  div[id*="iyzico"] button[class*="close"]:hover,
+  div[id*="iyzi"] button[class*="close"]:hover,
+  div[id*="iyzico"] .close-button:hover,
+  div[id*="iyzi"] .close-button:hover {
+    background: #fee2e2 !important;
+    border-color: #fca5a5 !important;
+    color: #ef4444 !important;
+    transform: scale(1.05) !important;
+  }
 }
