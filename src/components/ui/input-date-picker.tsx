@@ -67,7 +67,7 @@ export function InputDatePicker({ date, setDate, placeholder, className }: Input
           </Button>
         </PopoverTrigger>
         <PopoverContent 
-          className="w-auto p-0 border-none shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)] rounded-[24px] bg-white/95 backdrop-blur-xl animate-in fade-in-0 zoom-in-95 duration-300 overflow-hidden" 
+          className="w-[320px] p-0 border-none shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)] rounded-[24px] bg-white/95 backdrop-blur-xl animate-in fade-in-0 zoom-in-95 duration-300 overflow-hidden" 
           align="end" 
           sideOffset={8}
         >
