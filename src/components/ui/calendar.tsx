@@ -16,7 +16,7 @@ function Calendar({
   ...props
 }: CalendarProps) {
   return (
-    <div className={cn("p-2", className)}>
+    <div className={cn(className)}>
       <ReactCalendar
         className="w-full border-0 font-sans"
         locale="tr-TR"
