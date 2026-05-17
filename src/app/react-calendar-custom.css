@@ -1,7 +1,7 @@
 /* react-calendar custom styles for Clinic Management System */
 
 .react-calendar {
-  width: 320px; /* Adjusted to tightly fit the dates */
+  width: max-content; /* Adjusted to tightly fit the dates */
   max-width: 100%;
   background: transparent;
   border: none;

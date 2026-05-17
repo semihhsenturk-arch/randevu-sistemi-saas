@@ -18,7 +18,7 @@ function Calendar({
   return (
     <div className={cn(className)}>
       <ReactCalendar
-        className="w-full border-0 font-sans"
+        className="w-max border-0 font-sans mx-auto"
         locale="tr-TR"
         prevLabel={<ChevronLeft className="h-4 w-4" />}
         nextLabel={<ChevronRight className="h-4 w-4" />}
