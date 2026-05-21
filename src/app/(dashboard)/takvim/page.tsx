@@ -806,7 +806,7 @@ export default function CalendarPage() {
                     <SelectTrigger className="h-12 border-slate-200 rounded-xl focus:ring-[#0a3d34]">
                       <SelectValue/>
                     </SelectTrigger>
-                    <SelectContent position="popper" side="bottom" align="start" className="max-h-[200px] overflow-y-auto">
+                    <SelectContent position="popper" side="bottom" align="start" className="max-h-[200px] !w-[var(--radix-select-trigger-width)] !min-w-[var(--radix-select-trigger-width)] !max-w-[var(--radix-select-trigger-width)] overflow-y-auto [&_[data-radix-select-viewport]]:!min-w-0">
                       {SHIFTS.filter(t => t !== "12:30" && t !== "13:00").map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                     </SelectContent>
                   </Select>
