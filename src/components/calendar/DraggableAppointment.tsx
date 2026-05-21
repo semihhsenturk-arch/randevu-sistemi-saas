@@ -65,7 +65,7 @@ export const DraggableAppointment = memo(function DraggableAppointment({ appoint
           className="bg-slate-900/95 border-slate-800 text-white shadow-2xl z-[9999] p-2 rounded-lg font-sans pointer-events-none" 
           sideOffset={4} 
           side="top"
-          style={{ width: '100px', minWidth: '100px', maxWidth: '100px', whiteSpace: 'normal', wordBreak: 'break-word' }}
+          style={{ width: '120px', minWidth: '120px', maxWidth: '120px', whiteSpace: 'normal', wordBreak: 'break-word' }}
         >
           <div className="flex flex-col items-center text-center">
             <span className="font-bold text-[0.7rem] text-white leading-tight w-full line-clamp-2">
