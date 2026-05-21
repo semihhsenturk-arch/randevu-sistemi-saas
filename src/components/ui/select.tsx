@@ -70,35 +70,70 @@ SelectScrollDownButton.displayName =
 const SelectContent = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
->(({ className, children, position = "popper", style, ...props }, ref) => (
-  <SelectPrimitive.Portal>
-    <SelectPrimitive.Content
-      ref={ref}
-      className={cn(
-        "relative z-50 max-h-[--radix-select-content-available-height] overflow-y-auto overflow-x-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-[--radix-select-content-transform-origin]",
-        position === "popper" &&
-          "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
-        className
-      )}
-      position={position}
-      style={position === "popper" ? { ...style, width: 'var(--radix-select-trigger-width)', minWidth: 0, maxWidth: 'var(--radix-select-trigger-width)' } : style}
-      {...props}
-    >
-      <SelectScrollUpButton />
-      <SelectPrimitive.Viewport
+>(({ className, children, position = "popper", style, ...props }, ref) => {
+  const mergedRef = React.useCallback(
+    (node: HTMLDivElement | null) => {
+      // Forward the ref
+      if (typeof ref === 'function') ref(node);
+      else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+      // Force width on the DOM element directly
+      if (node && position === "popper") {
+        const applyWidth = () => {
+          node.style.setProperty('width', 'var(--radix-select-trigger-width)', 'important');
+          node.style.setProperty('min-width', '0', 'important');
+          node.style.setProperty('max-width', 'var(--radix-select-trigger-width)', 'important');
+          // Also fix viewport child
+          const viewport = node.querySelector('[data-radix-select-viewport]') as HTMLElement;
+          if (viewport) {
+            viewport.style.setProperty('min-width', '0', 'important');
+          }
+        };
+        applyWidth();
+        // Re-apply after Radix finishes its own style computations
+        requestAnimationFrame(applyWidth);
+      }
+    },
+    [ref, position]
+  );
+
+  return (
+    <SelectPrimitive.Portal>
+      <SelectPrimitive.Content
+        ref={mergedRef}
         className={cn(
-          "p-1",
+          "relative z-50 max-h-[--radix-select-content-available-height] overflow-y-auto overflow-x-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-[--radix-select-content-transform-origin]",
           position === "popper" &&
-            "h-[var(--radix-select-trigger-height)] w-full"
+            "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
+          className
         )}
-        style={position === "popper" ? { minWidth: 0 } : undefined}
+        position={position}
+        {...props}
+        style={{
+          ...(props as any).style,
+          ...style,
+          ...(position === "popper" ? {
+            width: 'var(--radix-select-trigger-width)',
+            minWidth: 0,
+            maxWidth: 'var(--radix-select-trigger-width)',
+          } : {}),
+        }}
       >
-        {children}
-      </SelectPrimitive.Viewport>
-      <SelectScrollDownButton />
-    </SelectPrimitive.Content>
-  </SelectPrimitive.Portal>
-))
+        <SelectScrollUpButton />
+        <SelectPrimitive.Viewport
+          className={cn(
+            "p-1",
+            position === "popper" &&
+              "h-[var(--radix-select-trigger-height)] w-full"
+          )}
+          style={position === "popper" ? { minWidth: 0 } : undefined}
+        >
+          {children}
+        </SelectPrimitive.Viewport>
+        <SelectScrollDownButton />
+      </SelectPrimitive.Content>
+    </SelectPrimitive.Portal>
+  );
+})
 SelectContent.displayName = SelectPrimitive.Content.displayName
 
 const SelectLabel = React.forwardRef<
