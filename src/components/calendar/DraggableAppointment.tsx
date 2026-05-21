@@ -61,17 +61,27 @@ export const DraggableAppointment = memo(function DraggableAppointment({ appoint
             <span className="apt-service pointer-events-none" title=" ">{service?.ad || "Bilinmeyen Hizmet"}</span>
           </div>
         </TooltipTrigger>
-        <TooltipContent className="bg-slate-900 border-slate-800 text-white shadow-2xl z-[9999] p-2 w-[130px] rounded-xl font-sans" sideOffset={8} side="top">
-          <div className="flex flex-col gap-1 text-center">
-            <span className="font-bold text-[0.75rem] text-white leading-tight break-words">{appointment.musteriAdi}</span>
-            <div className="flex flex-col mt-0.5">
-              <span className="text-[0.6rem] text-emerald-400 font-bold uppercase tracking-wider mb-[1px]">Hizmet Türü</span>
-              <span className="text-[0.7rem] text-slate-200 font-medium leading-tight break-words">{service?.ad || "Bilinmeyen Hizmet"}</span>
+        <TooltipContent 
+          className="bg-slate-900/95 border-slate-800 text-white shadow-2xl z-[9999] p-2 w-28 rounded-lg font-sans pointer-events-none" 
+          sideOffset={4} 
+          side="top"
+        >
+          <div className="flex flex-col items-center text-center">
+            <span className="font-bold text-[0.7rem] text-white leading-tight w-full whitespace-normal break-words line-clamp-2">
+              {appointment.musteriAdi}
+            </span>
+            <div className="flex flex-col mt-1 w-full">
+              <span className="text-[0.55rem] text-emerald-400 font-bold uppercase tracking-wider">Hizmet</span>
+              <span className="text-[0.65rem] text-slate-200 font-medium leading-tight w-full whitespace-normal break-words line-clamp-2">
+                {service?.ad || "Bilinmeyen Hizmet"}
+              </span>
             </div>
             {appointment.notlar && appointment.notlar.trim() !== "" && (
-              <div className="mt-1 pt-1 border-t border-slate-700 flex flex-col">
-                 <span className="text-[0.6rem] text-slate-400 font-bold uppercase tracking-wider mb-[1px]">Notlar</span>
-                 <span className="text-[0.65rem] text-slate-300 break-words leading-tight">{appointment.notlar}</span>
+              <div className="mt-1 pt-1 border-t border-slate-700/80 flex flex-col w-full">
+                 <span className="text-[0.55rem] text-slate-400 font-bold uppercase tracking-wider">Not</span>
+                 <span className="text-[0.6rem] text-slate-300 leading-tight w-full whitespace-normal break-words line-clamp-3">
+                   {appointment.notlar}
+                 </span>
               </div>
             )}
           </div>
