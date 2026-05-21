@@ -62,24 +62,25 @@ export const DraggableAppointment = memo(function DraggableAppointment({ appoint
           </div>
         </TooltipTrigger>
         <TooltipContent 
-          className="bg-slate-900/95 border-slate-800 text-white shadow-2xl z-[9999] p-2 w-28 rounded-lg font-sans pointer-events-none" 
+          className="bg-slate-900/95 border-slate-800 text-white shadow-2xl z-[9999] p-2 rounded-lg font-sans pointer-events-none" 
           sideOffset={4} 
           side="top"
+          style={{ width: '100px', minWidth: '100px', maxWidth: '100px', whiteSpace: 'normal', wordBreak: 'break-word' }}
         >
           <div className="flex flex-col items-center text-center">
-            <span className="font-bold text-[0.7rem] text-white leading-tight w-full whitespace-normal break-words line-clamp-2">
+            <span className="font-bold text-[0.7rem] text-white leading-tight w-full line-clamp-2">
               {appointment.musteriAdi}
             </span>
             <div className="flex flex-col mt-1 w-full">
               <span className="text-[0.55rem] text-emerald-400 font-bold uppercase tracking-wider">Hizmet</span>
-              <span className="text-[0.65rem] text-slate-200 font-medium leading-tight w-full whitespace-normal break-words line-clamp-2">
+              <span className="text-[0.6rem] text-slate-200 font-medium leading-tight w-full line-clamp-2 mt-[1px]">
                 {service?.ad || "Bilinmeyen Hizmet"}
               </span>
             </div>
             {appointment.notlar && appointment.notlar.trim() !== "" && (
               <div className="mt-1 pt-1 border-t border-slate-700/80 flex flex-col w-full">
                  <span className="text-[0.55rem] text-slate-400 font-bold uppercase tracking-wider">Not</span>
-                 <span className="text-[0.6rem] text-slate-300 leading-tight w-full whitespace-normal break-words line-clamp-3">
+                 <span className="text-[0.55rem] text-slate-300 leading-tight w-full line-clamp-3 mt-[1px]">
                    {appointment.notlar}
                  </span>
               </div>
