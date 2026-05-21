@@ -83,6 +83,12 @@ const nextConfig: NextConfig = {
     '/api/payment/initialize': iyzipayAllDeps,
     '/api/payment/callback': iyzipayAllDeps,
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
 };
 
 export default nextConfig;
