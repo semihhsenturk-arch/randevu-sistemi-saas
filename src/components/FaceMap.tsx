@@ -36,6 +36,10 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
 
+  type DrawingPoint = { percentX: number; percentY: number };
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [currentPath, setCurrentPath] = useState<DrawingPoint[]>([]);
+
   // Form state
   const [formType, setFormType] = useState<"botoks" | "dolgu" | "mezoterapi">("botoks");
   const [formAmount, setFormAmount] = useState("");
@@ -66,44 +70,37 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
   const innerRef = useRef<HTMLDivElement>(null);
 
   // Click on face image to place a marker
-  const handleImageClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (readonly || !innerRef.current) return;
-
-    const rect = innerRef.current.getBoundingClientRect();
-    
-    // Zoom/pan yapılmış olan iç div'in merkezini buluyoruz
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-
-    // Tıklanan noktanın merkeze göre mesafesi
-    const clickXFromCenter = e.clientX - centerX;
-    const clickYFromCenter = e.clientY - centerY;
-
-    // Zoom etkisini bölerek sıfırlıyoruz.
-    // rect.width ve rect.height zaten zoom'dan etkilenmiştir (zoom katı kadardır)
-    const originalWidth = rect.width / zoom;
-    const originalHeight = rect.height / zoom;
-
-    // Tıklanan noktanın zoom'dan arındırılmış merkeze uzaklığı
-    const unzoomedX = clickXFromCenter / zoom;
-    const unzoomedY = clickYFromCenter / zoom;
-
-    // Merkeze göre asıl konumu yüzdesel değere çeviriyoruz
-    const x = ((unzoomedX + originalWidth / 2) / originalWidth) * 100;
-    const y = ((unzoomedY + originalHeight / 2) / originalHeight) * 100;
-
-    // Yüz ve boyun bölgesi sınırları kontrolü
-    // Baş: y %10 - %65 arası ve x %24 - %76 arası
-    // Boyun: y %65 - %85 arası ve x %34 - %66 arası
+  const isInsideHeadOrNeck = (x: number, y: number) => {
     const isHead = y >= 10 && y <= 65 && x >= 24 && x <= 76;
     const isNeck = y > 65 && y <= 85 && x >= 34 && x <= 66;
+    return isHead || isNeck;
+  };
 
-    if (!isHead && !isNeck) {
-      // Sınırlar dışındaysa tıklamayı yoksay
-      return;
-    }
+  const getPointerCoords = (clientX: number, clientY: number): DrawingPoint | null => {
+    if (!innerRef.current) return null;
+    const rect = innerRef.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const clickXFromCenter = clientX - centerX;
+    const clickYFromCenter = clientY - centerY;
+    const originalWidth = rect.width / zoom;
+    const originalHeight = rect.height / zoom;
+    const unzoomedX = clickXFromCenter / zoom;
+    const unzoomedY = clickYFromCenter / zoom;
+    const x = ((unzoomedX + originalWidth / 2) / originalWidth) * 100;
+    const y = ((unzoomedY + originalHeight / 2) / originalHeight) * 100;
+    return { percentX: x, percentY: y };
+  };
 
-    setClickPos({ x, y });
+  const handleImageClick = useCallback((e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
+    if (readonly) return;
+    const clientX = 'changedTouches' in e ? (e as any).changedTouches[0].clientX : (e as any).clientX;
+    const clientY = 'changedTouches' in e ? (e as any).changedTouches[0].clientY : (e as any).clientY;
+    
+    const coords = getPointerCoords(clientX, clientY);
+    if (!coords || !isInsideHeadOrNeck(coords.percentX, coords.percentY)) return;
+
+    setClickPos({ x: coords.percentX, y: coords.percentY });
     setEditingId(null);
     setShowForm(true);
     setFormType("botoks" as any);
@@ -177,7 +174,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
     }, 190);
   };
 
-  // Pan & Drag handlers
+  // Pan & Drag & Draw handlers
   const handleMouseDown = (e: React.MouseEvent | React.TouchEvent) => {
     if (readonly) return;
     setIsPanning(true);
@@ -185,32 +182,35 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
     const clientY = 'touches' in e ? (e as any).touches[0].clientY : (e as any).clientY;
     setPanStart({ x: clientX - pan.x, y: clientY - pan.y });
     dragStartRef.current = { x: clientX, y: clientY };
+
+    if (!draggingMarkerId) {
+      const coords = getPointerCoords(clientX, clientY);
+      if (coords && isInsideHeadOrNeck(coords.percentX, coords.percentY)) {
+        setIsDrawing(true);
+        setCurrentPath([coords]);
+      }
+    }
   };
 
   const handleMouseMove = (e: React.MouseEvent | React.TouchEvent) => {
-    if (draggingMarkerId && !readonly && innerRef.current) {
-      e.preventDefault();
-      const rect = innerRef.current.getBoundingClientRect();
-      const clientX = 'touches' in e ? (e as any).touches[0].clientX : (e as any).clientX;
-      const clientY = 'touches' in e ? (e as any).touches[0].clientY : (e as any).clientY;
-      
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      const clickXFromCenter = clientX - centerX;
-      const clickYFromCenter = clientY - centerY;
-      
-      const originalWidth = rect.width / zoom;
-      const originalHeight = rect.height / zoom;
-      const unzoomedX = clickXFromCenter / zoom;
-      const unzoomedY = clickYFromCenter / zoom;
-      
-      const x = ((unzoomedX + originalWidth / 2) / originalWidth) * 100;
-      const y = ((unzoomedY + originalHeight / 2) / originalHeight) * 100;
-      
-      setDragPos({ x, y });
+    if (readonly || !innerRef.current) return;
+    const clientX = 'touches' in e ? (e as any).touches[0].clientX : (e as any).clientX;
+    const clientY = 'touches' in e ? (e as any).touches[0].clientY : (e as any).clientY;
+
+    if (draggingMarkerId) {
+      if (e.cancelable) e.preventDefault();
+      const coords = getPointerCoords(clientX, clientY);
+      if (coords) setDragPos({ x: coords.percentX, y: coords.percentY });
       return;
     }
-    // Image panning functionality is disabled based on user request.
+
+    if (isDrawing) {
+      if (e.cancelable) e.preventDefault();
+      const coords = getPointerCoords(clientX, clientY);
+      if (coords) {
+        setCurrentPath(prev => [...prev, coords]);
+      }
+    }
   };
 
   const handleMouseUp = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
@@ -232,8 +232,33 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
     const clientY = 'changedTouches' in e ? (e as any).changedTouches[0].clientY : (e as any).clientY;
     const dx = Math.abs(clientX - dragStartRef.current.x);
     const dy = Math.abs(clientY - dragStartRef.current.y);
-    if (dx < 5 && dy < 5) {
-      handleImageClick(e as any);
+    
+    if (isDrawing) {
+      setIsDrawing(false);
+      if (currentPath.length > 2 && (dx >= 5 || dy >= 5)) {
+        let sumX = 0, sumY = 0;
+        currentPath.forEach(p => { sumX += p.percentX; sumY += p.percentY; });
+        const avgX = sumX / currentPath.length;
+        const avgY = sumY / currentPath.length;
+        
+        if (isInsideHeadOrNeck(avgX, avgY)) {
+          setClickPos({ x: avgX, y: avgY });
+          setEditingId(null);
+          setShowForm(true);
+          setFormType("botoks" as any);
+          setFormAmount("");
+          setFormUnit("cc");
+          setFormProduct("");
+          setFormNote("");
+        }
+      } else if (dx < 5 && dy < 5) {
+        handleImageClick(e as any);
+      }
+      setCurrentPath([]);
+    } else {
+      if (dx < 5 && dy < 5) {
+        handleImageClick(e as any);
+      }
     }
     dragStartRef.current = null;
   };
@@ -308,7 +333,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
 
           <div
             ref={containerRef}
-            className={`select-none transition-all flex items-center justify-center ${
+            className={`select-none transition-all flex items-center justify-center touch-none ${
               isFullscreen 
                 ? "bg-white" 
                 : "border-2 rounded-2xl overflow-hidden shadow-inner bg-gradient-to-br from-slate-50 to-white border-slate-200/60"
@@ -325,10 +350,11 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
             onMouseUp={handleMouseUp}
             onTouchEnd={handleMouseUp}
             onMouseLeave={handleMouseUp}
+            onPointerCancel={handleMouseUp}
           >
             <div
               ref={innerRef}
-              className={`relative aspect-square bg-white shrink-0 ${isFullscreen ? "" : "rounded-2xl shadow-lg overflow-hidden"}`}
+              className={`relative aspect-square bg-white shrink-0 touch-none ${isFullscreen ? "" : "rounded-2xl shadow-lg overflow-hidden"}`}
               style={{ 
                 width: "100%",
                 height: isFullscreen ? "auto" : "100%",
@@ -341,6 +367,22 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
             >
               {/* Face Image */}
               <img src={imgSrc} alt={isFemale ? "Kadın Yüz Şablonu" : "Erkek Yüz Şablonu"} className="w-full h-full object-contain pointer-events-none" draggable={false} />
+
+              {/* Drawing Path Layer */}
+              {currentPath.length > 0 && (
+                <svg className="absolute inset-0 w-full h-full pointer-events-none z-30" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  <polyline
+                    points={currentPath.map(p => `${p.percentX},${p.percentY}`).join(' ')}
+                    fill="none"
+                    stroke="#10b981"
+                    strokeWidth={1.5 / zoom}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    vectorEffect="non-scaling-stroke"
+                    className="animate-in fade-in"
+                  />
+                </svg>
+              )}
 
               {/* Treatment Markers */}
               {activeTreatments.map(t => {
