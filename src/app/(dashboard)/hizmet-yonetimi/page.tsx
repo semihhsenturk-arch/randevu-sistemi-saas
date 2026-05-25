@@ -168,7 +168,7 @@ export default function HizmetYonetimiPage() {
             ) : services.length === 0 ? (
               <TableRow><TableCell colSpan={5} className="h-32 text-center text-slate-500">Henüz bir hizmet tanımlanmadı.</TableCell></TableRow>
             ) : (
-              services.map((s) => (
+              services.slice().sort((a, b) => a.ad.localeCompare(b.ad, "tr")).map((s) => (
                 <TableRow key={s.id} className="hover:bg-slate-50/50 transition-colors">
                   <TableCell className="py-4">
                     <div className="w-4 h-4 rounded-full ring-2 ring-slate-100" style={{ backgroundColor: s.renk || "#3b82f6" }}></div>

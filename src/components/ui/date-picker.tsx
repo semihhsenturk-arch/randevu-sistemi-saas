@@ -42,11 +42,11 @@ export function DatePicker({ date, setDate, placeholder, className }: DatePicker
         </Button>
       </PopoverTrigger>
       <PopoverContent 
-        className="w-[240px] p-0 border-none shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)] rounded-[16px] bg-white/95 backdrop-blur-xl animate-in fade-in-0 zoom-in-95 duration-300 overflow-hidden" 
-        align="end" 
+        className="w-[var(--radix-popover-trigger-width)] min-w-[var(--radix-popover-trigger-width)] max-w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)] rounded-[16px] bg-white/95 backdrop-blur-xl animate-in fade-in-0 zoom-in-95 duration-300 overflow-hidden" 
+        align="start" 
         side="bottom"
         sideOffset={8}
-        collisionPadding={16}
+        collisionPadding={40}
       >
         <Calendar
           value={date || null}

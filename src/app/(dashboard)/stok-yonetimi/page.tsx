@@ -5,7 +5,8 @@ import { useDatabase, InventoryItem, getCacheSync, CACHE_KEYS } from "@/hooks/us
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Warehouse, Search, Plus, Package, CheckCircle, AlertTriangle, Trash2, ArrowUpRight, SearchIcon } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Warehouse, Search, Plus, Minus, Package, CheckCircle, AlertTriangle, Trash2, ArrowUpRight, SearchIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
@@ -25,7 +26,7 @@ export default function StockManagementPage() {
 
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [selectedItemToDelete, setSelectedItemToDelete] = useState<InventoryItem | null>(null);
-  const [adjustAmounts, setAdjustAmounts] = useState<Record<string, number>>({});
+  const [adjustAmounts, setAdjustAmounts] = useState<Record<string, string>>({});
 
   const isLocked = !checkAccess("advanced");
 
@@ -44,6 +45,13 @@ export default function StockManagementPage() {
     } catch (e) {
       console.error(e);
     }
+  };
+
+  const getAdjustAmount = (itemId: string) => {
+    const val = adjustAmounts[itemId];
+    if (val === undefined || val === "") return 1;
+    const num = parseInt(val, 10);
+    return isNaN(num) || num < 1 ? 1 : num;
   };
 
   const handleStockAdjust = async (item: InventoryItem, delta: number) => {
@@ -85,7 +93,9 @@ export default function StockManagementPage() {
     setConfirmDeleteOpen(true);
   };
 
-  const filteredItems = inventory.items.filter(i => i.ad.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredItems = inventory.items
+    .filter(i => i.ad.toLowerCase().includes(searchTerm.toLowerCase()))
+    .sort((a, b) => a.ad.localeCompare(b.ad, "tr"));
 
   const stats = useMemo(() => {
     let total = inventory.items.length;
@@ -195,7 +205,7 @@ export default function StockManagementPage() {
             <div key={item.id} className={`bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 ${isLow ? 'border-red-200 bg-red-50/10' : ''}`}>
               <div className="flex justify-between items-start">
                 <div>
-                  <div className="font-extrabold text-slate-900 text-lg">{item.ad}</div>
+                  <div className="font-extrabold text-[#0a3d34] text-lg">{item.ad}</div>
                   <div className="text-[0.65rem] font-black text-slate-400 uppercase tracking-widest">{item.birim}</div>
                 </div>
                 {isLow ? (
@@ -214,23 +224,27 @@ export default function StockManagementPage() {
                   <span className="text-[0.6rem] font-bold text-slate-400 uppercase">Mevcut Stok</span>
                   <span className="text-xl font-black text-slate-900">{qty} {item.birim}</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Button size="icon" variant="outline" className="h-10 w-10 bg-white border-slate-200 rounded-xl" onClick={() => handleStockAdjust(item, -(adjustAmounts[item.id] || 1))} disabled={qty <= 0}>-</Button>
-                  <Input 
-                    type="number" 
-                    min={1} 
-                    value={adjustAmounts[item.id] || 1} 
-                    onChange={(e) => setAdjustAmounts(prev => ({ ...prev, [item.id]: Number(e.target.value) }))}
-                    className="w-12 h-10 text-center font-black p-0 border-slate-200 bg-white"
+                <div className="flex items-center rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
+                  <button className="h-10 w-10 flex items-center justify-center text-slate-500 hover:bg-red-50 hover:text-red-600 transition-colors disabled:opacity-30" onClick={() => handleStockAdjust(item, -getAdjustAmount(item.id))} disabled={qty <= 0}>
+                    <Minus className="w-4 h-4" />
+                  </button>
+                  <input 
+                    type="text" 
+                    inputMode="numeric"
+                    value={adjustAmounts[item.id] ?? ""} 
+                    onChange={(e) => setAdjustAmounts(prev => ({ ...prev, [item.id]: e.target.value.replace(/[^0-9]/g, "") }))}
+                    className="w-12 h-10 text-center font-bold text-slate-900 border-x border-slate-200 bg-slate-50/50 outline-none text-sm"
                   />
-                  <Button size="icon" variant="outline" className="h-10 w-10 bg-white border-slate-200 rounded-xl" onClick={() => handleStockAdjust(item, (adjustAmounts[item.id] || 1))}>+</Button>
+                  <button className="h-10 w-10 flex items-center justify-center text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 transition-colors" onClick={() => handleStockAdjust(item, getAdjustAmount(item.id))}>
+                    <Plus className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
 
               <div className="flex justify-between items-center pt-2">
                  <div className="text-[0.7rem] font-bold text-slate-400">Kritik Limit: <span className="text-slate-900">{crit}</span></div>
-                 <Button variant="ghost" size="sm" className="h-8 text-red-500 hover:bg-red-50" onClick={() => confirmDelete(item)}>
-                   <Trash2 className="w-4 h-4 mr-1.5" /> Sil
+                 <Button variant="ghost" size="sm" className="h-8 text-red-500 hover:bg-red-50 hover:text-red-600 rounded-lg text-xs font-bold" onClick={() => confirmDelete(item)}>
+                   <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Sil
                  </Button>
               </div>
             </div>
@@ -239,67 +253,87 @@ export default function StockManagementPage() {
       </div>
 
       <div className="hidden md:block bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden relative min-h-[400px]">
-        <table className="w-full">
-            <thead>
-                <tr className="bg-gradient-to-r from-slate-700 to-slate-800 text-white">
-                    <th className="py-4 px-6 text-[0.72rem] font-bold uppercase tracking-wider text-center">Malzeme / Birim</th>
-                    <th className="py-4 px-6 text-[0.72rem] font-bold uppercase tracking-wider text-center">Mevcut Miktar</th>
-                    <th className="py-4 px-6 text-[0.72rem] font-bold uppercase tracking-wider text-center">Kritik Limit</th>
-                    <th className="py-4 px-6 text-[0.72rem] font-bold uppercase tracking-wider text-center">Durum</th>
-                    <th className="py-4 px-6 text-[0.72rem] font-bold uppercase tracking-wider text-center">İşlem</th>
-                </tr>
-            </thead>
-            <tbody>
-                {filteredItems.length === 0 ? (
-                  <tr><td colSpan={5} className="py-20 text-center text-slate-400 font-medium italic">Kayıt bulunamadı.</td></tr>
-                ) : filteredItems.map(item => {
-                  const qty = inventory.stock[item.id] || 0;
-                  const crit = item.kritik_stok || 10;
-                  const isLow = qty <= crit;
-                  return (
-                    <tr key={item.id} className={`border-b border-slate-100 hover:bg-slate-50/50 transition-colors ${isLow ? 'bg-red-50/20' : ''}`}>
-                        <td className="py-5 px-6 text-center">
-                            <div className="font-bold text-slate-900">{item.ad}</div>
-                            <div className="text-[0.65rem] font-bold text-slate-400 uppercase mt-0.5">{item.birim}</div>
-                        </td>
-                        <td className="py-5 px-6 text-center">
-                            <div className={`inline-block px-4 py-1.5 rounded-lg font-bold text-sm ${isLow ? 'bg-red-100/50 text-red-600 border border-red-200' : 'bg-slate-100 text-slate-700'}`}>
-                              {qty} {item.birim}
-                            </div>
-                        </td>
-                        <td className="py-5 px-6 text-center">
-                            <div className="text-sm font-bold text-slate-400 border border-dashed border-slate-200 rounded-lg py-1 px-3 inline-block bg-slate-50">{crit}</div>
-                        </td>
-                        <td className="py-5 px-6 text-center">
-                            {isLow ? (
-                                <span className="inline-flex items-center gap-1.5 bg-red-100 text-red-600 px-3 py-1 rounded-full text-[0.7rem] font-bold">
-                                  <AlertTriangle className="w-3 h-3" /> KRİTİK SEVİYE
-                                </span>
-                            ) : (
-                                <span className="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-600 px-3 py-1 rounded-full text-[0.7rem] font-bold">
-                                  <CheckCircle className="w-3 h-3" /> GÜVENLİ
-                                </span>
-                            )}
-                        </td>
-                        <td className="py-5 px-6 text-center">
-                            <div className="flex items-center justify-center gap-2">
-                                <Button size="icon" variant="outline" className="w-8 h-8 rounded-lg text-red-600 border-red-200 bg-red-50 hover:bg-red-600 hover:text-white" onClick={() => handleStockAdjust(item, -(adjustAmounts[item.id] || 1))} disabled={qty <= 0}>-</Button>
-                                <Input 
-                                  type="number" 
-                                  min={1} 
-                                  value={adjustAmounts[item.id] || 1} 
-                                  onChange={(e) => setAdjustAmounts(prev => ({ ...prev, [item.id]: Number(e.target.value) }))}
-                                  className="w-14 h-8 text-center font-bold text-slate-900 border-slate-200 focus-visible:ring-[#0a3d34] p-0"
-                                />
-                                <Button size="icon" variant="outline" className="w-8 h-8 rounded-lg text-emerald-600 border-emerald-200 bg-emerald-50 hover:bg-emerald-600 hover:text-white" onClick={() => handleStockAdjust(item, (adjustAmounts[item.id] || 1))}>+</Button>
-                                <Button size="icon" variant="ghost" className="w-8 h-8 rounded-lg text-slate-400 hover:text-red-600 ml-2" onClick={() => confirmDelete(item)}><Trash2 className="w-4 h-4" /></Button>
-                            </div>
-                        </td>
-                    </tr>
-                  )
-                })}
-            </tbody>
-        </table>
+        <Table>
+          <TableHeader className="bg-gradient-to-r from-slate-700 to-slate-800 hover:bg-transparent">
+            <TableRow className="hover:bg-transparent border-none">
+              <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">Malzeme / Birim</TableHead>
+              <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">Mevcut Miktar</TableHead>
+              <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">Kritik Limit</TableHead>
+              <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">Durum</TableHead>
+              <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">İşlem</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredItems.length === 0 ? (
+              <TableRow><TableCell colSpan={5} className="h-32 text-center text-slate-500">Kayıt bulunamadı.</TableCell></TableRow>
+            ) : filteredItems.map(item => {
+              const qty = inventory.stock[item.id] || 0;
+              const crit = item.kritik_stok || 10;
+              const isLow = qty <= crit;
+              return (
+                <TableRow key={item.id} className={`hover:bg-emerald-50/30 transition-colors ${isLow ? 'bg-red-50/20' : ''}`}>
+                  <TableCell className="text-center py-4">
+                    <div className="font-bold text-[#0a3d34]">{item.ad}</div>
+                    <div className="text-[0.65rem] font-bold text-slate-400 uppercase mt-0.5">{item.birim}</div>
+                  </TableCell>
+                  <TableCell className="text-center py-4">
+                    <div className={`inline-block px-4 py-1.5 rounded-lg font-bold text-sm ${isLow ? 'bg-red-100/50 text-red-600 border border-red-200' : 'bg-slate-100 text-slate-700'}`}>
+                      {qty} {item.birim}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-center py-4">
+                    <div className="text-sm font-bold text-slate-400 border border-dashed border-slate-200 rounded-lg py-1 px-3 inline-block bg-slate-50">{crit}</div>
+                  </TableCell>
+                  <TableCell className="text-center py-4">
+                    {isLow ? (
+                      <span className="inline-flex items-center gap-1.5 bg-red-100 text-red-600 px-3 py-1 rounded-full text-[0.7rem] font-bold">
+                        <AlertTriangle className="w-3 h-3" /> KRİTİK SEVİYE
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-600 px-3 py-1 rounded-full text-[0.7rem] font-bold">
+                        <CheckCircle className="w-3 h-3" /> GÜVENLİ
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-center py-4">
+                    <div className="flex items-center justify-center gap-3">
+                      {/* Grouped Stepper Control */}
+                      <div className="flex items-center rounded-lg border border-slate-200 bg-white overflow-hidden shadow-sm">
+                        <button 
+                          className="h-8 w-8 flex items-center justify-center text-slate-500 hover:bg-red-50 hover:text-red-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed" 
+                          onClick={() => handleStockAdjust(item, -getAdjustAmount(item.id))} 
+                          disabled={qty <= 0}
+                        >
+                          <Minus className="w-3.5 h-3.5" />
+                        </button>
+                        <input 
+                          type="text" 
+                          inputMode="numeric"
+                          value={adjustAmounts[item.id] ?? ""} 
+                          onChange={(e) => setAdjustAmounts(prev => ({ ...prev, [item.id]: e.target.value.replace(/[^0-9]/g, "") }))}
+                          className="w-12 h-8 text-center font-bold text-slate-900 border-x border-slate-200 bg-slate-50/50 outline-none text-xs"
+                        />
+                        <button 
+                          className="h-8 w-8 flex items-center justify-center text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 transition-colors" 
+                          onClick={() => handleStockAdjust(item, getAdjustAmount(item.id))}
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      {/* Delete Button */}
+                      <button 
+                        className="h-8 w-8 flex items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all shadow-sm" 
+                        onClick={() => confirmDelete(item)}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )
+            })}
+          </TableBody>
+        </Table>
       </div>
 
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
