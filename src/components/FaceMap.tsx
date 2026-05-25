@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useMemo, useCallback } from "react";
+import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 import { FaceTreatment } from "@/hooks/use-database";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
