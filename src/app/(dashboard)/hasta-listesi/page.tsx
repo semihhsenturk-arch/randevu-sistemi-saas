@@ -592,7 +592,7 @@ export default function PatientListPage() {
                  {activeTab === 'info' && 'Hasta Bilgileri'}
                  {activeTab === 'consent' && 'Onam Formları'}
                  {activeTab === 'timeline' && 'Geçmiş İşlemler'}
-                 {activeTab === 'facemap' && 'Yüz Haritası — Botoks & Dolgu'}
+                 {activeTab === 'facemap' && 'Yüz Haritası — Botoks & Dolgu & Mezoterapi'}
                  {activeTab === 'meds' && 'İlaçlar ve Reçete'}
                  {activeTab === 'notes' && 'Muayene ve Notlar'}
                  {activeTab === 'stock' && 'Stok Geçmişi'}

@@ -104,9 +104,9 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
 
     setClickPos({ x, y });
     setShowForm(true);
-    setFormType("botoks");
+    setFormType("botoks" as any);
     setFormAmount("");
-    setFormUnit("ünite");
+    setFormUnit("cc");
     setFormProduct("");
     setFormNote("");
   }, [readonly, zoom]);
@@ -391,11 +391,12 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label className="text-[0.6rem] font-bold text-slate-400 uppercase">Tür</Label>
-                <Select value={formType} onValueChange={(v) => { setFormType(v as any); setFormUnit(v === "botoks" ? "ünite" : "cc"); }}>
+                <Select value={formType} onValueChange={(v) => { setFormType(v as any); setFormUnit("cc"); }}>
                   <SelectTrigger className="h-8 text-xs bg-slate-950 border-slate-800 text-white"><SelectValue /></SelectTrigger>
                   <SelectContent className="bg-slate-950 border-slate-800 text-white">
-                    <SelectItem value="botoks">💉 Botoks</SelectItem>
-                    <SelectItem value="dolgu">✨ Dolgu</SelectItem>
+                    <SelectItem value="botoks" className="text-white focus:text-white">💉 Botoks</SelectItem>
+                    <SelectItem value="dolgu" className="text-white focus:text-white">✨ Dolgu</SelectItem>
+                    <SelectItem value="mezoterapi" className="text-white focus:text-white">💧 Mezoterapi</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -436,11 +437,12 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">
                       <Label className="text-[0.6rem] font-bold text-slate-500 uppercase">Tür</Label>
-                      <Select value={formType} onValueChange={(v) => { setFormType(v as any); setFormUnit(v === "botoks" ? "ünite" : "cc"); }}>
-                        <SelectTrigger className="h-8 text-xs bg-slate-50"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="botoks">💉 Botoks</SelectItem>
-                          <SelectItem value="dolgu">✨ Dolgu</SelectItem>
+                      <Select value={formType} onValueChange={(v) => { setFormType(v as any); setFormUnit("cc"); }}>
+                        <SelectTrigger className="h-8 text-xs bg-slate-50 text-slate-800"><SelectValue /></SelectTrigger>
+                        <SelectContent className="bg-white border-slate-200">
+                          <SelectItem value="botoks" className="text-slate-800">💉 Botoks</SelectItem>
+                          <SelectItem value="dolgu" className="text-slate-800">✨ Dolgu</SelectItem>
+                          <SelectItem value="mezoterapi" className="text-slate-800">💧 Mezoterapi</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
