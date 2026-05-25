@@ -152,11 +152,17 @@ export default function CalendarPage() {
           musteriAdi: name,
           telefon: phone
         });
-        setModalOpen(true);
+        
+        // Let the complex layout settle fully before running hardware-accelerated animations
+        const timer = setTimeout(() => {
+          setModalOpen(true);
+        }, 80);
         
         // Clean up parameters without reloading
         const newUrl = window.location.pathname;
         window.history.replaceState({}, "", newUrl);
+
+        return () => clearTimeout(timer);
       }
     }
   }, [isMounted]);

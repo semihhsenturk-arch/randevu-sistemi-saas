@@ -542,4 +542,72 @@
     color: #ef4444 !important;
     transform: scale(1.05) !important;
   }
+
+  /* ─── Premium Modern Dialog Transitions & Animations ─── */
+  @keyframes dialogFadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes dialogFadeOut {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes dialogScaleIn {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -47%) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+  }
+
+  @keyframes dialogScaleOut {
+    from {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: translate(-50%, -47%) scale(0.95);
+    }
+  }
+
+  .dialog-overlay-animate {
+    will-change: opacity;
+    animation-duration: 250ms;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    animation-fill-mode: forwards;
+  }
+  .dialog-overlay-animate[data-state="open"] {
+    animation-name: dialogFadeIn;
+  }
+  .dialog-overlay-animate[data-state="closed"] {
+    animation-name: dialogFadeOut;
+  }
+
+  .dialog-content-animate {
+    will-change: transform, opacity;
+    animation-duration: 320ms;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    animation-fill-mode: forwards;
+    transform-origin: center center;
+  }
+  .dialog-content-animate[data-state="open"] {
+    animation-name: dialogScaleIn;
+  }
+  .dialog-content-animate[data-state="closed"] {
+    animation-name: dialogScaleOut;
+  }
 }
