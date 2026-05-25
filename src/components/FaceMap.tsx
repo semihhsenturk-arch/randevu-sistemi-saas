@@ -463,7 +463,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
 
         {/* Treatment Form Overlay (Fullscreen Mode) */}
         {isFullscreen && showForm && clickPos && !readonly && (
-          <div className="absolute bottom-10 right-10 z-50 w-[340px] bg-white border-2 border-emerald-100 rounded-2xl p-4 shadow-2xl shadow-emerald-500/10 animate-in slide-in-from-bottom-5 duration-200">
+          <div className={`absolute bottom-10 ${clickPos.x > 50 ? "left-10" : "right-10"} z-50 w-[340px] bg-white border-2 border-emerald-100 rounded-2xl p-4 shadow-2xl shadow-emerald-500/10 animate-in slide-in-from-bottom-5 duration-200`}>
             <button onClick={handleCloseForm} className="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><X className="w-4 h-4" /></button>
             <div className="flex items-center gap-2 mb-3">
               <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600"><Syringe className="w-3.5 h-3.5" /></div>
