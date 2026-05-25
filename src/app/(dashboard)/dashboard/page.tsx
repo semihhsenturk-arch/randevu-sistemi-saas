@@ -2,13 +2,14 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useDatabase, Appointment, Service, getCacheSync, CACHE_KEYS } from "@/hooks/use-database";
-import { CalendarCheck, Banknote, Star, TrendingUp, Loader2, ArrowUpRight, ArrowDownRight } from "lucide-react";
-import { format, startOfMonth, subDays, parseISO, startOfWeek, endOfWeek, eachWeekOfInterval, isWithinInterval } from "date-fns";
+import { CalendarCheck, Banknote, TrendingUp, Loader2, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { format, startOfMonth, subDays, startOfWeek, endOfWeek, getWeek } from "date-fns";
 import { tr } from "date-fns/locale/tr";
 import { useAuth } from "@/hooks/use-auth";
 import { FlatPicker } from "@/components/ui/flat-picker";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Cell as PieCell, AreaChart, Area } from "recharts";
 import { UpgradeScreen } from "@/components/UpgradeScreen";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 /* ── Circular Progress Ring ── */
 function CircularProgress({ value, size = 56, stroke = 5, color }: { value: number; size?: number; stroke?: number; color: string }) {
@@ -27,6 +28,40 @@ function CircularProgress({ value, size = 56, stroke = 5, color }: { value: numb
   );
 }
 
+interface CustomTooltipProps {
+  active?: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  payload?: any[];
+  label?: string;
+}
+
+const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
+  if (active && payload?.length) {
+    return (
+      <div className="bg-slate-900 text-white text-[0.78rem] px-3.5 py-2.5 rounded-xl font-semibold shadow-xl border border-white/10">
+        <p className="font-bold mb-0.5">{label}</p>
+        <p className="text-emerald-400">{payload[0].payload.quantity} Adet · {payload[0].value.toLocaleString('tr-TR')} TL</p>
+      </div>
+    );
+  }
+  return null;
+};
+
+interface ChangeBadgeProps {
+  val: number;
+}
+
+const ChangeBadge = ({ val }: ChangeBadgeProps) => {
+  if (val === 0) return null;
+  const up = val > 0;
+  return (
+    <span className={`inline-flex items-center gap-0.5 text-[0.65rem] font-bold px-1.5 py-0.5 rounded-md ${up ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'}`}>
+      {up ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+      {up ? '+' : ''}{val}%
+    </span>
+  );
+};
+
 export default function DashboardAnalyticsPage() {
   const { profile, isLoading, checkAccess } = useAuth();
   const { getAppointments, getServices } = useDatabase();
@@ -39,6 +74,41 @@ export default function DashboardAnalyticsPage() {
   const [appliedEndDate, setAppliedEndDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [isMounted, setIsMounted] = useState(false);
 
+  const weekOptions = useMemo(() => {
+    const options = [];
+    const today = new Date();
+    
+    for (let i = 0; i < 12; i++) {
+      const d = subDays(today, i * 7);
+      const start = startOfWeek(d, { weekStartsOn: 1 });
+      const end = endOfWeek(d, { weekStartsOn: 1 });
+      const startStr = format(start, "yyyy-MM-dd");
+      const endStr = format(end, "yyyy-MM-dd");
+      
+      const weekNum = getWeek(start, { weekStartsOn: 1 });
+      const label = `${weekNum}. Hafta (${format(start, "d MMM", { locale: tr })} - ${format(end, "d MMM", { locale: tr })})`;
+      
+      options.push({
+        value: `${startStr}_${endStr}`,
+        label,
+      });
+    }
+    return options;
+  }, []);
+
+  const selectedWeek = useMemo(() => {
+    const currentRange = `${startDate}_${endDate}`;
+    const found = weekOptions.find((o) => o.value === currentRange);
+    return found ? currentRange : "custom";
+  }, [startDate, endDate, weekOptions]);
+
+  const loadData = async () => {
+    const [data, svcs] = await Promise.all([getAppointments(), getServices()]);
+    setAppointments(data);
+    if (svcs) setServices(svcs);
+  };
+
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     const savedStart = localStorage.getItem("dashboard_startDate");
     const savedEnd = localStorage.getItem("dashboard_endDate");
@@ -52,6 +122,7 @@ export default function DashboardAnalyticsPage() {
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     if (isMounted) {
@@ -60,13 +131,17 @@ export default function DashboardAnalyticsPage() {
     }
   }, [appliedStartDate, appliedEndDate, isMounted]);
 
-  const handleUpdate = () => { setAppliedStartDate(startDate); setAppliedEndDate(endDate); };
-
-  const loadData = async () => {
-    const [data, svcs] = await Promise.all([getAppointments(), getServices()]);
-    setAppointments(data);
-    if (svcs) setServices(svcs);
+  const handleWeekChange = (val: string) => {
+    if (val && val !== "custom") {
+      const [start, end] = val.split("_");
+      setStartDate(start);
+      setEndDate(end);
+      setAppliedStartDate(start);
+      setAppliedEndDate(end);
+    }
   };
+
+  const handleUpdate = () => { setAppliedStartDate(startDate); setAppliedEndDate(endDate); };
 
   const filtered = useMemo(() => {
     return appointments.filter(a => a.durum === 'onaylandi' && a.tarih >= appliedStartDate && a.tarih <= appliedEndDate);
@@ -162,35 +237,12 @@ export default function DashboardAnalyticsPage() {
 
   const varColor = (v: number) => v > 80 ? '#0d9488' : v > 40 ? '#f59e0b' : '#ef4444';
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload?.length) {
-      return (
-        <div className="bg-slate-900 text-white text-[0.78rem] px-3.5 py-2.5 rounded-xl font-semibold shadow-xl border border-white/10">
-          <p className="font-bold mb-0.5">{label}</p>
-          <p className="text-emerald-400">{payload[0].payload.quantity} Adet · {payload[0].value.toLocaleString('tr-TR')} TL</p>
-        </div>
-      );
-    }
-    return null;
-  };
-
   if (isLoading || !isMounted) {
     return (<div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="w-8 h-8 animate-spin text-emerald-500" /></div>);
   }
   if (isLocked) {
     return (<UpgradeScreen title="Verilerinizle Geleceği Planlayın 📈" description="Gelir dağılımları, doktor doluluk oranları ve en çok tercih edilen hizmetleri analiz ederek kliniğinizi büyütün." requiredPlan="Advanced" />);
   }
-
-  const ChangeBadge = ({ val }: { val: number }) => {
-    if (val === 0) return null;
-    const up = val > 0;
-    return (
-      <span className={`inline-flex items-center gap-0.5 text-[0.65rem] font-bold px-1.5 py-0.5 rounded-md ${up ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'}`}>
-        {up ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-        {up ? '+' : ''}{val}%
-      </span>
-    );
-  };
 
   return (
     <div className="flex flex-col gap-2 animate-in fade-in duration-500">
@@ -204,18 +256,39 @@ export default function DashboardAnalyticsPage() {
       </header>
 
       {/* ── DATE FILTER ── */}
-      <div className="bg-white/50 backdrop-blur-sm px-4 md:px-6 py-4 rounded-2xl mb-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-6 shadow-sm border border-slate-200/60">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-1">
-          <div className="flex flex-col gap-1.5 flex-1">
-            <label className="text-[0.6rem] font-black uppercase tracking-[0.1em] text-slate-500 ml-1">BAŞLANGIÇ</label>
-            <FlatPicker value={startDate} onChange={(val) => setStartDate(val)} className="w-full sm:w-[160px]" />
+      <div className="bg-white/50 backdrop-blur-sm px-4 md:px-6 py-4 rounded-2xl mb-6 flex flex-col lg:flex-row items-stretch lg:items-center gap-4 lg:gap-6 shadow-sm border border-slate-200/60">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 flex-1 items-end">
+          {/* Hafta Seçimi (Far Left) */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[0.6rem] font-black uppercase tracking-[0.1em] text-[#0a3d34] ml-1">HAFTA SEÇİMİ</label>
+            <Select value={selectedWeek} onValueChange={handleWeekChange}>
+              <SelectTrigger className="w-full h-11 px-3.5 py-2.5 border border-slate-200 rounded-xl font-semibold text-[0.9rem] text-slate-900 bg-white hover:bg-emerald-50 focus:border-[#0a3d34] focus:ring-3 focus:ring-[#0a3d34]/10 transition-all shadow-none">
+                <SelectValue placeholder="Hafta seçin" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="custom" className="font-semibold text-slate-400">Özel Aralık</SelectItem>
+                {weekOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value} className="font-semibold text-slate-700">
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <div className="flex flex-col gap-1.5 flex-1">
+
+          {/* Başlangıç Tarihi */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[0.6rem] font-black uppercase tracking-[0.1em] text-slate-500 ml-1">BAŞLANGIÇ</label>
+            <FlatPicker value={startDate} onChange={(val) => setStartDate(val)} className="w-full" />
+          </div>
+
+          {/* Bitiş Tarihi */}
+          <div className="flex flex-col gap-1.5">
             <label className="text-[0.6rem] font-black uppercase tracking-[0.1em] text-slate-500 ml-1">BİTİŞ</label>
-            <FlatPicker value={endDate} onChange={(val) => setEndDate(val)} className="w-full sm:w-[160px]" />
+            <FlatPicker value={endDate} onChange={(val) => setEndDate(val)} className="w-full" />
           </div>
         </div>
-        <button onClick={handleUpdate} className="bg-[#0a3d34] text-white h-11 px-8 rounded-xl text-sm font-bold shadow-md hover:bg-[#0a3d34]/90 transition-all hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:shadow-md flex items-center justify-center sm:mt-5">
+        <button onClick={handleUpdate} className="bg-[#0a3d34] text-white h-11 px-8 rounded-xl text-sm font-bold shadow-md hover:bg-[#0a3d34]/90 transition-all hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:shadow-md flex items-center justify-center lg:mt-5 shrink-0">
           Güncelle
         </button>
       </div>
@@ -298,7 +371,7 @@ export default function DashboardAnalyticsPage() {
                     <Pie data={analytics.pieData} cx="50%" cy="50%" innerRadius={55} outerRadius={90} paddingAngle={3} dataKey="revenue" stroke="none">
                       {analytics.pieData.map((entry, i) => (<PieCell key={i} fill={entry.color} />))}
                     </Pie>
-                    <Tooltip formatter={(v: any) => v.toLocaleString('tr-TR') + ' TL'} contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }} />
+                    <Tooltip formatter={(v: number) => v.toLocaleString('tr-TR') + ' TL'} contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }} />
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="w-full px-2 flex flex-wrap justify-center gap-x-4 gap-y-2 mt-2">
@@ -333,7 +406,7 @@ export default function DashboardAnalyticsPage() {
                   </defs>
                   <XAxis dataKey="date" stroke="#94a3b8" fontSize={11} fontWeight={600} axisLine={false} tickLine={false} />
                   <YAxis stroke="#94a3b8" fontSize={11} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <Tooltip contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', fontSize: 13, fontWeight: 600 }} formatter={(v: any) => [v + ' randevu', 'Sayı']} />
+                  <Tooltip contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', fontSize: 13, fontWeight: 600 }} formatter={(v: number) => [v + ' randevu', 'Sayı']} />
                   <Area type="monotone" dataKey="count" stroke="#0d9488" strokeWidth={2.5} fill="url(#trendGrad)" dot={{ fill: '#0d9488', r: 4, strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }} />
                 </AreaChart>
               </ResponsiveContainer>
