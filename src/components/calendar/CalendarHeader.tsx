@@ -43,7 +43,7 @@ export function CalendarHeader({
 }: CalendarHeaderProps) {
   return (
     <div className="space-y-4 mb-3">
-      <header className="flex flex-col sm:flex-row justify-between items-center bg-white/88 backdrop-blur-[20px] p-4 md:p-[14px_24px] rounded-[20px] border border-slate-200/60 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.07)] sticky top-3 z-[40] gap-4">
+      <header className="flex flex-col sm:flex-row justify-between items-center bg-white/88 backdrop-blur-[20px] p-4 md:p-[14px_24px] rounded-[20px] border border-slate-200/60 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.07)] sticky top-20 lg:top-3 z-[40] gap-4">
         <div className="flex flex-col gap-[2px] text-center sm:text-left w-full sm:w-auto">
           <div className="text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[#0a3d34] opacity-80 mb-[1px]">
             {(clinicName || "Klinik").toUpperCase()}

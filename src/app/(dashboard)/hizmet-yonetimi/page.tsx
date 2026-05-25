@@ -134,7 +134,7 @@ export default function HizmetYonetimiPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <header className="flex flex-col md:flex-row justify-between items-center bg-white/88 backdrop-blur-[20px] p-4 md:p-[14px_24px] rounded-[20px] border border-slate-200/60 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.07)] sticky top-3 z-[40] gap-4">
+      <header className="flex flex-col md:flex-row justify-between items-center bg-white/88 backdrop-blur-[20px] p-4 md:p-[14px_24px] rounded-[20px] border border-slate-200/60 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.07)] sticky top-20 lg:top-3 z-[40] gap-4">
         <div className="flex flex-col gap-[2px] text-center md:text-left w-full md:w-auto">
           <span className="text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[#0a3d34] opacity-80 mb-[1px]">
             {(profile?.clinic_name || "Klinik").toUpperCase()}
@@ -185,7 +185,8 @@ export default function HizmetYonetimiPage() {
 
       {/* Desktop view - Table layout */}
       <div className="hidden md:block bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden relative">
-        <Table>
+        <div className="overflow-x-auto w-full">
+        <Table className="min-w-[800px] w-full">
           <TableHeader className="bg-gradient-to-r from-slate-700 to-slate-800 hover:bg-transparent">
             <TableRow className="hover:bg-transparent border-none">
               <TableHead className="font-bold text-white uppercase tracking-wider text-[0.72rem] py-4 text-center">Renk</TableHead>
@@ -226,6 +227,7 @@ export default function HizmetYonetimiPage() {
             )}
           </TableBody>
         </Table>
+        </div>
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>

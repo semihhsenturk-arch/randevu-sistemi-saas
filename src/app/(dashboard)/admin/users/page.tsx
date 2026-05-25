@@ -182,7 +182,8 @@ export default function AdminUsersPage() {
             Sisteme yeni kayıt olan klinikleri buradan onaylayarak erişim verebilirsiniz.
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-0 relative min-h-[200px]">
+        <CardContent className="p-0 relative min-h-[200px] overflow-x-auto">
+          <div className="min-w-[1000px] w-full">
           <Table>
               <TableHeader className="bg-gradient-to-r from-slate-600 to-slate-700">
                 <TableRow>
@@ -314,6 +315,7 @@ export default function AdminUsersPage() {
                 )}
               </TableBody>
             </Table>
+          </div>
         </CardContent>
       </Card>
 

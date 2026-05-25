@@ -247,7 +247,7 @@ export default function DashboardAnalyticsPage() {
   return (
     <div className="flex flex-col gap-2 animate-in fade-in duration-500">
       {/* ── HEADER ── */}
-      <header className="flex flex-col md:flex-row justify-between items-center bg-white/88 backdrop-blur-[20px] p-4 md:p-[14px_24px] rounded-[20px] border border-slate-200/60 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.07)] sticky top-3 z-[40] mb-4 gap-4">
+      <header className="flex flex-col md:flex-row justify-between items-center bg-white/88 backdrop-blur-[20px] p-4 md:p-[14px_24px] rounded-[20px] border border-slate-200/60 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.07)] sticky top-20 lg:top-3 z-[40] mb-4 gap-4">
         <div className="flex flex-col gap-[2px] text-center md:text-left w-full md:w-auto">
           <span className="text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[#0a3d34] opacity-80 mb-[1px]">{(profile?.clinic_name || "Klinik").toUpperCase()}</span>
           <h1 className="text-[1.25rem] font-extrabold text-[#1e293b]">Analiz Paneli</h1>
@@ -420,6 +420,7 @@ export default function DashboardAnalyticsPage() {
           <p className="text-[0.75rem] text-slate-400 font-medium mb-4">Hizmet bazlı detaylı analiz</p>
           {analytics.perfTable.length === 0 ? <div className="flex items-center justify-center h-[200px] text-slate-400 italic text-sm">Veri Yok</div> : (
             <div className="overflow-x-auto">
+              <div className="min-w-[500px] w-full">
               <table className="w-full text-left">
                 <thead>
                   <tr className="border-b border-slate-100">
@@ -452,6 +453,7 @@ export default function DashboardAnalyticsPage() {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           )}
         </div>
