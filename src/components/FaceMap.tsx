@@ -220,42 +220,42 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
     <div className={`space-y-4 ${isFullscreen ? "fixed inset-y-0 right-0 left-0 lg:left-[280px] z-[9999] bg-white flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200" : ""}`}>
       
       {/* Header & Controls */}
-      {/* Header & Controls */}
-      <div className={`relative z-50 flex items-center shrink-0 ${isFullscreen ? "absolute top-4 right-4" : "justify-between border-b border-slate-100/10 pb-2 mb-1 w-full"}`}>
-        {!isFullscreen && <div />}
+      {!isFullscreen ? (
+        <div className="relative z-50 flex items-center justify-between shrink-0 border-b border-slate-100/10 pb-2 mb-1 w-full">
+          <div />
 
-        <div className="flex items-center gap-2">
-          {/* Gender Toggle */}
-          {!readonly && onGenderChange && !isFullscreen && (
-            <div className="flex items-center gap-1.5 bg-slate-100/10 p-1 rounded-xl">
-              <button onClick={() => onGenderChange("female")}
-                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${isFemale ? "bg-pink-50 text-pink-700 shadow-sm" : "text-slate-400 hover:text-slate-200"}`}>
-                👩 Kadın
-              </button>
-              <button onClick={() => onGenderChange("male")}
-                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${!isFemale ? "bg-blue-50 text-blue-700 shadow-sm" : "text-slate-400 hover:text-slate-200"}`}>
-                👨 Erkek
-              </button>
-            </div>
-          )}
-
-          {/* Fullscreen Toggle */}
-          <button
-            onClick={() => setIsFullscreen(!isFullscreen)}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold border transition-all shadow-sm bg-white hover:bg-slate-50 border-slate-200 text-slate-700"
-          >
-            {isFullscreen ? (
-              <>
-                <Minimize2 className="w-3.5 h-3.5" /> Tam Ekrandan Çık
-              </>
-            ) : (
-              <>
-                <Maximize2 className="w-3.5 h-3.5" /> Tam Ekran Modu (Hassas İşaretleme)
-              </>
+          <div className="flex items-center gap-2">
+            {/* Gender Toggle */}
+            {!readonly && onGenderChange && (
+              <div className="flex items-center gap-1.5 bg-slate-100/10 p-1 rounded-xl">
+                <button onClick={() => onGenderChange("female")}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${isFemale ? "bg-pink-50 text-pink-700 shadow-sm" : "text-slate-400 hover:text-slate-200"}`}>
+                  👩 Kadın
+                </button>
+                <button onClick={() => onGenderChange("male")}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${!isFemale ? "bg-blue-50 text-blue-700 shadow-sm" : "text-slate-400 hover:text-slate-200"}`}>
+                  👨 Erkek
+                </button>
+              </div>
             )}
-          </button>
+
+            {/* Fullscreen Toggle */}
+            <button
+              onClick={() => setIsFullscreen(true)}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold border transition-all shadow-sm bg-white hover:bg-slate-50 border-slate-200 text-slate-700"
+            >
+              <Maximize2 className="w-3.5 h-3.5" /> Tam Ekran Modu (Hassas İşaretleme)
+            </button>
+          </div>
         </div>
-      </div>
+      ) : (
+        <button
+          onClick={() => setIsFullscreen(false)}
+          className="absolute top-6 right-6 z-[100] flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-extrabold border transition-all shadow-xl bg-white hover:bg-slate-50 border-slate-200 text-slate-800"
+        >
+          <Minimize2 className="w-4 h-4" /> Tam Ekrandan Çık
+        </button>
+      )}
 
       <div className={`flex flex-col lg:flex-row gap-6 min-h-0 flex-1 ${isFullscreen ? "relative items-center justify-center w-full" : ""}`}>
         
