@@ -415,7 +415,7 @@ export default function PatientListPage() {
       </header>
 
 
-      <div className="block md:hidden space-y-3">
+      <div className="block md:hidden space-y-3 pb-28">
         {filteredPatients.length === 0 && !loading ? (
           <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-500 italic">Kayıt bulunamadı.</div>
         ) : filteredPatients.map(p => {

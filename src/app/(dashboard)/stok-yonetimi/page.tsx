@@ -194,7 +194,7 @@ export default function StockManagementPage() {
         </div>
       )}
 
-      <div className="block md:hidden space-y-3">
+      <div className="block md:hidden space-y-3 pb-28">
         {filteredItems.length === 0 ? (
           <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-500 italic">Kayıt bulunamadı.</div>
         ) : filteredItems.map(item => {

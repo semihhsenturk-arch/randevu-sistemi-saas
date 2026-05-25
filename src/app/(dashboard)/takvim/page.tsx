@@ -576,7 +576,7 @@ export default function CalendarPage() {
         clinicName={profile?.clinic_name}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6 items-start pb-20">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6 pb-20">
         {/* Sol Kolon: Takvim Alanı */}
         <div className="flex-1 w-full bg-transparent min-w-0">
           <DndContext sensors={sensors} collisionDetection={pointerWithin} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd} onDragCancel={handleDragCancel} measuring={measuringConfig}>
@@ -617,7 +617,7 @@ export default function CalendarPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-[60px_1fr] md:grid-cols-[70px_1fr] bg-white border border-slate-200 rounded-2xl shadow-sm h-[700px] md:h-[900px] overflow-y-auto no-scrollbar relative mb-10">
+            <div className="grid grid-cols-[60px_1fr] md:grid-cols-[70px_1fr] bg-white border border-slate-200 rounded-2xl shadow-sm relative mb-10">
               <div className="flex flex-col border-r border-slate-100 bg-slate-50/50">
                 {SHIFTS.map((t, i) => {
                   if (t === "12:30") return <div key="lunch-l" className="h-[100px] flex items-center justify-center text-[0.65rem] font-bold text-slate-400 [writing-mode:vertical-rl] rotate-180 bg-slate-100">ÖĞLE ARASI</div>;
@@ -630,7 +630,7 @@ export default function CalendarPage() {
                   const dStr = format(d, "yyyy-MM-dd");
                   const colApts = appointments.filter(a => a.tarih === dStr && (a.durum === "onaylandi" || a.durum === "beklemede"));
                   return (
-                    <div key={i} className={`flex flex-col border-l border-slate-100 relative min-h-[700px] md:min-h-[900px] ${selectedDayIndex === i ? 'block' : 'hidden lg:block'}`}>
+                    <div key={i} className={`flex flex-col border-l border-slate-100 relative ${selectedDayIndex === i ? 'block' : 'hidden lg:block'}`}>
                       {SHIFTS.map((t, j) => {
                         if (t === "12:30") return <div key="lunch-s" className="h-[100px] bg-[repeating-linear-gradient(-45deg,transparent,transparent_4px,#f1f5f9_4px,#f1f5f9_5px)] border-y border-slate-200 flex items-center justify-center text-[0.65rem] uppercase font-bold text-slate-400 tracking-wider">Öğle Arası</div>;
                         if (t === "13:00") return null;
@@ -725,31 +725,33 @@ export default function CalendarPage() {
         </div>
 
         {/* Sağ Kolon: Sidebar / Bekleme Odası */}
-        <div className="w-full flex flex-col gap-4 sticky top-16">
-          <Card className="rounded-[20px] shadow-sm border-slate-200 overflow-hidden">
-            <CardHeader className="p-4 pb-2 border-b border-slate-50">
-              <CardTitle className="text-[0.95rem] font-extrabold text-[#1e293b] flex items-center justify-between">
-                Bekleme Odası {waitingApps.length > 0 && <span className="bg-amber-100 text-amber-600 px-2 py-0.5 rounded-full text-[0.7rem]">{waitingApps.length}</span>}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4">
-               <div className="flex flex-col gap-3 max-h-[600px] overflow-y-auto no-scrollbar">
-                 {waitingApps.length === 0 ? <div className="text-center p-8 text-xs italic text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">Bekleyen randevu yok</div> : waitingApps.map(a => (
-                   <div key={a.id} className="bg-white border border-slate-200 rounded-xl p-3 flex flex-col gap-1 shadow-sm hover:border-amber-400 group cursor-pointer transition-all hover:translate-x-1" onClick={() => openEditApt(a)}>
-                      <div className="text-[0.65rem] font-bold text-amber-600 uppercase tracking-wider">{format(parseISO(a.tarih), "d MMM", { locale: tr })} · {a.saat}</div>
-                      <div className="font-bold text-[0.82rem] text-[#1e293b] line-height-tight">{a.musteriAdi}</div>
-                      <div className="text-[0.7rem] text-slate-500 font-medium">
-                        {services.find(h => h.id.toString() === a.hizmetId.toString())?.ad}
-                      </div>
-                      <div className="flex gap-2 mt-3">
-                        <Button size="sm" variant="outline" className="h-8 text-[0.7rem] font-bold flex-1 border-emerald-100 bg-emerald-50 text-emerald-700 hover:bg-emerald-100" onClick={(e) => { e.stopPropagation(); handleApprove(a); }}><Check className="w-3 h-3 mr-1" /> Onayla</Button>
-                        <Button size="sm" variant="outline" className="h-8 text-[0.7rem] font-bold w-10 border-red-100 bg-red-50 text-red-600 hover:bg-red-100" onClick={(e) => { e.stopPropagation(); handleReject(a); }}><X className="w-3 h-3" /></Button>
-                      </div>
-                   </div>
-                 ))}
-               </div>
-            </CardContent>
-          </Card>
+        <div className="w-full animate-fade-in">
+          <div className="flex flex-col gap-4 sticky top-6">
+            <Card className="rounded-[20px] shadow-sm border-slate-200 overflow-hidden">
+              <CardHeader className="p-4 pb-2 border-b border-slate-50">
+                <CardTitle className="text-[0.95rem] font-extrabold text-[#1e293b] flex items-center justify-between">
+                  Bekleme Odası {waitingApps.length > 0 && <span className="bg-amber-100 text-amber-600 px-2 py-0.5 rounded-full text-[0.7rem]">{waitingApps.length}</span>}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4">
+                 <div className="flex flex-col gap-3 max-h-[600px] overflow-y-auto no-scrollbar">
+                   {waitingApps.length === 0 ? <div className="text-center p-8 text-xs italic text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">Bekleyen randevu yok</div> : waitingApps.map(a => (
+                     <div key={a.id} className="bg-white border border-slate-200 rounded-xl p-3 flex flex-col gap-1 shadow-sm hover:border-amber-400 group cursor-pointer transition-all hover:translate-x-1" onClick={() => openEditApt(a)}>
+                        <div className="text-[0.65rem] font-bold text-amber-600 uppercase tracking-wider">{format(parseISO(a.tarih), "d MMM", { locale: tr })} · {a.saat}</div>
+                        <div className="font-bold text-[0.82rem] text-[#1e293b] line-height-tight">{a.musteriAdi}</div>
+                        <div className="text-[0.7rem] text-slate-500 font-medium">
+                          {services.find(h => h.id.toString() === a.hizmetId.toString())?.ad}
+                        </div>
+                        <div className="flex gap-2 mt-3">
+                          <Button size="sm" variant="outline" className="h-8 text-[0.7rem] font-bold flex-1 border-emerald-100 bg-emerald-50 text-emerald-700 hover:bg-emerald-100" onClick={(e) => { e.stopPropagation(); handleApprove(a); }}><Check className="w-3 h-3 mr-1" /> Onayla</Button>
+                          <Button size="sm" variant="outline" className="h-8 text-[0.7rem] font-bold w-10 border-red-100 bg-red-50 text-red-600 hover:bg-red-100" onClick={(e) => { e.stopPropagation(); handleReject(a); }}><X className="w-3 h-3" /></Button>
+                        </div>
+                     </div>
+                   ))}
+                 </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
 

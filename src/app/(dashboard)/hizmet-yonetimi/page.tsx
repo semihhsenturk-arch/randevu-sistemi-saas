@@ -134,8 +134,8 @@ export default function HizmetYonetimiPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <header className="flex justify-between items-center bg-white/88 backdrop-blur-[20px] p-[14px_24px] rounded-[20px] border border-slate-200/60 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.07)] sticky top-3 z-[40]">
-        <div className="flex flex-col gap-[2px]">
+      <header className="flex flex-col md:flex-row justify-between items-center bg-white/88 backdrop-blur-[20px] p-4 md:p-[14px_24px] rounded-[20px] border border-slate-200/60 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.07)] sticky top-3 z-[40] gap-4">
+        <div className="flex flex-col gap-[2px] text-center md:text-left w-full md:w-auto">
           <span className="text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[#0a3d34] opacity-80 mb-[1px]">
             {(profile?.clinic_name || "Klinik").toUpperCase()}
           </span>
@@ -144,14 +144,47 @@ export default function HizmetYonetimiPage() {
             Kliniğinize ait tedavi ve hizmet türlerini düzenleyin.
           </div>
         </div>
-        <div className="mt-4 md:mt-0 flex gap-4 w-full md:w-auto">
-          <Button className="bg-[#0a3d34] hover:bg-[#072b25] shadow-md shadow-[#0a3d34]/20 font-bold" onClick={() => handleOpenModal()}>
+        <div className="w-full md:w-auto flex justify-center md:justify-end shrink-0">
+          <Button className="bg-[#0a3d34] hover:bg-[#072b25] h-11 px-6 rounded-xl font-bold w-full sm:w-auto" onClick={() => handleOpenModal()}>
             <Plus className="w-4 h-4 mr-2" /> Yeni Ekle
           </Button>
         </div>
       </header>
 
-      <div className="bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden relative">
+      {/* Mobile view - Card layout */}
+      <div className="block md:hidden space-y-3 pb-24">
+        {loading ? (
+          <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-500 italic">Yükleniyor...</div>
+        ) : services.length === 0 ? (
+          <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-500 italic">Henüz bir hizmet tanımlanmadı.</div>
+        ) : (
+          services.slice().sort((a, b) => a.ad.localeCompare(b.ad, "tr")).map((s) => (
+            <div key={s.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+              <div className="flex justify-between items-start">
+                <div className="flex items-center gap-3">
+                  <div className="w-4 h-4 rounded-full ring-2 ring-slate-100 shrink-0" style={{ backgroundColor: s.renk || "#3b82f6" }}></div>
+                  <span className="font-extrabold text-[#111827] text-lg">{s.ad}</span>
+                </div>
+                <span className="bg-slate-100 text-[#1e293b] px-3 py-1 rounded-lg text-[0.8rem] font-black shrink-0">{s.sure} dk</span>
+              </div>
+              <div className="flex justify-between items-center pt-2 border-t border-slate-100">
+                <span className="font-extrabold text-lg text-[#0a3d34]">{s.fiyat} ₺</span>
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="icon" className="h-9 w-9 text-blue-600 bg-blue-50 hover:bg-blue-100" onClick={() => handleOpenModal(s)}>
+                    <Edit2 className="w-4 h-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-9 w-9 text-red-600 bg-red-50 hover:bg-red-100" onClick={() => confirmDelete(s.id)}>
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop view - Table layout */}
+      <div className="hidden md:block bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden relative">
         <Table>
           <TableHeader className="bg-gradient-to-r from-slate-700 to-slate-800 hover:bg-transparent">
             <TableRow className="hover:bg-transparent border-none">
