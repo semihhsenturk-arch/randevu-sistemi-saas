@@ -246,7 +246,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onDeleteTreat
             }`}
             style={
               isFullscreen
-                ? { width: "100%", height: "100%", maxHeight: "100%", maxWidth: "1200px" }
+                ? { width: "100%", height: "100%", maxHeight: "100%", maxWidth: "100%" }
                 : { width: 320, height: 400 }
             }
             onMouseDown={handleMouseDown}
@@ -259,8 +259,10 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onDeleteTreat
               ref={innerRef}
               className={`relative aspect-[4/5] bg-white shrink-0 ${isFullscreen ? "" : "rounded-2xl shadow-lg overflow-hidden"}`}
               style={{ 
-                width: isFullscreen ? "auto" : "100%",
-                height: "100%",
+                width: isFullscreen ? "2000px" : "100%",
+                height: isFullscreen ? "2000px" : "100%",
+                maxWidth: "100%",
+                maxHeight: "100%",
                 transform: `scale(${zoom}) translate(${pan.x / zoom}px, ${pan.y / zoom}px)`, 
                 transformOrigin: "center center", 
                 transition: isPanning ? "none" : "transform 0.2s ease" 
