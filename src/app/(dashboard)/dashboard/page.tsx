@@ -129,19 +129,25 @@ export default function DashboardAnalyticsPage() {
     const totalCapacity = workingDays * 16;
     const occupancyRate = totalCapacity > 0 ? Math.round((totalApt / totalCapacity) * 100) : 0;
 
-    /* weekly trend */
-    let weeklyData: { week: string; count: number }[] = [];
+    /* trend data */
+    let trendData: { date: string; count: number }[] = [];
     try {
-      const weeks = eachWeekOfInterval({ start: sd, end: ed }, { weekStartsOn: 1 });
-      weeklyData = weeks.map(ws => {
-        const we = endOfWeek(ws, { weekStartsOn: 1 });
-        const cnt = filtered.filter(a => {
-          const d = new Date(a.tarih);
-          return isWithinInterval(d, { start: ws, end: we });
-        }).length;
-        return { week: format(ws, "dd MMM", { locale: tr }), count: cnt };
-      });
-    } catch { weeklyData = []; }
+      const current = new Date(sd.getTime());
+      current.setHours(12, 0, 0, 0);
+      const end = new Date(ed.getTime());
+      end.setHours(12, 0, 0, 0);
+      while (current <= end) {
+        if (current.getDay() !== 0) { // 0 is Sunday
+          const formattedDate = format(current, "yyyy-MM-dd");
+          const cnt = filtered.filter(a => a.tarih === formattedDate).length;
+          trendData.push({
+            date: format(current, "d MMM", { locale: tr }),
+            count: cnt
+          });
+        }
+        current.setDate(current.getDate() + 1);
+      }
+    } catch { trendData = []; }
 
     /* performance table */
     const perfTable = services.map(h => {
@@ -151,7 +157,7 @@ export default function DashboardAnalyticsPage() {
       return { name: h.ad, qty, rev, pct, color: h.renk || '#0a3d34' };
     }).filter(r => r.qty > 0).sort((a, b) => b.rev - a.rev);
 
-    return { totalApt, totalRevenue, topSvc, avgRevenue, barData, pieData, occupancyRate, aptChange, revChange, avgChange, weeklyData, perfTable };
+    return { totalApt, totalRevenue, topSvc, avgRevenue, barData, pieData, occupancyRate, aptChange, revChange, avgChange, trendData, perfTable };
   }, [filtered, prevFiltered, services, appliedStartDate, appliedEndDate]);
 
   const varColor = (v: number) => v > 80 ? '#0d9488' : v > 40 ? '#f59e0b' : '#ef4444';
@@ -311,21 +317,21 @@ export default function DashboardAnalyticsPage() {
 
       {/* ── BOTTOM ROW: TREND + TABLE ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-8">
-        {/* Weekly Trend */}
+        {/* Trend Grafiği */}
         <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
-          <div className="text-[0.95rem] font-extrabold mb-1 text-slate-900">Haftalık Trend</div>
-          <p className="text-[0.75rem] text-slate-400 font-medium mb-5">Hafta bazlı randevu yoğunluğu</p>
+          <div className="text-[0.95rem] font-extrabold mb-1 text-slate-900">Trend Grafiği</div>
+          <p className="text-[0.75rem] text-slate-400 font-medium mb-5">Günlük randevu yoğunluğu (Pazar hariç)</p>
           <div className="h-[260px] w-full">
-            {analytics.weeklyData.length === 0 ? <div className="flex items-center justify-center h-full text-slate-400 italic text-sm">Yeterli veri yok</div> : (
+            {analytics.trendData.length === 0 ? <div className="flex items-center justify-center h-full text-slate-400 italic text-sm">Yeterli veri yok</div> : (
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={analytics.weeklyData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                <AreaChart data={analytics.trendData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#0d9488" stopOpacity={0.3} />
                       <stop offset="100%" stopColor="#0d9488" stopOpacity={0.02} />
                     </linearGradient>
                   </defs>
-                  <XAxis dataKey="week" stroke="#94a3b8" fontSize={11} fontWeight={600} axisLine={false} tickLine={false} />
+                  <XAxis dataKey="date" stroke="#94a3b8" fontSize={11} fontWeight={600} axisLine={false} tickLine={false} />
                   <YAxis stroke="#94a3b8" fontSize={11} axisLine={false} tickLine={false} allowDecimals={false} />
                   <Tooltip contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', fontSize: 13, fontWeight: 600 }} formatter={(v: any) => [v + ' randevu', 'Sayı']} />
                   <Area type="monotone" dataKey="count" stroke="#0d9488" strokeWidth={2.5} fill="url(#trendGrad)" dot={{ fill: '#0d9488', r: 4, strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }} />
