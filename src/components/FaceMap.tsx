@@ -377,7 +377,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                     {isHovered && (
                       <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 bg-white border border-slate-200/80 rounded-xl px-3 py-2 shadow-xl pointer-events-none z-50 text-slate-900 flex flex-col items-center gap-0.5 whitespace-nowrap" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center gap-1.5 text-xs font-black text-slate-900">
-                          <span className="capitalize">{t.type === "botoks" ? "Botoks" : "Dolgu"}</span>
+                          <span className="capitalize">{t.type === "botoks" ? "Botoks" : t.type === "dolgu" ? "Dolgu" : "Mezoterapi"}</span>
                           <span className="text-slate-900">-</span>
                           <span>{t.amount} {t.unit}</span>
                         </div>
@@ -411,6 +411,10 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
             <div className="flex items-center gap-1.5">
               <div className="w-3 h-3 rounded-full" style={{ background: "rgba(236,72,153,0.85)" }} />
               <span className={`text-[0.6rem] font-bold ${isFullscreen ? "text-slate-300" : "text-slate-500"}`}>Dolgu</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full" style={{ background: "rgba(16,185,129,0.85)" }} />
+              <span className={`text-[0.6rem] font-bold ${isFullscreen ? "text-slate-300" : "text-slate-500"}`}>Mezoterapi</span>
             </div>
           </div>
         </div>
