@@ -186,7 +186,7 @@ export default function DashboardAnalyticsPage() {
       const qty = counts[h.ad] || 0;
       const rev = filtered.filter(a => a.hizmetId.toString() === h.id.toString()).reduce((s) => s + (h.fiyat || 0), 0);
       return { name: h.ad, revenue: rev, quantity: qty, color: h.renk || '#0a3d34' };
-    });
+    }).sort((a, b) => a.name.localeCompare(b.name, 'tr'));
     const pieData = barData.filter(b => b.revenue > 0);
 
     const sd = new Date(appliedStartDate); const ed = new Date(appliedEndDate);
@@ -371,7 +371,7 @@ export default function DashboardAnalyticsPage() {
                     <Pie data={analytics.pieData} cx="50%" cy="50%" innerRadius={55} outerRadius={90} paddingAngle={3} dataKey="revenue" stroke="none">
                       {analytics.pieData.map((entry, i) => (<PieCell key={i} fill={entry.color} />))}
                     </Pie>
-                    <Tooltip formatter={(v: number) => v.toLocaleString('tr-TR') + ' TL'} contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }} />
+                    <Tooltip formatter={(v: any) => typeof v === 'number' ? v.toLocaleString('tr-TR') + ' TL' : v} contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }} />
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="w-full px-2 flex flex-wrap justify-center gap-x-4 gap-y-2 mt-2">
@@ -406,7 +406,7 @@ export default function DashboardAnalyticsPage() {
                   </defs>
                   <XAxis dataKey="date" stroke="#94a3b8" fontSize={11} fontWeight={600} axisLine={false} tickLine={false} />
                   <YAxis stroke="#94a3b8" fontSize={11} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <Tooltip contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', fontSize: 13, fontWeight: 600 }} formatter={(v: number) => [v + ' randevu', 'Sayı']} />
+                  <Tooltip contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', fontSize: 13, fontWeight: 600 }} formatter={(v: any) => [String(v) + ' randevu', 'Sayı']} />
                   <Area type="monotone" dataKey="count" stroke="#0d9488" strokeWidth={2.5} fill="url(#trendGrad)" dot={{ fill: '#0d9488', r: 4, strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }} />
                 </AreaChart>
               </ResponsiveContainer>

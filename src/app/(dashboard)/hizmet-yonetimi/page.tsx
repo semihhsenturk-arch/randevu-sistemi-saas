@@ -188,11 +188,11 @@ export default function HizmetYonetimiPage() {
         <Table>
           <TableHeader className="bg-gradient-to-r from-slate-700 to-slate-800 hover:bg-transparent">
             <TableRow className="hover:bg-transparent border-none">
-              <TableHead className="font-bold text-white uppercase tracking-wider text-[0.72rem] py-4">Renk</TableHead>
-              <TableHead className="font-bold text-white uppercase tracking-wider text-[0.72rem] py-4">Hizmet Adı</TableHead>
-              <TableHead className="font-bold text-white uppercase tracking-wider text-[0.72rem] py-4">Süre (Dk)</TableHead>
-              <TableHead className="font-bold text-white uppercase tracking-wider text-[0.72rem] py-4">Fiyat (₺)</TableHead>
-              <TableHead className="font-bold text-white uppercase tracking-wider text-[0.72rem] py-4 text-right">İşlemler</TableHead>
+              <TableHead className="font-bold text-white uppercase tracking-wider text-[0.72rem] py-4 text-center">Renk</TableHead>
+              <TableHead className="font-bold text-white uppercase tracking-wider text-[0.72rem] py-4 text-center">Hizmet Adı</TableHead>
+              <TableHead className="font-bold text-white uppercase tracking-wider text-[0.72rem] py-4 text-center">Süre (Dk)</TableHead>
+              <TableHead className="font-bold text-white uppercase tracking-wider text-[0.72rem] py-4 text-center">Fiyat (₺)</TableHead>
+              <TableHead className="font-bold text-white uppercase tracking-wider text-[0.72rem] py-4 text-center">İşlemler</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -203,16 +203,16 @@ export default function HizmetYonetimiPage() {
             ) : (
               services.slice().sort((a, b) => a.ad.localeCompare(b.ad, "tr")).map((s) => (
                 <TableRow key={s.id} className="hover:bg-slate-50/50 transition-colors">
-                  <TableCell className="py-4">
-                    <div className="w-4 h-4 rounded-full ring-2 ring-slate-100" style={{ backgroundColor: s.renk || "#3b82f6" }}></div>
+                  <TableCell className="py-4 text-center">
+                    <div className="w-4 h-4 rounded-full ring-2 ring-slate-100 mx-auto" style={{ backgroundColor: s.renk || "#3b82f6" }}></div>
                   </TableCell>
-                  <TableCell className="py-4">
+                  <TableCell className="py-4 text-center">
                     <span className="font-extrabold text-[#111827]">{s.ad}</span>
                   </TableCell>
-                  <TableCell className="py-4 font-medium text-slate-600">{s.sure} dk</TableCell>
-                  <TableCell className="py-4 font-bold text-[#0a3d34]">{s.fiyat} ₺</TableCell>
-                  <TableCell className="py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
+                  <TableCell className="py-4 font-medium text-slate-600 text-center">{s.sure} dk</TableCell>
+                  <TableCell className="py-4 font-bold text-[#0a3d34] text-center">{s.fiyat} ₺</TableCell>
+                  <TableCell className="py-4 text-center">
+                    <div className="flex items-center justify-center gap-2">
                       <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-700" onClick={() => handleOpenModal(s)}>
                         <Edit2 className="w-3.5 h-3.5" />
                       </Button>
