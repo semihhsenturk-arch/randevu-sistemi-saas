@@ -83,7 +83,7 @@ export const DraggableAppointment = memo(function DraggableAppointment({ appoint
           </AppointmentCard>
         </TooltipTrigger>
         <TooltipContent 
-          className="bg-slate-900/95 border-slate-800 text-white shadow-2xl z-[9999] p-2 rounded-lg font-sans pointer-events-none" 
+          className="bg-slate-950 border border-slate-800 text-white shadow-2xl z-[9999] p-2.5 rounded-xl font-sans pointer-events-none" 
           sideOffset={4} 
           side="top"
           style={{ 
@@ -92,22 +92,22 @@ export const DraggableAppointment = memo(function DraggableAppointment({ appoint
             wordBreak: 'break-word' 
           }}
         >
-          <div className="flex flex-col items-center text-center">
-            <span className="font-bold text-[0.7rem] text-white leading-tight w-full line-clamp-2">
+          <div className="flex flex-col items-center text-center gap-1.5">
+            <span className="font-extrabold text-[0.8rem] text-white leading-tight w-full line-clamp-2 pb-1 border-b border-slate-800/80">
               {appointment.musteriAdi}
             </span>
-            <div className="flex flex-col mt-1 w-full">
-              <span className="text-[0.55rem] text-emerald-400 font-bold uppercase tracking-wider">Hizmet</span>
-              <span className="text-[0.6rem] text-slate-200 font-medium leading-tight w-full line-clamp-2 mt-[1px]">
+            <div className="flex flex-col mt-0.5 w-full">
+              <span className="text-[0.58rem] text-emerald-400 font-extrabold uppercase tracking-wider">Hizmet</span>
+              <span className="text-[0.68rem] text-slate-100 font-semibold leading-tight w-full line-clamp-2 mt-[1px]">
                 {service?.ad || "Bilinmeyen Hizmet"}
               </span>
             </div>
             {appointment.notlar && appointment.notlar.trim() !== "" && (
               <>
-                <div className="w-12 my-1 border-t border-slate-700/80" />
+                <div className="w-12 my-0.5 border-t border-slate-800" />
                 <div className="flex flex-col w-full">
-                   <span className="text-[0.55rem] text-slate-400 font-bold uppercase tracking-wider">Not</span>
-                   <span className="text-[0.55rem] text-slate-300 leading-tight w-full line-clamp-3 mt-[1px]">
+                   <span className="text-[0.58rem] text-slate-400 font-extrabold uppercase tracking-wider">Not</span>
+                   <span className="text-[0.62rem] text-slate-200 font-semibold leading-tight w-full line-clamp-3 mt-[1px]">
                      {appointment.notlar}
                    </span>
                 </div>
