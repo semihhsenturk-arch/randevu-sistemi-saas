@@ -1,6 +1,6 @@
 "use client";
 
-import { memo } from "react";
+import { memo, forwardRef, HTMLAttributes } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import { Appointment, Service } from "@/hooks/use-database";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -11,6 +11,27 @@ interface DraggableAppointmentProps {
   onClick: (apt: Appointment) => void;
   style?: React.CSSProperties;
 }
+
+const AppointmentCard = forwardRef<
+  HTMLDivElement,
+  HTMLAttributes<HTMLDivElement> & {
+    setNodeRef: (element: HTMLElement | null) => void;
+  }
+>(function AppointmentCard({ setNodeRef, ...props }, ref) {
+  return (
+    <div
+      ref={(node) => {
+        setNodeRef(node);
+        if (typeof ref === "function") {
+          ref(node);
+        } else if (ref) {
+          (ref as any).current = node;
+        }
+      }}
+      {...props}
+    />
+  );
+});
 
 export const DraggableAppointment = memo(function DraggableAppointment({ appointment, service, onClick, style }: DraggableAppointmentProps) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
@@ -45,8 +66,8 @@ export const DraggableAppointment = memo(function DraggableAppointment({ appoint
     <TooltipProvider delayDuration={isDragging ? 99999 : 300}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div
-            ref={setNodeRef}
+          <AppointmentCard
+            setNodeRef={setNodeRef}
             {...listeners}
             {...attributes}
             onClick={(e) => {
@@ -59,13 +80,19 @@ export const DraggableAppointment = memo(function DraggableAppointment({ appoint
           >
             <span className="apt-name pointer-events-none" title=" ">{appointment.musteriAdi}</span>
             <span className="apt-service pointer-events-none" title=" ">{service?.ad || "Bilinmeyen Hizmet"}</span>
-          </div>
+          </AppointmentCard>
         </TooltipTrigger>
         <TooltipContent 
           className="bg-slate-900/95 border-slate-800 text-white shadow-2xl z-[9999] p-2 rounded-lg font-sans pointer-events-none" 
           sideOffset={4} 
           side="top"
-          style={{ width: '120px', minWidth: '120px', maxWidth: '120px', whiteSpace: 'normal', wordBreak: 'break-word' }}
+          style={{ 
+            width: 'var(--radix-tooltip-trigger-width)', 
+            minWidth: 'var(--radix-tooltip-trigger-width)', 
+            maxWidth: 'var(--radix-tooltip-trigger-width)', 
+            whiteSpace: 'normal', 
+            wordBreak: 'break-word' 
+          }}
         >
           <div className="flex flex-col items-center text-center">
             <span className="font-bold text-[0.7rem] text-white leading-tight w-full line-clamp-2">
