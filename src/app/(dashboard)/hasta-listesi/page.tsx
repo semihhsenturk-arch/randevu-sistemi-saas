@@ -528,10 +528,10 @@ export default function PatientListPage() {
                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#0c4a40] to-[#177567] text-white flex items-center justify-center text-2xl font-extrabold shadow-lg shadow-[#0a3d34]/20 ring-4 ring-[#0a3d34]/5 shrink-0">
                  {selectedPatientName ? selectedPatientName.substring(0, 2).toUpperCase() : "HA"}
                </div>
-               <div className="flex flex-col gap-1 min-w-0">
-                 <DialogTitle className="text-xl font-extrabold text-[#1e293b] leading-tight truncate">{selectedPatientName}</DialogTitle>
+               <div className="flex flex-col gap-1 min-w-0 flex-1">
+                 <DialogTitle className="text-xl font-extrabold text-[#1e293b] leading-tight break-words whitespace-normal">{selectedPatientName}</DialogTitle>
                  <span className="text-xs font-bold text-slate-500 flex items-center gap-1.5 mt-1">
-                   <Contact className="w-4 h-4 text-[#0a3d34] opacity-70"/> {selectedPatientPhone || "Telefon Yok"}
+                   <Contact className="w-4 h-4 text-[#0a3d34] opacity-70 shrink-0"/> <span className="truncate">{selectedPatientPhone || "Telefon Yok"}</span>
                  </span>
                </div>
              </div>
