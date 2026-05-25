@@ -136,6 +136,31 @@ export default function CalendarPage() {
     setIsMounted(true);
   }, []);
 
+  // Open appointment modal from query parameters (e.g. from Hasta Listesi)
+  useEffect(() => {
+    if (isMounted) {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("newApt") === "true") {
+        const name = params.get("name") || "";
+        const phone = params.get("phone") || "";
+        const todayStr = format(new Date(), "yyyy-MM-dd");
+        
+        setCurrentApt({
+          tarih: todayStr,
+          saat: "09:00",
+          durum: "beklemede",
+          musteriAdi: name,
+          telefon: phone
+        });
+        setModalOpen(true);
+        
+        // Clean up parameters without reloading
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, "", newUrl);
+      }
+    }
+  }, [isMounted]);
+
   // DND Sensors - Optimized for instant, fluid response
   const mouseSensor = useSensor(MouseSensor, {
     activationConstraint: {

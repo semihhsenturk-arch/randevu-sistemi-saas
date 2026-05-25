@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { useDatabase, Appointment, PatientProfile, InventoryItem, Service, ConsentRecord, getCacheSync, CACHE_KEYS } from "@/hooks/use-database";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Contact, Search, Package, Users, Clock, CheckCircle2, History, Pill, FileText, Box, Trash2, Plus, X, Edit2, Notebook as Emerald, Loader2, Shield, MessageCircle } from "lucide-react";
+import { Contact, Search, Package, Users, Clock, CheckCircle2, History, Pill, FileText, Box, Trash2, Plus, X, Edit2, Notebook as Emerald, Loader2, Shield, MessageCircle, CalendarDays } from "lucide-react";
 import { ConsentFormModal } from "@/components/ConsentFormModal";
 import { WhatsAppSimulator } from "@/components/WhatsAppSimulator";
 import { format, parseISO, isValid } from "date-fns";
@@ -22,6 +23,7 @@ import { UpgradeScreen } from "@/components/UpgradeScreen";
 import { toast } from "sonner";
 
 export default function PatientListPage() {
+  const router = useRouter();
   const { profile, isLoading, checkAccess } = useAuth();
 
   const isLocked = !checkAccess("professional");
@@ -539,7 +541,8 @@ export default function PatientListPage() {
                   { id: 'timeline', label: 'Geçmiş İşlemler', icon: History, color: 'blue' },
                   { id: 'meds', label: 'İlaçlar / Reçete', icon: Pill, color: 'rose' },
                   { id: 'notes', label: 'Muayene / Notlar', icon: Emerald, color: 'emerald' },
-                  { id: 'stock', label: 'Stok Geçmişi', icon: Box, color: 'amber' }
+                  { id: 'stock', label: 'Stok Geçmişi', icon: Box, color: 'amber' },
+                  { id: 'new-appointment', label: 'Yeni Randevu', icon: CalendarDays, color: 'emerald' }
                 ].map(tab => {
                   const isActive = activeTab === tab.id;
                   const colors: Record<string, string> = {
@@ -563,7 +566,13 @@ export default function PatientListPage() {
                       className={`flex items-center justify-center md:justify-start gap-3 px-4 py-4 rounded-2xl text-sm font-bold transition-all whitespace-nowrap md:whitespace-normal border group
                         ${colors[tab.color] || ''} ${isActive ? 'shadow-sm shadow-black/5' : 'border-transparent'}
                       `}
-                      onClick={() => setActiveTab(tab.id as any)}
+                      onClick={() => {
+                        if (tab.id === 'new-appointment') {
+                          router.push(`/takvim?newApt=true&name=${encodeURIComponent(selectedPatientName)}&phone=${encodeURIComponent(pPhone || selectedPatientPhone)}`);
+                        } else {
+                          setActiveTab(tab.id as any);
+                        }
+                      }}
                     >
                       <tab.icon className={`w-5 h-5 transition-colors ${iconColors[tab.color] || ''}`} /> {tab.label}
                     </button>
