@@ -305,10 +305,10 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
               ref={innerRef}
               className={`relative aspect-[4/5] bg-white shrink-0 ${isFullscreen ? "" : "rounded-2xl shadow-lg overflow-hidden"}`}
               style={{ 
-                width: isFullscreen ? "2000px" : "100%",
-                height: isFullscreen ? "2000px" : "100%",
-                maxWidth: "100%",
+                width: "100%",
+                height: isFullscreen ? "auto" : "100%",
                 maxHeight: "100%",
+                maxWidth: isFullscreen ? "calc(100vh * 0.8)" : "100%",
                 transform: `scale(${zoom}) translate(${pan.x / zoom}px, ${pan.y / zoom}px)`, 
                 transformOrigin: "center center", 
                 transition: isPanning ? "none" : "transform 0.2s ease" 
