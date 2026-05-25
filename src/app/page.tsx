@@ -158,24 +158,19 @@ export default function LandingPage() {
                 desc: "Sürükle bırak özelliği ile randevularınızı saniyeler içinde organize edin. Çatışmaları otomatik önleyin."
               },
               {
-                icon: Database,
-                title: "Google Sheets Senkronu",
-                desc: "Mevcut verilerinizi Google Sheets üzerinden anlık senkronize edin. Excel'den kurtulun."
+                icon: FileSignature,
+                title: "Dijital Onam Formu",
+                desc: "Hastalarınıza dijital ortamda onam formu imzalatın. Kağıt israfını bitirin, yasal süreçleri güvence altına alın."
+              },
+              {
+                icon: ScanFace,
+                title: "İnteraktif Yüz Haritası",
+                desc: "Kağıt devrine son. Hastalarınıza uygulanan işlemleri dijital yüz haritasına aktarın, tedavi geçmişini tek ekranda görselleştirin."
               },
               {
                 icon: BarChart3,
                 title: "Detaylı Analizler",
                 desc: "Gelir-gider dengesini, klinik doluluk oranlarını ve popüler hizmetlerin analizini anlık izleyin."
-              },
-              {
-                icon: ShieldCheck,
-                title: "KVKK Uyumu & Güvenlik",
-                desc: "Hasta verilerini en yüksek güvenlik standartlarında, KVKK uyumlu bir şekilde saklayın."
-              },
-              {
-                icon: Smartphone,
-                title: "Mobil Uyumluluk",
-                desc: "Klinik durumunuzu cebinizden takip edin. Nerede olursanız olun kontrol sizde."
               },
               {
                 icon: CheckCircle2,
@@ -188,14 +183,19 @@ export default function LandingPage() {
                 desc: "Randevu kaçırma (no-show) oranlarını AI destekli otomatik hatırlatmalar ile %40'a kadar düşürün."
               },
               {
-                icon: FileSignature,
-                title: "Dijital Onam Formu",
-                desc: "Hastalarınıza dijital ortamda onam formu imzalatın. Kağıt israfını bitirin, yasal süreçleri güvence altına alın."
+                icon: Database,
+                title: "Google Sheets Senkronu",
+                desc: "Mevcut verilerinizi Google Sheets üzerinden anlık senkronize edin. Excel'den kurtulun."
               },
               {
-                icon: ScanFace,
-                title: "İnteraktif Yüz Haritası",
-                desc: "Kağıt devrine son. Hastalarınıza uygulanan işlemleri dijital yüz haritasına aktarın, tedavi geçmişini tek ekranda görselleştirin."
+                icon: ShieldCheck,
+                title: "KVKK Uyumu & Güvenlik",
+                desc: "Hasta verilerini en yüksek güvenlik standartlarında, KVKK uyumlu bir şekilde saklayın."
+              },
+              {
+                icon: Smartphone,
+                title: "Mobil Uyumluluk",
+                desc: "Klinik durumunuzu cebinizden takip edin. Nerede olursanız olun kontrol sizde."
               }
             ].map((f, i) => (
               <div key={i} className="bg-white px-5 py-5 rounded-[20px] border border-slate-100 hover:border-emerald-200 shadow-sm hover:shadow-lg hover:shadow-emerald-500/5 transition-all group">
