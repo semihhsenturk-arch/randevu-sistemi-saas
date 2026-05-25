@@ -229,36 +229,8 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
         : ""
     }`}>
       
-      {/* Header & Controls */}
-      {!isFullscreen ? (
-        <div className="relative z-50 flex items-center justify-between shrink-0 border-b border-slate-100/10 pb-2 mb-1 w-full">
-          <div />
-
-          <div className="flex items-center gap-2">
-            {/* Gender Toggle */}
-            {!readonly && onGenderChange && (
-              <div className="flex items-center gap-1.5 bg-slate-100/10 p-1 rounded-xl">
-                <button onClick={() => onGenderChange("female")}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${isFemale ? "bg-pink-50 text-pink-700 shadow-sm" : "text-slate-400 hover:text-slate-200"}`}>
-                  👩 Kadın
-                </button>
-                <button onClick={() => onGenderChange("male")}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${!isFemale ? "bg-blue-50 text-blue-700 shadow-sm" : "text-slate-400 hover:text-slate-200"}`}>
-                  👨 Erkek
-                </button>
-              </div>
-            )}
-
-            {/* Fullscreen Toggle */}
-            <button
-              onClick={() => setIsFullscreen(true)}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold border transition-all shadow-sm bg-white hover:bg-slate-50 border-slate-200 text-slate-700"
-            >
-              <Maximize2 className="w-3.5 h-3.5" /> Tam Ekran Modu (Hassas İşaretleme)
-            </button>
-          </div>
-        </div>
-      ) : (
+      {/* Fullscreen Exit Button */}
+      {isFullscreen && (
         <button
           onClick={handleExitFullscreen}
           className="absolute top-6 right-6 z-[100] flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-extrabold border transition-all shadow-xl bg-white hover:bg-slate-50 border-slate-200 text-slate-800"
@@ -270,7 +242,34 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
       <div className={`flex flex-col lg:flex-row gap-6 min-h-0 flex-1 ${isFullscreen ? "relative items-center justify-center w-full" : ""}`}>
         
         {/* Face Image Container */}
-        <div className={`relative flex flex-col justify-center items-center ${isFullscreen ? "w-full flex-1" : "shrink-0 mx-auto lg:mx-0"}`}>
+        <div className={`relative flex flex-col items-center ${isFullscreen ? "w-full flex-1 justify-center" : "shrink-0 mx-auto lg:mx-0"}`}>
+          
+          {/* Top Controls (Fullscreen & Gender) */}
+          {!isFullscreen && (
+            <div className="flex flex-col items-center gap-3 mb-4 w-full">
+              {/* Fullscreen Toggle */}
+              <button
+                onClick={() => setIsFullscreen(true)}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold border transition-all shadow-sm bg-white hover:bg-slate-50 border-slate-200 text-slate-700"
+              >
+                <Maximize2 className="w-3.5 h-3.5" /> Tam Ekran Modu (Hassas İşaretleme)
+              </button>
+
+              {/* Gender Toggle */}
+              {!readonly && onGenderChange && (
+                <div className="flex items-center gap-1.5 bg-slate-100/10 p-1 rounded-xl">
+                  <button onClick={() => onGenderChange("female")}
+                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${isFemale ? "bg-pink-50 text-pink-700 shadow-sm" : "text-slate-400 hover:text-slate-200"}`}>
+                    👩 Kadın
+                  </button>
+                  <button onClick={() => onGenderChange("male")}
+                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${!isFemale ? "bg-blue-50 text-blue-700 shadow-sm" : "text-slate-400 hover:text-slate-200"}`}>
+                    👨 Erkek
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           <div
             ref={containerRef}
