@@ -115,8 +115,18 @@ export default function DashboardAnalyticsPage() {
     const pieData = barData.filter(b => b.revenue > 0);
 
     const sd = new Date(appliedStartDate); const ed = new Date(appliedEndDate);
-    const diffDays = Math.ceil((ed.getTime() - sd.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-    const totalCapacity = diffDays * 16;
+    let workingDays = 0;
+    const tempDate = new Date(sd);
+    tempDate.setHours(12, 0, 0, 0);
+    const tempEnd = new Date(ed);
+    tempEnd.setHours(12, 0, 0, 0);
+    while (tempDate <= tempEnd) {
+      if (tempDate.getDay() !== 0) { // 0 is Sunday
+        workingDays++;
+      }
+      tempDate.setDate(tempDate.getDate() + 1);
+    }
+    const totalCapacity = workingDays * 16;
     const occupancyRate = totalCapacity > 0 ? Math.round((totalApt / totalCapacity) * 100) : 0;
 
     /* weekly trend */
