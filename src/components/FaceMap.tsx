@@ -68,12 +68,46 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
 
   const dragStartRef = useRef<{ x: number; y: number } | null>(null);
   const innerRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    const img = new window.Image();
+    img.src = imgSrc;
+    img.crossOrigin = "Anonymous";
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      if (ctx) {
+        ctx.drawImage(img, 0, 0, img.width, img.height);
+        canvasRef.current = canvas;
+      }
+    };
+  }, [imgSrc]);
 
   // Click on face image to place a marker
-  const isInsideHeadOrNeck = (x: number, y: number) => {
-    const isHead = y >= 10 && y <= 65 && x >= 24 && x <= 76;
-    const isNeck = y > 65 && y <= 85 && x >= 34 && x <= 66;
-    return isHead || isNeck;
+  const isInsideHeadOrNeck = (xPercent: number, yPercent: number) => {
+    if (!canvasRef.current) {
+      return yPercent >= 5 && yPercent <= 95 && xPercent >= 10 && xPercent <= 90;
+    }
+    
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return false;
+
+    const pxX = Math.floor((xPercent / 100) * canvas.width);
+    const pxY = Math.floor((yPercent / 100) * canvas.height);
+
+    if (pxX < 0 || pxX >= canvas.width || pxY < 0 || pxY >= canvas.height) return false;
+
+    try {
+      const pixel = ctx.getImageData(pxX, pxY, 1, 1).data;
+      const alpha = pixel[3];
+      return alpha > 10;
+    } catch (e) {
+      return yPercent >= 5 && yPercent <= 95 && xPercent >= 10 && xPercent <= 90;
+    }
   };
 
   const getPointerCoords = (clientX: number, clientY: number): DrawingPoint | null => {
