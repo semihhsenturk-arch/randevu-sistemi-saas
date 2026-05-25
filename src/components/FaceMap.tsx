@@ -252,9 +252,9 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
   };
 
   const getMarkerColor = (type: string) => {
-    return type === "botoks"
-      ? { bg: "rgba(59,130,246,0.85)", ring: "#3B82F6", light: "rgba(59,130,246,0.15)" }
-      : { bg: "rgba(236,72,153,0.85)", ring: "#EC4899", light: "rgba(236,72,153,0.15)" };
+    if (type === "botoks") return { bg: "rgba(59,130,246,0.85)", ring: "#3B82F6", light: "rgba(59,130,246,0.15)" };
+    if (type === "mezoterapi") return { bg: "rgba(16,185,129,0.85)", ring: "#10B981", light: "rgba(16,185,129,0.15)" };
+    return { bg: "rgba(236,72,153,0.85)", ring: "#EC4899", light: "rgba(236,72,153,0.15)" };
   };
 
   return (
