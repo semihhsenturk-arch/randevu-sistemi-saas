@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { X, Plus, Syringe, Clock, ZoomIn, ZoomOut, RotateCcw, Trash2, Maximize2, Minimize2 } from "lucide-react";
+import { X, Plus, Syringe, Clock, ZoomIn, ZoomOut, RotateCcw, Trash2, Maximize2, Minimize2, Pencil } from "lucide-react";
 import { format } from "date-fns";
 
 interface FaceMapProps {
@@ -34,11 +34,12 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
   const [draggingMarkerId, setDraggingMarkerId] = useState<string | null>(null);
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   // Form state
-  const [formType, setFormType] = useState<"botoks" | "dolgu">("botoks");
+  const [formType, setFormType] = useState<"botoks" | "dolgu" | "mezoterapi">("botoks");
   const [formAmount, setFormAmount] = useState("");
-  const [formUnit, setFormUnit] = useState("ünite");
+  const [formUnit, setFormUnit] = useState("cc");
   const [formProduct, setFormProduct] = useState("");
   const [formNote, setFormNote] = useState("");
 
@@ -103,6 +104,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
     }
 
     setClickPos({ x, y });
+    setEditingId(null);
     setShowForm(true);
     setFormType("botoks" as any);
     setFormAmount("");
@@ -111,21 +113,54 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
     setFormNote("");
   }, [readonly, zoom]);
 
-  const handleSubmit = () => {
-    if (!clickPos || !formAmount || !onAddTreatment) return;
-    const t: FaceTreatment = {
-      id: `ft_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-      date: format(new Date(), "dd.MM.yyyy HH:mm"),
-      zone: `${clickPos.x.toFixed(1)},${clickPos.y.toFixed(1)}`,
-      type: formType,
-      amount: parseFloat(formAmount),
-      unit: formUnit,
-      product: formProduct || undefined,
-      note: formNote || undefined,
-    };
-    onAddTreatment(t);
+  const handleCloseForm = () => {
     setShowForm(false);
     setClickPos(null);
+    setEditingId(null);
+  };
+
+  const handleEditClick = (t: FaceTreatment, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const [x, y] = t.zone.split(",").map(Number);
+    setClickPos({ x, y });
+    setFormType(t.type as any);
+    setFormAmount(t.amount.toString());
+    setFormUnit(t.unit);
+    setFormProduct(t.product || "");
+    setFormNote(t.note || "");
+    setEditingId(t.id);
+    setShowForm(true);
+  };
+
+  const handleSubmit = () => {
+    if (!formAmount) return;
+    
+    if (editingId && onUpdateTreatment) {
+      const existing = treatments.find(t => t.id === editingId);
+      if (existing) {
+        onUpdateTreatment({
+          ...existing,
+          type: formType,
+          amount: parseFloat(formAmount),
+          unit: formUnit,
+          product: formProduct || undefined,
+          note: formNote || undefined,
+        });
+      }
+    } else if (clickPos && onAddTreatment) {
+      const t: FaceTreatment = {
+        id: `ft_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        date: format(new Date(), "dd.MM.yyyy HH:mm"),
+        zone: `${clickPos.x.toFixed(1)},${clickPos.y.toFixed(1)}`,
+        type: formType,
+        amount: parseFloat(formAmount),
+        unit: formUnit,
+        product: formProduct || undefined,
+        note: formNote || undefined,
+      };
+      onAddTreatment(t);
+    }
+    handleCloseForm();
   };
 
   // Zoom controls
@@ -383,10 +418,10 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
         {/* Treatment Form Overlay (Fullscreen Mode) */}
         {isFullscreen && showForm && clickPos && !readonly && (
           <div className="absolute bottom-10 right-10 z-50 w-[340px] bg-slate-900/90 border border-slate-700/80 backdrop-blur-md rounded-2xl p-5 shadow-2xl text-white animate-in slide-in-from-bottom-5 duration-200">
-            <button onClick={() => { setShowForm(false); setClickPos(null); }} className="absolute top-4 right-4 text-slate-400 hover:text-white"><X className="w-4 h-4" /></button>
+            <button onClick={handleCloseForm} className="absolute top-4 right-4 text-slate-400 hover:text-white"><X className="w-4 h-4" /></button>
             <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400"><Syringe className="w-4 h-4" /></div>
-              <div className="text-sm font-extrabold">Yeni Tedavi Noktası</div>
+              <div className="text-sm font-extrabold">{editingId ? "Tedaviyi Düzenle" : "Yeni Tedavi Noktası"}</div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
@@ -429,10 +464,10 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
               {/* Treatment Form */}
               {showForm && clickPos && !readonly && (
                 <div className="bg-white border-2 border-emerald-100 rounded-2xl p-4 shadow-lg shadow-emerald-500/5 relative">
-                  <button onClick={() => { setShowForm(false); setClickPos(null); }} className="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><X className="w-4 h-4" /></button>
+                  <button onClick={handleCloseForm} className="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><X className="w-4 h-4" /></button>
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600"><Syringe className="w-3.5 h-3.5" /></div>
-                    <div className="text-sm font-extrabold text-slate-800">Yeni Tedavi Noktası</div>
+                    <div className="text-sm font-extrabold text-slate-800">{editingId ? "Tedaviyi Düzenle" : "Yeni Tedavi Noktası"}</div>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">
@@ -510,15 +545,25 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5 mb-0.5">
                             <span className={`text-[0.55rem] font-bold px-1.5 py-0.5 rounded-full`} style={{ background: colors.light, color: colors.ring }}>
-                              {t.type === "botoks" ? "Botoks" : "Dolgu"}
+                              {t.type === "botoks" ? "Botoks" : t.type === "dolgu" ? "Dolgu" : "Mezoterapi"}
                             </span>
                             <span className="text-[0.7rem] font-bold text-slate-700">{t.amount} {t.unit}</span>
                           </div>
                           {t.product && <div className="text-[0.6rem] text-slate-500 truncate">{t.product}</div>}
                           {t.note && <div className="text-[0.55rem] text-slate-400 truncate">{t.note}</div>}
                         </div>
-                        <div className="flex flex-col items-end gap-1 shrink-0">
-                          <span className="text-[0.5rem] font-bold text-slate-300">{t.date.split(" ")[0]}</span>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <span className="text-[0.5rem] font-bold text-slate-400 mr-1">{t.date.split(" ")[0]}</span>
+                          
+                          {!readonly && onUpdateTreatment && (
+                            <button
+                              onClick={(e) => handleEditClick(t, e)}
+                              className="w-6 h-6 rounded-lg bg-blue-50 text-blue-500 hover:bg-blue-100 hover:text-blue-700 flex items-center justify-center transition-colors border border-blue-100"
+                              title="Düzenle"
+                            >
+                              <Pencil className="w-3 h-3" />
+                            </button>
+                          )}
                           {!readonly && onDeleteTreatment && (
                             <button
                               onClick={(e) => { e.stopPropagation(); onDeleteTreatment(t.id); }}
