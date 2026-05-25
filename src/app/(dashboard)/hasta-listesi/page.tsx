@@ -424,11 +424,11 @@ export default function PatientListPage() {
           return (
             <div key={p.id} className={`bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 ${p.durum === 'beklemede' ? 'border-amber-200 bg-amber-50/10' : ''}`}>
               <div className="flex justify-between items-start">
-                <div className="flex flex-col">
-                  <span className="font-extrabold text-[#0a3d34] text-lg" onClick={() => openProfile(p.musteriAdi, p.telefon || "")}>{p.musteriAdi}</span>
+                <div className="flex flex-col flex-1 min-w-0 mr-3">
+                  <span className="font-extrabold text-[#0a3d34] text-lg line-clamp-2 break-words" onClick={() => openProfile(p.musteriAdi, p.telefon || "")}>{p.musteriAdi}</span>
                   <span className="text-sm font-medium text-slate-500">{p.telefon || "Telefon Yok"}</span>
                 </div>
-                <span className="bg-slate-100 text-[#1e293b] px-3 py-1 rounded-lg text-[0.8rem] font-black">{p.saat}</span>
+                <span className="bg-slate-100 text-[#1e293b] px-3 py-1 rounded-lg text-[0.8rem] font-black shrink-0 h-fit mt-1">{p.saat}</span>
               </div>
               <div className="flex items-center justify-between pt-2 border-t border-slate-100">
                 <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-3 py-1 rounded-full text-[0.7rem] font-bold">{h?.ad}</span>
