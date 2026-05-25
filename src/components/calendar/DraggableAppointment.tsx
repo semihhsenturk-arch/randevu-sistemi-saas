@@ -87,8 +87,6 @@ export const DraggableAppointment = memo(function DraggableAppointment({ appoint
           sideOffset={4} 
           side="top"
           style={{ 
-            width: 'var(--radix-tooltip-trigger-width)', 
-            minWidth: 'var(--radix-tooltip-trigger-width)', 
             maxWidth: 'var(--radix-tooltip-trigger-width)', 
             whiteSpace: 'normal', 
             wordBreak: 'break-word' 
