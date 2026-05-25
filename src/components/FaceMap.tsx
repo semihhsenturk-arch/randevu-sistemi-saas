@@ -275,24 +275,6 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
         
         {/* Face Image Container */}
         <div className={`relative flex flex-col justify-center items-center ${isFullscreen ? "w-full flex-1" : "shrink-0 mx-auto lg:mx-0"}`}>
-          {/* Zoom Controls */}
-          <div className={`absolute z-20 flex flex-col gap-1 ${isFullscreen ? "bottom-6 right-6" : "top-4 right-4"}`}>
-            <button onClick={zoomIn} className="w-8 h-8 rounded-lg flex items-center justify-center border shadow-sm transition-all bg-white border-slate-200 text-slate-600 hover:bg-slate-50" title="Yakınlaştır">
-              <ZoomIn className="w-4 h-4" />
-            </button>
-            <button onClick={zoomOut} className="w-8 h-8 rounded-lg flex items-center justify-center border shadow-sm transition-all bg-white border-slate-200 text-slate-600 hover:bg-slate-50" title="Uzaklaştır">
-              <ZoomOut className="w-4 h-4" />
-            </button>
-            <button onClick={resetView} className="w-8 h-8 rounded-lg flex items-center justify-center border shadow-sm transition-all bg-white border-slate-200 text-slate-600 hover:bg-slate-50" title="Sıfırla">
-              <RotateCcw className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          {zoom !== 1 && (
-            <div className={`absolute z-20 font-bold px-2 py-1 rounded-md backdrop-blur text-[0.6rem] ${isFullscreen ? "bottom-6 left-6 bg-slate-100/80 text-slate-700 border border-slate-200" : "top-4 left-4 bg-black/60 text-white"}`}>
-              {Math.round(zoom * 100)}%
-            </div>
-          )}
 
           <div
             ref={containerRef}
@@ -304,7 +286,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
             style={
               isFullscreen
                 ? { width: "100%", height: "100%", maxHeight: "100%", maxWidth: "100%" }
-                : { width: 320, height: 400 }
+                : { width: 320, height: 320 }
             }
             onMouseDown={handleMouseDown}
             onTouchStart={handleMouseDown}
@@ -317,12 +299,12 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
           >
             <div
               ref={innerRef}
-              className={`relative aspect-[4/5] bg-white shrink-0 ${isFullscreen ? "" : "rounded-2xl shadow-lg overflow-hidden"}`}
+              className={`relative aspect-square bg-white shrink-0 ${isFullscreen ? "" : "rounded-2xl shadow-lg overflow-hidden"}`}
               style={{ 
                 width: "100%",
                 height: isFullscreen ? "auto" : "100%",
                 maxHeight: "100%",
-                maxWidth: isFullscreen ? "calc(100vh * 0.8)" : "100%",
+                maxWidth: isFullscreen ? "100vh" : "100%",
                 transform: `scale(${zoom}) translate(${pan.x / zoom}px, ${pan.y / zoom}px)`, 
                 transformOrigin: "center center", 
                 transition: isPanning ? "none" : "transform 0.2s ease" 
