@@ -13,6 +13,17 @@ export type Appointment = {
   whatsapp_status?: "sent" | "confirmed" | "declined" | null;
 };
 
+export type FaceTreatment = {
+  id: string;
+  date: string;
+  zone: string;
+  type: 'botoks' | 'dolgu';
+  amount: number;
+  unit: string;
+  product?: string;
+  note?: string;
+};
+
 export type PatientProfile = {
   id?: string;
   patient_name: string;
@@ -23,6 +34,8 @@ export type PatientProfile = {
   meds: any[];
   notes_list: { date: string; content: string }[];
   stock_history: any[];
+  face_treatments?: FaceTreatment[];
+  face_gender?: 'female' | 'male';
 };
 
 export type InventoryItem = {
@@ -214,6 +227,8 @@ export function useDatabase() {
             meds: p.meds,
             notes_list: p.notes_list,
             stock_history: p.stock_history,
+            face_treatments: p.face_treatments || [],
+            face_gender: p.face_gender || 'female',
           };
         });
         setCache(CACHE_KEYS.PROFILES, profiles);
@@ -247,6 +262,8 @@ export function useDatabase() {
       meds: profile.meds || [],
       notes_list: profile.notes_list || [],
       stock_history: profile.stock_history || [],
+      face_treatments: profile.face_treatments || [],
+      face_gender: profile.face_gender || 'female',
     };
 
     if (existing) payload.id = existing.id;

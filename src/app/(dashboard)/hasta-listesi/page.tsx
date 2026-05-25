@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { useDatabase, Appointment, PatientProfile, InventoryItem, Service, ConsentRecord, getCacheSync, CACHE_KEYS } from "@/hooks/use-database";
+import { useDatabase, Appointment, PatientProfile, FaceTreatment, InventoryItem, Service, ConsentRecord, getCacheSync, CACHE_KEYS } from "@/hooks/use-database";
+import { FaceMap } from "@/components/FaceMap";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Contact, Search, Package, Users, Clock, CheckCircle2, History, Pill, FileText, Box, Trash2, Plus, X, Edit2, Notebook as Emerald, Loader2, Shield, MessageCircle, CalendarDays } from "lucide-react";
+import { Contact, Search, Package, Users, Clock, CheckCircle2, History, Pill, FileText, Box, Trash2, Plus, X, Edit2, Notebook as Emerald, Loader2, Shield, MessageCircle, CalendarDays, Syringe } from "lucide-react";
 import { ConsentFormModal } from "@/components/ConsentFormModal";
 import { WhatsAppSimulator } from "@/components/WhatsAppSimulator";
 import { format, parseISO, isValid } from "date-fns";
@@ -40,7 +41,7 @@ export default function PatientListPage() {
 
   // Patient Modal
   const [modalOpen, setModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"info" | "timeline" | "meds" | "notes" | "stock" | "consent">("info");
+  const [activeTab, setActiveTab] = useState<"info" | "timeline" | "meds" | "notes" | "stock" | "consent" | "facemap">("info");
   const [selectedPatientName, setSelectedPatientName] = useState("");
   const [selectedPatientPhone, setSelectedPatientPhone] = useState("");
 
@@ -515,7 +516,7 @@ export default function PatientListPage() {
 
       {/* Patient Detail Modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="sm:max-w-[850px] p-0 overflow-hidden bg-white border-slate-200 flex flex-col md:flex-row shadow-2xl">
+        <DialogContent className={`${activeTab === 'facemap' ? 'sm:max-w-[1050px] lg:ml-[140px]' : 'sm:max-w-[850px]'} p-0 overflow-hidden bg-white border-slate-200 flex flex-col md:flex-row shadow-2xl transition-all`}>
           
           {/* Left Sidebar */}
           <div className="w-full md:w-[280px] bg-slate-50/50 border-r border-slate-200/60 p-6 flex flex-col items-center md:items-start shrink-0">
@@ -539,6 +540,7 @@ export default function PatientListPage() {
                   { id: 'info', label: 'Hasta Bilgileri', icon: Users, color: 'emerald' },
                   { id: 'consent', label: 'Onam Formları', icon: Shield, color: 'indigo' },
                   { id: 'timeline', label: 'Geçmiş İşlemler', icon: History, color: 'blue' },
+                  { id: 'facemap', label: 'Yüz Haritası', icon: Syringe, color: 'rose' },
                   { id: 'meds', label: 'İlaçlar / Reçete', icon: Pill, color: 'rose' },
                   { id: 'notes', label: 'Muayene / Notlar', icon: Emerald, color: 'emerald' },
                   { id: 'stock', label: 'Stok Geçmişi', icon: Box, color: 'amber' },
@@ -588,6 +590,7 @@ export default function PatientListPage() {
                  {activeTab === 'info' && 'Hasta Bilgileri'}
                  {activeTab === 'consent' && 'Onam Formları'}
                  {activeTab === 'timeline' && 'Geçmiş İşlemler'}
+                 {activeTab === 'facemap' && 'Yüz Haritası — Botoks & Dolgu'}
                  {activeTab === 'meds' && 'İlaçlar ve Reçete'}
                  {activeTab === 'notes' && 'Muayene ve Notlar'}
                  {activeTab === 'stock' && 'Stok Geçmişi'}
@@ -682,6 +685,7 @@ export default function PatientListPage() {
                          {hstAppointments.map(a => {
                            const h = a.hizmetId ? services.find(x => x.id.toString() === a.hizmetId.toString()) : null;
                            const isStatusDone = a.durum === 'onaylandi';
+                           const dateFaceTreatments = (selProfile.face_treatments || []).filter(ft => ft.date.split(' ')[0] === (a.tarih ? format(new Date(a.tarih), 'dd.MM.yyyy') : ''));
                            return (
                              <div key={a.id} className="relative pl-6">
                                 {/* Timeline Dot */}
@@ -702,6 +706,14 @@ export default function PatientListPage() {
                                        {a.notlar}
                                      </div>
                                    )}
+                                   {dateFaceTreatments.length > 0 && (
+                                     <button
+                                       onClick={() => setActiveTab('facemap')}
+                                       className="mt-3 flex items-center gap-1.5 text-[0.7rem] font-bold text-rose-600 bg-rose-50 px-3 py-1.5 rounded-lg border border-rose-100 hover:bg-rose-100 transition-colors"
+                                     >
+                                       <Syringe className="w-3 h-3" /> Yüz Haritasını Gör ({dateFaceTreatments.length} işlem)
+                                     </button>
+                                   )}
                                 </div>
                              </div>
                            )
@@ -709,6 +721,35 @@ export default function PatientListPage() {
                       </div>
                     )}
                  </div>
+               )}
+
+               {activeTab === 'facemap' && (
+                 <FaceMap
+                   gender={selProfile.face_gender || 'female'}
+                   treatments={selProfile.face_treatments || []}
+                   onGenderChange={async (g) => {
+                     const current = profiles[selectedPatientName] || { notes_list: [], meds: [], stock_history: [] };
+                     const updated = { ...current, face_gender: g };
+                     setProfiles(prev => ({ ...prev, [selectedPatientName]: updated }));
+                     savePatientProfile(selectedPatientName, updated).catch(err => console.error('Gender save err:', err));
+                   }}
+                   onAddTreatment={async (t) => {
+                     const current = profiles[selectedPatientName] || { notes_list: [], meds: [], stock_history: [] };
+                     const list = [...(current.face_treatments || []), t];
+                     const updated = { ...current, face_treatments: list };
+                     setProfiles(prev => ({ ...prev, [selectedPatientName]: updated }));
+                     savePatientProfile(selectedPatientName, updated).catch(err => console.error('Face treatment save err:', err));
+                     toast.success('Tedavi kaydedildi.');
+                   }}
+                   onDeleteTreatment={async (id) => {
+                     const current = profiles[selectedPatientName] || { notes_list: [], meds: [], stock_history: [] };
+                     const list = (current.face_treatments || []).filter(ft => ft.id !== id);
+                     const updated = { ...current, face_treatments: list };
+                     setProfiles(prev => ({ ...prev, [selectedPatientName]: updated }));
+                     savePatientProfile(selectedPatientName, updated).catch(err => console.error('Face treatment delete err:', err));
+                     toast.success('Tedavi silindi.');
+                   }}
+                 />
                )}
 
                {activeTab === 'meds' && (
