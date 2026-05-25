@@ -175,11 +175,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
       setDragPos({ x, y });
       return;
     }
-
-    if (!isPanning) return;
-    const clientX = 'touches' in e ? (e as any).touches[0].clientX : (e as any).clientX;
-    const clientY = 'touches' in e ? (e as any).touches[0].clientY : (e as any).clientY;
-    setPan({ x: clientX - panStart.x, y: clientY - panStart.y });
+    // Image panning functionality is disabled based on user request.
   };
 
   const handleMouseUp = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
@@ -278,7 +274,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
 
           <div
             ref={containerRef}
-            className={`cursor-grab active:cursor-grabbing select-none transition-all flex items-center justify-center ${
+            className={`select-none transition-all flex items-center justify-center ${
               isFullscreen 
                 ? "bg-white" 
                 : "border-2 rounded-2xl overflow-hidden shadow-inner bg-gradient-to-br from-slate-50 to-white border-slate-200/60"
@@ -295,7 +291,6 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
             onMouseUp={handleMouseUp}
             onTouchEnd={handleMouseUp}
             onMouseLeave={handleMouseUp}
-            onWheel={handleWheel}
           >
             <div
               ref={innerRef}
