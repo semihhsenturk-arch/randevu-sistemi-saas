@@ -31,6 +31,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
   const [hoveredMarker, setHoveredMarker] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isAnimatingOut, setIsAnimatingOut] = useState(false);
   const [draggingMarkerId, setDraggingMarkerId] = useState<string | null>(null);
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
 
@@ -132,6 +133,15 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
   const zoomOut = () => setZoom(z => Math.max(z - 0.3, 0.7));
   const resetView = () => { setZoom(1); setPan({ x: 0, y: 0 }); };
 
+  // Fullscreen controls
+  const handleExitFullscreen = () => {
+    setIsAnimatingOut(true);
+    setTimeout(() => {
+      setIsFullscreen(false);
+      setIsAnimatingOut(false);
+    }, 200);
+  };
+
   // Pan & Drag handlers
   const handleMouseDown = (e: React.MouseEvent | React.TouchEvent) => {
     if (readonly) return;
@@ -217,7 +227,11 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
   };
 
   return (
-    <div className={`space-y-4 ${isFullscreen ? "fixed inset-y-0 right-0 left-0 lg:left-[280px] z-[9999] bg-white flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200" : ""}`}>
+    <div className={`space-y-4 ${
+      isFullscreen 
+        ? `fixed inset-y-0 right-0 left-0 lg:left-[280px] z-[9999] bg-white flex flex-col overflow-hidden ${isAnimatingOut ? 'animate-out fade-out zoom-out-95 duration-200' : 'animate-in fade-in zoom-in-95 duration-200'}` 
+        : ""
+    }`}>
       
       {/* Header & Controls */}
       {!isFullscreen ? (
@@ -250,7 +264,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
         </div>
       ) : (
         <button
-          onClick={() => setIsFullscreen(false)}
+          onClick={handleExitFullscreen}
           className="absolute top-6 right-6 z-[100] flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-extrabold border transition-all shadow-xl bg-white hover:bg-slate-50 border-slate-200 text-slate-800"
         >
           <Minimize2 className="w-4 h-4" /> Tam Ekrandan Çık
