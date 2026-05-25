@@ -45,6 +45,20 @@
   --spacing-fluid-padding: clamp(1.25rem, 4vw, 5rem);
 }
 
+@layer base {
+  button, 
+  [role="button"],
+  a,
+  .cursor-pointer {
+    touch-action: manipulation;
+    cursor: pointer;
+  }
+  
+  input, select, textarea {
+    touch-action: manipulation;
+  }
+}
+
 :root {
   /* Shadcn standard theme variables */
   --background: 210 40% 98%;
