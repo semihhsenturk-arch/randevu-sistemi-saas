@@ -105,12 +105,15 @@ export const DraggableAppointment = memo(function DraggableAppointment({ appoint
               </span>
             </div>
             {appointment.notlar && appointment.notlar.trim() !== "" && (
-              <div className="mt-1 pt-1 border-t border-slate-700/80 flex flex-col w-full">
-                 <span className="text-[0.55rem] text-slate-400 font-bold uppercase tracking-wider">Not</span>
-                 <span className="text-[0.55rem] text-slate-300 leading-tight w-full line-clamp-3 mt-[1px]">
-                   {appointment.notlar}
-                 </span>
-              </div>
+              <>
+                <div className="w-12 my-1 border-t border-slate-700/80" />
+                <div className="flex flex-col w-full">
+                   <span className="text-[0.55rem] text-slate-400 font-bold uppercase tracking-wider">Not</span>
+                   <span className="text-[0.55rem] text-slate-300 leading-tight w-full line-clamp-3 mt-[1px]">
+                     {appointment.notlar}
+                   </span>
+                </div>
+              </>
             )}
           </div>
         </TooltipContent>
