@@ -743,6 +743,13 @@ export default function PatientListPage() {
                      savePatientProfile(selectedPatientName, updated).catch(err => console.error('Face treatment save err:', err));
                      toast.success('Tedavi kaydedildi.');
                    }}
+                   onUpdateTreatment={async (t) => {
+                     const current = profiles[selectedPatientName] || { notes_list: [], meds: [], stock_history: [] };
+                     const list = (current.face_treatments || []).map(ft => ft.id === t.id ? t : ft);
+                     const updated = { ...current, face_treatments: list };
+                     setProfiles(prev => ({ ...prev, [selectedPatientName]: updated }));
+                     savePatientProfile(selectedPatientName, updated).catch(err => console.error('Face treatment update err:', err));
+                   }}
                    onDeleteTreatment={async (id) => {
                      const current = profiles[selectedPatientName] || { notes_list: [], meds: [], stock_history: [] };
                      const list = (current.face_treatments || []).filter(ft => ft.id !== id);

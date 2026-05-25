@@ -14,12 +14,13 @@ interface FaceMapProps {
   gender: "female" | "male";
   treatments?: FaceTreatment[];
   onAddTreatment?: (t: FaceTreatment) => void;
+  onUpdateTreatment?: (t: FaceTreatment) => void;
   onDeleteTreatment?: (id: string) => void;
   onGenderChange?: (g: "female" | "male") => void;
   readonly?: boolean;
 }
 
-export function FaceMap({ gender, treatments = [], onAddTreatment, onDeleteTreatment, onGenderChange, readonly = false }: FaceMapProps) {
+export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreatment, onDeleteTreatment, onGenderChange, readonly = false }: FaceMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -30,6 +31,8 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onDeleteTreat
   const [hoveredMarker, setHoveredMarker] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [draggingMarkerId, setDraggingMarkerId] = useState<string | null>(null);
+  const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
 
   // Form state
   const [formType, setFormType] = useState<"botoks" | "dolgu">("botoks");
@@ -129,27 +132,67 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onDeleteTreat
   const zoomOut = () => setZoom(z => Math.max(z - 0.3, 0.7));
   const resetView = () => { setZoom(1); setPan({ x: 0, y: 0 }); };
 
-  // Pan handlers
-  const handleMouseDown = (e: React.MouseEvent) => {
+  // Pan & Drag handlers
+  const handleMouseDown = (e: React.MouseEvent | React.TouchEvent) => {
     if (readonly) return;
-    e.preventDefault();
     setIsPanning(true);
-    setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
-    dragStartRef.current = { x: e.clientX, y: e.clientY };
+    const clientX = 'touches' in e ? (e as any).touches[0].clientX : (e as any).clientX;
+    const clientY = 'touches' in e ? (e as any).touches[0].clientY : (e as any).clientY;
+    setPanStart({ x: clientX - pan.x, y: clientY - pan.y });
+    dragStartRef.current = { x: clientX, y: clientY };
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handleMouseMove = (e: React.MouseEvent | React.TouchEvent) => {
+    if (draggingMarkerId && !readonly && innerRef.current) {
+      e.preventDefault();
+      const rect = innerRef.current.getBoundingClientRect();
+      const clientX = 'touches' in e ? (e as any).touches[0].clientX : (e as any).clientX;
+      const clientY = 'touches' in e ? (e as any).touches[0].clientY : (e as any).clientY;
+      
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const clickXFromCenter = clientX - centerX;
+      const clickYFromCenter = clientY - centerY;
+      
+      const originalWidth = rect.width / zoom;
+      const originalHeight = rect.height / zoom;
+      const unzoomedX = clickXFromCenter / zoom;
+      const unzoomedY = clickYFromCenter / zoom;
+      
+      const x = ((unzoomedX + originalWidth / 2) / originalWidth) * 100;
+      const y = ((unzoomedY + originalHeight / 2) / originalHeight) * 100;
+      
+      setDragPos({ x, y });
+      return;
+    }
+
     if (!isPanning) return;
-    setPan({ x: e.clientX - panStart.x, y: e.clientY - panStart.y });
+    const clientX = 'touches' in e ? (e as any).touches[0].clientX : (e as any).clientX;
+    const clientY = 'touches' in e ? (e as any).touches[0].clientY : (e as any).clientY;
+    setPan({ x: clientX - panStart.x, y: clientY - panStart.y });
   };
 
-  const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleMouseUp = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
+    if (draggingMarkerId) {
+      if (dragPos && onUpdateTreatment) {
+        const t = treatments.find(t => t.id === draggingMarkerId);
+        if (t) {
+          onUpdateTreatment({ ...t, zone: `${dragPos.x.toFixed(1)},${dragPos.y.toFixed(1)}` });
+        }
+      }
+      setDraggingMarkerId(null);
+      setDragPos(null);
+      return;
+    }
+
     setIsPanning(false);
     if (!dragStartRef.current) return;
-    const dx = Math.abs(e.clientX - dragStartRef.current.x);
-    const dy = Math.abs(e.clientY - dragStartRef.current.y);
+    const clientX = 'changedTouches' in e ? (e as any).changedTouches[0].clientX : (e as any).clientX;
+    const clientY = 'changedTouches' in e ? (e as any).changedTouches[0].clientY : (e as any).clientY;
+    const dx = Math.abs(clientX - dragStartRef.current.x);
+    const dy = Math.abs(clientY - dragStartRef.current.y);
     if (dx < 5 && dy < 5) {
-      handleImageClick(e);
+      handleImageClick(e as any);
     }
     dragStartRef.current = null;
   };
@@ -250,8 +293,11 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onDeleteTreat
                 : { width: 320, height: 400 }
             }
             onMouseDown={handleMouseDown}
+            onTouchStart={handleMouseDown}
             onMouseMove={handleMouseMove}
+            onTouchMove={handleMouseMove}
             onMouseUp={handleMouseUp}
+            onTouchEnd={handleMouseUp}
             onMouseLeave={handleMouseUp}
             onWheel={handleWheel}
           >
@@ -273,20 +319,34 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onDeleteTreat
 
               {/* Treatment Markers */}
               {activeTreatments.map(t => {
-                const pos = parsePos(t.zone);
+                const isDragging = draggingMarkerId === t.id;
+                const pos = isDragging && dragPos ? dragPos : parsePos(t.zone);
                 const colors = getMarkerColor(t.type);
                 const isHovered = hoveredMarker === t.id;
                 return (
-                  <div key={t.id} style={{ position: "absolute", left: `${pos.x}%`, top: `${pos.y}%`, transform: "translate(-50%, -50%)", zIndex: isHovered ? 30 : 10 }}>
+                  <div key={t.id} style={{ position: "absolute", left: `${pos.x}%`, top: `${pos.y}%`, transform: "translate(-50%, -50%)", zIndex: isHovered || isDragging ? 30 : 10 }}>
                     {/* Pulse ring */}
-                    <div className="absolute inset-0 rounded-full animate-ping" style={{ background: colors.light, width: 28, height: 28, margin: "-6px" }} />
+                    <div className={`absolute inset-0 rounded-full ${isDragging ? "" : "animate-ping"}`} style={{ background: colors.light, width: 28, height: 28, margin: "-6px" }} />
                     {/* Marker dot */}
                     <div
-                      className="relative w-4 h-4 rounded-full border-2 border-white shadow-lg flex items-center justify-center cursor-pointer transition-transform hover:scale-150"
+                      className={`relative w-4 h-4 rounded-full border-2 border-white shadow-lg flex items-center justify-center transition-transform hover:scale-150 ${isDragging ? "scale-150 cursor-grabbing" : "cursor-grab"}`}
                       style={{ background: colors.bg }}
                       onMouseEnter={(e) => { e.stopPropagation(); setHoveredMarker(t.id); }}
                       onMouseLeave={() => setHoveredMarker(null)}
-                      onClick={(e) => e.stopPropagation()}
+                      onMouseDown={(e) => {
+                        if (readonly) return;
+                        e.stopPropagation();
+                        setDraggingMarkerId(t.id);
+                        setHoveredMarker(null);
+                        setDragPos(parsePos(t.zone));
+                      }}
+                      onTouchStart={(e) => {
+                        if (readonly) return;
+                        e.stopPropagation();
+                        setDraggingMarkerId(t.id);
+                        setHoveredMarker(null);
+                        setDragPos(parsePos(t.zone));
+                      }}
                     />
                     {/* Tooltip */}
                     {isHovered && (
