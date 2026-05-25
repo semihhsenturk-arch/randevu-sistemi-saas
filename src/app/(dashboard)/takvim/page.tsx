@@ -604,8 +604,8 @@ export default function CalendarPage() {
               ))}
             </div>
 
-            <div className="overflow-x-auto w-full pb-4">
-              <div className="min-w-full lg:min-w-[900px]">
+            <div className="w-full pb-4">
+              <div className="w-full">
                 <div className="flex items-stretch gap-2 mb-2">
               <div className="w-[60px] md:w-[70px] shrink-0 flex flex-col items-center justify-center gap-2">
                  <Button variant="outline" size="icon" className={`h-10 w-10 md:h-11 md:w-11 ${syncing ? 'border-[#0a3d34] text-[#0a3d34]' : 'text-slate-400'}`} onClick={handleSync}>
