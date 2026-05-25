@@ -417,41 +417,41 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
 
         {/* Treatment Form Overlay (Fullscreen Mode) */}
         {isFullscreen && showForm && clickPos && !readonly && (
-          <div className="absolute bottom-10 right-10 z-50 w-[340px] bg-slate-900/90 border border-slate-700/80 backdrop-blur-md rounded-2xl p-5 shadow-2xl text-white animate-in slide-in-from-bottom-5 duration-200">
-            <button onClick={handleCloseForm} className="absolute top-4 right-4 text-slate-400 hover:text-white"><X className="w-4 h-4" /></button>
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400"><Syringe className="w-4 h-4" /></div>
-              <div className="text-sm font-extrabold">{editingId ? "Tedaviyi Düzenle" : "Yeni Tedavi Noktası"}</div>
+          <div className="absolute bottom-10 right-10 z-50 w-[340px] bg-white border-2 border-emerald-100 rounded-2xl p-4 shadow-2xl shadow-emerald-500/10 animate-in slide-in-from-bottom-5 duration-200">
+            <button onClick={handleCloseForm} className="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><X className="w-4 h-4" /></button>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600"><Syringe className="w-3.5 h-3.5" /></div>
+              <div className="text-sm font-extrabold text-slate-800">{editingId ? "Tedaviyi Düzenle" : "Yeni Tedavi Noktası"}</div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <Label className="text-[0.6rem] font-bold text-slate-400 uppercase">Tür</Label>
+                <Label className="text-[0.6rem] font-bold text-slate-500 uppercase">Tür</Label>
                 <Select value={formType} onValueChange={(v) => { setFormType(v as any); setFormUnit("cc"); }}>
-                  <SelectTrigger className="h-8 text-xs bg-slate-950 border-slate-800 text-white"><SelectValue /></SelectTrigger>
-                  <SelectContent className="bg-slate-950 border-slate-800 text-white">
-                    <SelectItem value="botoks" className="text-white focus:text-white">💉 Botoks</SelectItem>
-                    <SelectItem value="dolgu" className="text-white focus:text-white">✨ Dolgu</SelectItem>
-                    <SelectItem value="mezoterapi" className="text-white focus:text-white">💧 Mezoterapi</SelectItem>
+                  <SelectTrigger className="h-8 text-xs bg-slate-50 text-slate-800"><SelectValue /></SelectTrigger>
+                  <SelectContent className="bg-white border-slate-200 z-[99999]">
+                    <SelectItem value="botoks" className="text-slate-800 cursor-pointer">💉 Botoks</SelectItem>
+                    <SelectItem value="dolgu" className="text-slate-800 cursor-pointer">✨ Dolgu</SelectItem>
+                    <SelectItem value="mezoterapi" className="text-slate-800 cursor-pointer">💧 Mezoterapi</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-1">
-                <Label className="text-[0.6rem] font-bold text-slate-400 uppercase">Miktar</Label>
+                <Label className="text-[0.6rem] font-bold text-slate-500 uppercase">Miktar</Label>
                 <div className="flex gap-1">
-                  <Input type="number" step="0.1" min="0" placeholder="0" value={formAmount} onChange={e => setFormAmount(e.target.value)} className="h-8 text-xs flex-1 bg-slate-950 border-slate-800 text-white" />
-                  <span className="h-8 px-1.5 flex items-center text-[0.6rem] font-bold rounded-md bg-slate-900 border border-slate-800 text-slate-400 shrink-0">{formUnit}</span>
+                  <Input type="number" step="0.1" min="0" placeholder="0" value={formAmount} onChange={e => setFormAmount(e.target.value)} className="h-8 text-xs bg-slate-50 flex-1 text-slate-800" />
+                  <span className="h-8 px-1.5 flex items-center text-[0.6rem] font-bold text-slate-400 bg-slate-100 rounded-md border border-slate-200 shrink-0">{formUnit}</span>
                 </div>
               </div>
               <div className="col-span-2 space-y-1">
-                <Label className="text-[0.6rem] font-bold text-slate-400 uppercase">Ürün Adı</Label>
-                <Input placeholder="Juvederm, Botox, Dysport..." value={formProduct} onChange={e => setFormProduct(e.target.value)} className="h-8 text-xs bg-slate-950 border-slate-800 text-white" />
+                <Label className="text-[0.6rem] font-bold text-slate-500 uppercase">Ürün Adı</Label>
+                <Input placeholder="Juvederm, Botox, Dysport..." value={formProduct} onChange={e => setFormProduct(e.target.value)} className="h-8 text-xs bg-slate-50 text-slate-800" />
               </div>
               <div className="col-span-2 space-y-1">
-                <Label className="text-[0.6rem] font-bold text-slate-400 uppercase">Not</Label>
-                <Textarea placeholder="Ek bilgi..." value={formNote} onChange={e => setFormNote(e.target.value)} className="min-h-[40px] text-xs resize-none bg-slate-950 border-slate-800 text-white" />
+                <Label className="text-[0.6rem] font-bold text-slate-500 uppercase">Not</Label>
+                <Textarea placeholder="Ek bilgi..." value={formNote} onChange={e => setFormNote(e.target.value)} className="min-h-[40px] text-xs bg-slate-50 resize-none text-slate-800" />
               </div>
             </div>
-            <Button onClick={handleSubmit} disabled={!formAmount} className="w-full mt-4 h-8 bg-emerald-600 hover:bg-emerald-700 text-xs font-bold shadow-md shadow-emerald-500/20 text-white">
+            <Button onClick={handleSubmit} disabled={!formAmount} className="w-full mt-2 h-8 bg-emerald-600 hover:bg-emerald-700 text-xs font-bold shadow-md shadow-emerald-500/20 text-white">
               <Plus className="w-3.5 h-3.5 mr-1" /> Kaydet
             </Button>
           </div>
@@ -474,10 +474,10 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                       <Label className="text-[0.6rem] font-bold text-slate-500 uppercase">Tür</Label>
                       <Select value={formType} onValueChange={(v) => { setFormType(v as any); setFormUnit("cc"); }}>
                         <SelectTrigger className="h-8 text-xs bg-slate-50 text-slate-800"><SelectValue /></SelectTrigger>
-                        <SelectContent className="bg-white border-slate-200">
-                          <SelectItem value="botoks" className="text-slate-800">💉 Botoks</SelectItem>
-                          <SelectItem value="dolgu" className="text-slate-800">✨ Dolgu</SelectItem>
-                          <SelectItem value="mezoterapi" className="text-slate-800">💧 Mezoterapi</SelectItem>
+                        <SelectContent className="bg-white border-slate-200 z-[99999]">
+                          <SelectItem value="botoks" className="text-slate-800 cursor-pointer">💉 Botoks</SelectItem>
+                          <SelectItem value="dolgu" className="text-slate-800 cursor-pointer">✨ Dolgu</SelectItem>
+                          <SelectItem value="mezoterapi" className="text-slate-800 cursor-pointer">💧 Mezoterapi</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
