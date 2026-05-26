@@ -188,7 +188,7 @@ export default function AdminUsersPage() {
               <TableHeader className="bg-gradient-to-r from-slate-600 to-slate-700">
                 <TableRow>
                   <TableHead className="font-semibold text-white text-center">Klinik Adı / Ünvan</TableHead>
-                  <TableHead className="font-semibold text-white text-center">E-posta</TableHead>
+                  <TableHead className="hidden lg:table-cell font-semibold text-white text-center">E-posta</TableHead>
                   <TableHead className="font-semibold text-white text-center">Hizmet Paketi</TableHead>
                   <TableHead className="font-semibold text-white text-center">Ödeme / Deneme</TableHead>
                   <TableHead className="font-semibold text-white text-center">Rol</TableHead>
@@ -206,10 +206,16 @@ export default function AdminUsersPage() {
                 ) : (
                   users.map((u) => (
                     <TableRow key={u.id} className="hover:bg-slate-50/50 transition-colors">
-                      <TableCell className="font-medium text-slate-900 max-w-[130px] truncate" title={u.clinic_name}>
-                        {u.clinic_name}
-                      </TableCell>
                       <TableCell>
+                        <div className="font-medium text-slate-900 max-w-[130px] truncate" title={u.clinic_name}>
+                          {u.clinic_name}
+                        </div>
+                        <div className="lg:hidden flex items-center gap-1 mt-1 text-xs text-slate-500 max-w-[130px] truncate" title={u.email}>
+                          <Mail className="w-3 h-3 text-slate-400 shrink-0" />
+                          <span className="truncate">{u.email || "—"}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell">
                         <div className="flex items-center gap-1.5 text-sm text-slate-600 max-w-[150px] truncate" title={u.email}>
                           <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                           <span className="truncate">{u.email || "—"}</span>
