@@ -37,32 +37,45 @@ export default function LandingPage() {
     <div className="min-h-screen bg-white text-slate-900 selection:bg-emerald-100 selection:text-emerald-900">
       {/* Navbar */}
       <nav className="fixed top-4 md:top-6 w-full z-[1000] px-4 md:px-6">
-        <div className="max-w-7xl mx-auto h-20 md:h-24 bg-white/90 backdrop-blur-xl border border-[#0a3d34]/15 rounded-[24px] md:rounded-[32px] px-6 md:px-4 lg:px-10 flex items-center justify-between md:justify-center md:gap-5 lg:justify-between lg:gap-0 shadow-2xl shadow-[#0a3d34]/5 transition-all duration-300">
-          <div className="flex items-center gap-2 lg:gap-3 shrink-0">
-            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-[#0a3d34] rounded-xl lg:rounded-2xl flex items-center justify-center shadow-xl shadow-[#0a3d34]/20">
-              <CalendarDays className="text-white w-6 h-6 lg:w-7 lg:h-7" />
+        <div className="max-w-7xl mx-auto h-20 md:h-24 bg-white/90 backdrop-blur-xl border border-[#0a3d34]/15 rounded-[24px] md:rounded-[32px] px-6 md:px-10 flex items-center justify-between shadow-2xl shadow-[#0a3d34]/5 transition-all duration-300">
+          
+          {/* Original Logo (Hidden on tablet, visible on mobile and desktop) */}
+          <div className="flex md:hidden lg:flex items-center gap-3 shrink-0">
+            <div className="w-10 h-10 md:w-12 md:h-12 bg-[#0a3d34] rounded-xl md:rounded-2xl flex items-center justify-center shadow-xl shadow-[#0a3d34]/20">
+              <CalendarDays className="text-white w-6 h-6 md:w-7 md:h-7" />
             </div>
-            <span className="font-black text-xl lg:text-2xl tracking-tighter text-[#0a3d34]">BiCalendar</span>
+            <span className="font-black text-xl md:text-2xl tracking-tighter text-[#0a3d34]">BiCalendar</span>
           </div>
           
-          <div className="flex items-center md:contents lg:flex lg:flex-1 lg:justify-end lg:gap-12">
-            {/* Desktop Menu */}
-            <a href="#ozellikler" className="hidden md:block text-[15px] lg:text-lg font-bold text-slate-600 hover:text-[#0a3d34] transition-colors relative group whitespace-nowrap">
-              Özellikler
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#0a3d34] transition-all group-hover:w-full" />
-            </a>
-            <a href="#fiyatlandirma" className="hidden md:block text-[15px] lg:text-lg font-bold text-slate-600 hover:text-[#0a3d34] transition-colors relative group whitespace-nowrap">
-              Paketler
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#0a3d34] transition-all group-hover:w-full" />
-            </a>
-            <Link href="/login" className="hidden md:block text-[15px] lg:text-lg font-black text-[#0a3d34] hover:text-[#072b25] transition-colors whitespace-nowrap">
-              Giriş Yap
-            </Link>
-            <Link href="/register" className="hidden md:block shrink-0">
-              <Button className="bg-[#0a3d34] hover:bg-[#072b25] text-white px-5 py-4 lg:px-8 lg:py-6 rounded-full font-black text-[15px] lg:text-lg shadow-2xl shadow-[#0a3d34]/25 hover:-translate-y-1 transition-all active:scale-95 whitespace-nowrap">
-                Hemen Başla
-              </Button>
-            </Link>
+          <div className="flex-1 flex justify-end md:justify-center lg:justify-end">
+            {/* Desktop & Tablet Menu */}
+            <div className="hidden md:flex items-center md:justify-evenly md:w-full lg:w-auto lg:justify-end md:gap-2 lg:gap-12 text-base lg:text-lg font-bold text-slate-600">
+              
+              {/* Tablet Logo (Visible ONLY on tablet to allow equal spacing) */}
+              <div className="hidden md:flex lg:hidden items-center gap-2 shrink-0">
+                <div className="w-10 h-10 bg-[#0a3d34] rounded-xl flex items-center justify-center shadow-xl shadow-[#0a3d34]/20">
+                  <CalendarDays className="text-white w-6 h-6" />
+                </div>
+                <span className="font-black text-xl tracking-tighter text-[#0a3d34]">BiCalendar</span>
+              </div>
+
+              <a href="#ozellikler" className="hover:text-[#0a3d34] transition-colors relative group whitespace-nowrap">
+                Özellikler
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#0a3d34] transition-all group-hover:w-full" />
+              </a>
+              <a href="#fiyatlandirma" className="hover:text-[#0a3d34] transition-colors relative group whitespace-nowrap">
+                Paketler
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#0a3d34] transition-all group-hover:w-full" />
+              </a>
+              <Link href="/login" className="text-base lg:text-lg font-black text-[#0a3d34] hover:text-[#072b25] transition-colors lg:px-2 whitespace-nowrap">
+                Giriş Yap
+              </Link>
+              <Link href="/register">
+                <Button className="bg-[#0a3d34] hover:bg-[#072b25] text-white px-5 py-4 lg:px-8 lg:py-6 rounded-full font-black text-base lg:text-lg shadow-2xl shadow-[#0a3d34]/25 hover:-translate-y-1 transition-all active:scale-95 whitespace-nowrap">
+                  Hemen Başla
+                </Button>
+              </Link>
+            </div>
 
             {/* Mobile Menu Toggle */}
             <button 
