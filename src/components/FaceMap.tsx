@@ -319,7 +319,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
   return (
     <div className={`space-y-4 ${
       isFullscreen 
-        ? `fixed inset-y-0 right-0 left-0 lg:left-[280px] z-[9999] bg-white flex flex-col overflow-hidden ${isAnimatingOut ? 'animate-out fade-out zoom-out-95 duration-200 fill-mode-forwards opacity-0' : 'animate-in fade-in zoom-in-95 duration-200'}` 
+        ? `fixed inset-y-0 right-0 left-0 xl:left-[280px] z-[9999] bg-white flex flex-col overflow-hidden ${isAnimatingOut ? 'animate-out fade-out zoom-out-95 duration-200 fill-mode-forwards opacity-0' : 'animate-in fade-in zoom-in-95 duration-200'}` 
         : ""
     }`}>
       

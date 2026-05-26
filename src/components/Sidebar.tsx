@@ -64,13 +64,13 @@ export function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean; setIsOpen?: (
       {/* Sidebar Overlay for Mobile */}
       {isOpen && (
         <div 
-          className="lg:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[1999] animate-in fade-in duration-300"
+          className="xl:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[1999] animate-in fade-in duration-300"
           onClick={() => setIsOpen?.(false)}
         />
       )}
 
-      <nav className={`fixed top-0 left-0 h-screen w-[280px] bg-[#1e293b] text-[#f8fafc] p-6 flex flex-col z-[2000] shadow-[4px_0_20px_rgba(0,0,0,0.15)] transition-transform duration-300 lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex items-center justify-between lg:block pb-10">
+      <nav className={`fixed top-0 left-0 h-screen w-[280px] bg-[#1e293b] text-[#f8fafc] p-6 flex flex-col z-[2000] shadow-[4px_0_20px_rgba(0,0,0,0.15)] transition-transform duration-300 xl:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="flex items-center justify-between xl:block pb-10">
           <div>
             <div className="text-[0.65rem] tracking-[0.12rem] text-[#94a3b8] font-bold mb-1 uppercase">
               Klinik Yönetimi
@@ -82,7 +82,7 @@ export function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean; setIsOpen?: (
           <Button 
             variant="ghost" 
             size="icon" 
-            className="lg:hidden text-[#94a3b8] hover:text-white"
+            className="xl:hidden text-[#94a3b8] hover:text-white"
             onClick={() => setIsOpen?.(false)}
           >
             <X className="w-6 h-6" />

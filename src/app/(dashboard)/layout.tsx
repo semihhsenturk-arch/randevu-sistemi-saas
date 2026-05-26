@@ -15,7 +15,7 @@ export default function DashboardLayout({
   return (
     <div className="flex min-h-screen w-full bg-slate-50 overflow-x-hidden">
       {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-[#1e293b] border-b border-white/5 flex items-center justify-between px-5 z-[1000] shadow-lg">
+      <div className="xl:hidden fixed top-0 left-0 right-0 h-16 bg-[#1e293b] border-b border-white/5 flex items-center justify-between px-5 z-[1000] shadow-lg">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-[#0a3d34] rounded-lg flex items-center justify-center">
             <span className="text-white font-black text-sm">B</span>
@@ -34,7 +34,7 @@ export default function DashboardLayout({
 
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
       
-      <main className="flex-1 lg:ml-[280px] p-4 md:p-6 lg:p-8 pt-24 lg:pt-8 w-full max-w-[1600px] mx-auto min-h-screen transition-all">
+      <main className="flex-1 xl:ml-[280px] p-4 md:p-6 lg:p-8 pt-20 xl:pt-8 w-full max-w-[1600px] mx-auto min-h-screen transition-all">
         {children}
       </main>
     </div>

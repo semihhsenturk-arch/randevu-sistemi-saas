@@ -457,7 +457,7 @@ export default function PatientListPage() {
 
       <div className="hidden md:block bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden relative">
         <div className="overflow-x-auto w-full">
-        <Table className="min-w-[800px] w-full">
+        <Table className="min-w-[600px] w-full">
           <TableHeader className="bg-gradient-to-r from-slate-700 to-slate-800 hover:bg-transparent">
             <TableRow className="hover:bg-transparent border-none">
               <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">Hasta Adı Soyadı</TableHead>
@@ -518,7 +518,7 @@ export default function PatientListPage() {
 
       {/* Patient Detail Modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className={`${activeTab === 'facemap' ? 'sm:max-w-[1050px] lg:ml-[140px]' : 'sm:max-w-[850px]'} p-0 overflow-hidden bg-white border-slate-200 flex flex-col md:flex-row shadow-2xl transition-all`}>
+        <DialogContent className={`${activeTab === 'facemap' ? 'sm:max-w-[1050px] xl:ml-[140px]' : 'sm:max-w-[850px]'} max-w-[95vw] p-0 overflow-hidden bg-white border-slate-200 flex flex-col md:flex-row shadow-2xl transition-all`}>
           
           {/* Left Sidebar */}
           <div className="w-full md:w-[280px] bg-slate-50/50 border-r border-slate-200/60 p-6 flex flex-col items-center md:items-start shrink-0">

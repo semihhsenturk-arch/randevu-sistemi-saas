@@ -582,7 +582,7 @@ export default function CalendarPage() {
         clinicName={profile?.clinic_name}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6 pb-20">
+      <div className="grid grid-cols-1 xl:grid-cols-[1fr_280px] gap-6 pb-20">
         {/* Sol Kolon: Takvim Alanı */}
         <div className="flex-1 w-full bg-transparent min-w-0">
           <DndContext sensors={sensors} collisionDetection={pointerWithin} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd} onDragCancel={handleDragCancel} measuring={measuringConfig}>

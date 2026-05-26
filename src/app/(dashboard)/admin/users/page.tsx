@@ -183,7 +183,7 @@ export default function AdminUsersPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0 relative min-h-[200px] overflow-x-auto">
-          <div className="min-w-[1000px] w-full">
+          <div className="min-w-[700px] w-full">
           <Table>
               <TableHeader className="bg-gradient-to-r from-slate-600 to-slate-700">
                 <TableRow>
