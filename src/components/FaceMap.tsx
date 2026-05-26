@@ -319,7 +319,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
   return (
     <div className={`space-y-4 ${
       isFullscreen 
-        ? `fixed inset-0 z-[9999] bg-slate-900/95 backdrop-blur-md flex flex-col overflow-hidden ${isAnimatingOut ? 'animate-out fade-out zoom-out-95 duration-200 fill-mode-forwards opacity-0' : 'animate-in fade-in zoom-in-95 duration-200'}` 
+        ? `fixed inset-0 z-[9999] bg-white flex flex-col overflow-hidden ${isAnimatingOut ? 'animate-out fade-out zoom-out-95 duration-200 fill-mode-forwards opacity-0' : 'animate-in fade-in zoom-in-95 duration-200'}` 
         : ""
     }`}>
       
@@ -327,25 +327,25 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
       {isFullscreen && (
         <div className="absolute top-8 left-6 right-6 z-[100] flex justify-between items-center pointer-events-none">
           {/* Legend */}
-          <div className="flex items-center gap-4 bg-slate-800/80 backdrop-blur-md px-4 py-2 rounded-full border border-slate-700 shadow-xl pointer-events-auto">
+          <div className="flex items-center gap-4 bg-white/90 backdrop-blur-md px-4 py-2 rounded-full border border-slate-200 shadow-xl pointer-events-auto">
             <div className="flex items-center gap-1.5">
               <div className="w-3 h-3 rounded-full" style={{ background: "rgba(59,130,246,0.85)" }} />
-              <span className="text-[0.6rem] font-bold text-slate-200">Botoks</span>
+              <span className="text-[0.6rem] font-bold text-slate-700">Botoks</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-3 h-3 rounded-full" style={{ background: "rgba(236,72,153,0.85)" }} />
-              <span className="text-[0.6rem] font-bold text-slate-200">Dolgu</span>
+              <span className="text-[0.6rem] font-bold text-slate-700">Dolgu</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-3 h-3 rounded-full" style={{ background: "rgba(16,185,129,0.85)" }} />
-              <span className="text-[0.6rem] font-bold text-slate-200">Mezoterapi</span>
+              <span className="text-[0.6rem] font-bold text-slate-700">Mezoterapi</span>
             </div>
           </div>
           
           {/* Exit Button */}
           <button
             onClick={handleExitFullscreen}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all shadow-xl bg-slate-800/80 hover:bg-slate-700 border-slate-700 text-slate-200 pointer-events-auto backdrop-blur-md"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all shadow-xl bg-white hover:bg-slate-50 border-slate-200 text-slate-800 pointer-events-auto backdrop-blur-md"
           >
             <Minimize2 className="w-3.5 h-3.5" /> Tam Ekrandan Çık
           </button>
