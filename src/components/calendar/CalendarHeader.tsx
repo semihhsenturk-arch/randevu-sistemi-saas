@@ -98,7 +98,9 @@ export function CalendarHeader({
               </div>
               <div>
                 <div className="text-[0.65rem] lg:text-[0.55rem] xl:text-[0.72rem] font-bold text-slate-500 uppercase tracking-wider leading-none mb-0.5 xl:mb-1.5">Gelir</div>
-                <div className="text-base lg:text-xs xl:text-lg font-black text-[#1e293b]">{stats.income} TL</div>
+                <div className="text-base lg:text-xs xl:text-lg font-black text-[#1e293b]">
+                  {stats.income.toLocaleString('tr-TR')} <span className="text-[0.75rem] lg:text-[0.55rem] xl:text-sm font-bold text-slate-400">TL</span>
+                </div>
               </div>
             </div>
           </div>
