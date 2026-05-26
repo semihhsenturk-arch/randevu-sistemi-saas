@@ -43,62 +43,62 @@ export function CalendarHeader({
 }: CalendarHeaderProps) {
   return (
     <div className="flex flex-col gap-3 pb-3 sticky top-16 md:top-20 xl:top-3 z-[40] bg-slate-50">
-      <header className="flex flex-col md:flex-row justify-between items-center bg-white/88 backdrop-blur-[20px] p-4 md:p-[10px_16px] lg:p-[14px_24px] rounded-[20px] border border-slate-200/60 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.07)] gap-3 md:gap-2">
+      <header className="flex flex-col md:flex-row justify-between items-center bg-white/88 backdrop-blur-[20px] p-4 md:p-[10px_16px] lg:p-[10px_16px] xl:p-[14px_24px] rounded-[20px] border border-slate-200/60 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.07)] gap-3 md:gap-2">
         {/* Left: Clinic Name & Date */}
         <div className="flex flex-col gap-[2px] text-center md:text-left w-full md:w-auto shrink-0">
           <div className="text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[#0a3d34] opacity-80 mb-[1px]">
             {(clinicName || "Klinik").toUpperCase()}
           </div>
-          <h1 className="text-[1.1rem] lg:text-[1.25rem] font-extrabold text-[#1e293b]">Randevu Sistemi</h1>
-          <div className="text-[0.72rem] lg:text-[0.78rem] font-medium text-[#64748b]">
+          <h1 className="text-[1.1rem] xl:text-[1.25rem] font-extrabold text-[#1e293b]">Randevu Sistemi</h1>
+          <div className="text-[0.72rem] xl:text-[0.78rem] font-medium text-[#64748b]">
             {format(new Date(), "d MMMM yyyy, eeee", { locale: tr })}
           </div>
         </div>
 
-        {/* Center: Stats Cards */}
-        <div className="hidden md:flex items-center gap-1 lg:gap-3">
-          <div className="flex gap-1 lg:gap-4">
+        {/* Center: Stats Cards — only visible in landscape tablet (lg+) */}
+        <div className="hidden lg:flex items-center gap-1.5 xl:gap-3">
+          <div className="flex gap-1.5 xl:gap-4">
             {/* Bugün */}
-            <div className="flex items-center gap-1.5 lg:gap-3.5 px-1.5 lg:px-4 py-1 lg:py-2 rounded-lg lg:rounded-2xl border border-slate-100 hover:border-[#0a3d3420] hover:bg-[#0a3d3405] transition-all group shadow-sm bg-slate-50/20">
-              <div className="w-6 h-6 lg:w-10 lg:h-10 flex items-center justify-center rounded-md lg:rounded-xl bg-blue-50 text-blue-600 shadow-sm">
-                <CalendarCheck className="w-3 h-3 lg:w-5 lg:h-5" />
+            <div className="flex items-center gap-1.5 xl:gap-3.5 px-2 xl:px-4 py-1 xl:py-2 rounded-lg xl:rounded-2xl border border-slate-100 hover:border-[#0a3d3420] hover:bg-[#0a3d3405] transition-all group shadow-sm bg-slate-50/20">
+              <div className="w-7 h-7 xl:w-10 xl:h-10 flex items-center justify-center rounded-md xl:rounded-xl bg-blue-50 text-blue-600 shadow-sm">
+                <CalendarCheck className="w-3.5 h-3.5 xl:w-5 xl:h-5" />
               </div>
               <div>
-                <div className="text-[0.55rem] lg:text-[0.72rem] font-bold text-slate-500 uppercase tracking-wider leading-none mb-0.5 lg:mb-1">Bugün</div>
-                <div className="text-xs lg:text-lg font-black text-[#1e293b]">{stats.todayCount}</div>
+                <div className="text-[0.55rem] xl:text-[0.72rem] font-bold text-slate-500 uppercase tracking-wider leading-none mb-0.5 xl:mb-1">Bugün</div>
+                <div className="text-xs xl:text-lg font-black text-[#1e293b]">{stats.todayCount}</div>
               </div>
             </div>
             
             {/* Hafta */}
-            <div className="flex items-center gap-1.5 lg:gap-3.5 px-1.5 lg:px-4 py-1 lg:py-2 rounded-lg lg:rounded-2xl border border-slate-100 hover:border-[#0a3d3420] hover:bg-[#0a3d3405] transition-all group shadow-sm bg-slate-50/20">
-              <div className="w-6 h-6 lg:w-10 lg:h-10 flex items-center justify-center rounded-md lg:rounded-xl bg-emerald-50 text-emerald-600 shadow-sm">
-                <CalendarRange className="w-3 h-3 lg:w-5 lg:h-5" />
+            <div className="flex items-center gap-1.5 xl:gap-3.5 px-2 xl:px-4 py-1 xl:py-2 rounded-lg xl:rounded-2xl border border-slate-100 hover:border-[#0a3d3420] hover:bg-[#0a3d3405] transition-all group shadow-sm bg-slate-50/20">
+              <div className="w-7 h-7 xl:w-10 xl:h-10 flex items-center justify-center rounded-md xl:rounded-xl bg-emerald-50 text-emerald-600 shadow-sm">
+                <CalendarRange className="w-3.5 h-3.5 xl:w-5 xl:h-5" />
               </div>
               <div>
-                <div className="text-[0.55rem] lg:text-[0.72rem] font-bold text-slate-500 uppercase tracking-wider leading-none mb-0.5 lg:mb-1">Hafta</div>
-                <div className="text-xs lg:text-lg font-black text-[#1e293b]">{stats.weekCount}</div>
+                <div className="text-[0.55rem] xl:text-[0.72rem] font-bold text-slate-500 uppercase tracking-wider leading-none mb-0.5 xl:mb-1">Hafta</div>
+                <div className="text-xs xl:text-lg font-black text-[#1e293b]">{stats.weekCount}</div>
               </div>
             </div>
 
             {/* Doluluk */}
-            <div className="flex items-center gap-1.5 lg:gap-3.5 px-1.5 lg:px-4 py-1 lg:py-2 rounded-lg lg:rounded-2xl border border-slate-100 hover:border-[#0a3d3420] hover:bg-[#0a3d3405] transition-all group shadow-sm bg-slate-50/20">
-              <div className="w-6 h-6 lg:w-10 lg:h-10 flex items-center justify-center rounded-md lg:rounded-xl bg-amber-50 text-amber-600 shadow-sm">
-                <Percent className="w-3 h-3 lg:w-5 lg:h-5" />
+            <div className="flex items-center gap-1.5 xl:gap-3.5 px-2 xl:px-4 py-1 xl:py-2 rounded-lg xl:rounded-2xl border border-slate-100 hover:border-[#0a3d3420] hover:bg-[#0a3d3405] transition-all group shadow-sm bg-slate-50/20">
+              <div className="w-7 h-7 xl:w-10 xl:h-10 flex items-center justify-center rounded-md xl:rounded-xl bg-amber-50 text-amber-600 shadow-sm">
+                <Percent className="w-3.5 h-3.5 xl:w-5 xl:h-5" />
               </div>
               <div>
-                <div className="text-[0.55rem] lg:text-[0.72rem] font-bold text-slate-500 uppercase tracking-wider leading-none mb-0.5 lg:mb-1">Doluluk</div>
-                <div className="text-xs lg:text-lg font-black text-[#1e293b]">{stats.occupancy}%</div>
+                <div className="text-[0.55rem] xl:text-[0.72rem] font-bold text-slate-500 uppercase tracking-wider leading-none mb-0.5 xl:mb-1">Doluluk</div>
+                <div className="text-xs xl:text-lg font-black text-[#1e293b]">{stats.occupancy}%</div>
               </div>
             </div>
 
             {/* Gelir */}
-            <div className="flex items-center gap-1.5 lg:gap-3.5 px-1.5 lg:px-4 py-1 lg:py-2 rounded-lg lg:rounded-2xl border border-slate-100 hover:border-[#0a3d3420] hover:bg-[#0a3d3405] transition-all group shadow-sm bg-slate-50/20">
-              <div className="w-6 h-6 lg:w-10 lg:h-10 flex items-center justify-center rounded-md lg:rounded-xl bg-[#0a3d3408] text-[#0a3d34] shadow-sm">
-                <Banknote className="w-3 h-3 lg:w-5 lg:h-5" />
+            <div className="flex items-center gap-1.5 xl:gap-3.5 px-2 xl:px-4 py-1 xl:py-2 rounded-lg xl:rounded-2xl border border-slate-100 hover:border-[#0a3d3420] hover:bg-[#0a3d3405] transition-all group shadow-sm bg-slate-50/20">
+              <div className="w-7 h-7 xl:w-10 xl:h-10 flex items-center justify-center rounded-md xl:rounded-xl bg-[#0a3d3408] text-[#0a3d34] shadow-sm">
+                <Banknote className="w-3.5 h-3.5 xl:w-5 xl:h-5" />
               </div>
               <div>
-                <div className="text-[0.55rem] lg:text-[0.72rem] font-bold text-slate-500 uppercase tracking-wider leading-none mb-0.5 lg:mb-1">Gelir</div>
-                <div className="text-xs lg:text-lg font-black text-[#1e293b]">{stats.income} TL</div>
+                <div className="text-[0.55rem] xl:text-[0.72rem] font-bold text-slate-500 uppercase tracking-wider leading-none mb-0.5 xl:mb-1">Gelir</div>
+                <div className="text-xs xl:text-lg font-black text-[#1e293b]">{stats.income} TL</div>
               </div>
             </div>
           </div>
@@ -108,9 +108,9 @@ export function CalendarHeader({
         <div className="flex items-center w-full md:w-auto shrink-0">
           <Button 
             onClick={() => onNewAppointment(format(new Date(), "yyyy-MM-dd"), "09:00")}
-            className="w-full md:w-auto bg-[#0a3d34] hover:bg-[#072b25] text-white p-4 md:p-[10px_20px] lg:p-[14px_32px] rounded-xl font-bold text-[0.85rem] md:text-[0.8rem] lg:text-[1rem] uppercase tracking-[0.05em] shadow-[0_6px_20px_-4px_rgba(10,61,52,0.4)] transition-all hover:-translate-y-[2px] active:scale-95 h-auto"
+            className="w-full md:w-auto bg-[#0a3d34] hover:bg-[#072b25] text-white p-4 md:p-[10px_20px] xl:p-[14px_32px] rounded-xl font-bold text-[0.85rem] md:text-[0.8rem] xl:text-[1rem] uppercase tracking-[0.05em] shadow-[0_6px_20px_-4px_rgba(10,61,52,0.4)] transition-all hover:-translate-y-[2px] active:scale-95 h-auto"
           >
-            <Plus className="w-4 h-4 lg:w-5 lg:h-5 mr-1.5 lg:mr-2" />
+            <Plus className="w-4 h-4 xl:w-5 xl:h-5 mr-1.5 xl:mr-2" />
             RANDEVU
           </Button>
         </div>
