@@ -47,9 +47,9 @@ export default function LandingPage() {
             <span className="font-black text-xl md:text-2xl tracking-tighter text-[#0a3d34]">BiCalendar</span>
           </div>
           
-          <div className="flex-1 flex justify-end md:justify-center lg:justify-end">
+          <div className="flex-1 flex justify-end md:justify-center">
             {/* Desktop & Tablet Menu */}
-            <div className="hidden md:flex items-center md:justify-evenly md:w-full lg:w-auto lg:justify-end md:gap-2 lg:gap-12 text-base lg:text-lg font-bold text-slate-600">
+            <div className="hidden md:flex items-center md:justify-evenly md:w-full lg:w-auto lg:justify-center md:gap-2 lg:gap-12 text-base lg:text-lg font-bold text-slate-600">
               
               {/* Tablet Logo (Visible ONLY on tablet to allow equal spacing) */}
               <div className="hidden md:flex lg:hidden items-center gap-2 shrink-0">
