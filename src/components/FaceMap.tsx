@@ -479,18 +479,18 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
           </div>
 
           {/* Legend */}
-          <div className={`flex items-center justify-center gap-4 ${isFullscreen ? "absolute bottom-6 left-1/2 -translate-x-1/2 z-50 bg-white/90 backdrop-blur-md px-5 py-2.5 rounded-full border border-slate-200 shadow-xl" : "mt-2"}`}>
+          <div className={`flex items-center justify-center gap-4 ${isFullscreen ? "absolute bottom-12 left-1/2 -translate-x-1/2 z-50 bg-white/90 backdrop-blur-md px-5 py-2.5 rounded-full border border-slate-200 shadow-xl" : "mt-2"}`}>
             <div className="flex items-center gap-1.5">
               <div className="w-3 h-3 rounded-full" style={{ background: "rgba(59,130,246,0.85)" }} />
-              <span className={`text-[0.6rem] font-bold ${isFullscreen ? "text-slate-300" : "text-slate-500"}`}>Botoks</span>
+              <span className={`text-[0.6rem] font-bold ${isFullscreen ? "text-slate-700" : "text-slate-500"}`}>Botoks</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-3 h-3 rounded-full" style={{ background: "rgba(236,72,153,0.85)" }} />
-              <span className={`text-[0.6rem] font-bold ${isFullscreen ? "text-slate-300" : "text-slate-500"}`}>Dolgu</span>
+              <span className={`text-[0.6rem] font-bold ${isFullscreen ? "text-slate-700" : "text-slate-500"}`}>Dolgu</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-3 h-3 rounded-full" style={{ background: "rgba(16,185,129,0.85)" }} />
-              <span className={`text-[0.6rem] font-bold ${isFullscreen ? "text-slate-300" : "text-slate-500"}`}>Mezoterapi</span>
+              <span className={`text-[0.6rem] font-bold ${isFullscreen ? "text-slate-700" : "text-slate-500"}`}>Mezoterapi</span>
             </div>
           </div>
         </div>
