@@ -15,7 +15,7 @@ export default function DashboardLayout({
   return (
     <div className="flex min-h-screen w-full bg-slate-50 overflow-x-hidden">
       {/* Mobile Header */}
-      <div className="xl:hidden fixed top-0 left-0 right-0 h-16 bg-[#1e293b] border-b border-white/5 flex items-center px-5 z-[1000] shadow-lg gap-4">
+      <div className="xl:hidden fixed top-0 left-0 right-0 h-16 bg-[#1e293b] border-b border-white/5 flex items-center px-5 z-40 shadow-lg gap-4">
         <Button 
           variant="ghost" 
           size="icon" 
