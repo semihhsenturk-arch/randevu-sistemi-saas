@@ -49,7 +49,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
 
   const isFemale = gender === "female";
   const imgSrc = isFemale ? "/images/face-female.png" : "/images/face-male.png";
-  const fullscreenBgColor = isFemale ? "#d8c9c1" : "#e0d1c9";
+  const fullscreenBgColor = isFemale ? "#e9e9e9" : "#f5f5f5";
 
   // Group treatments by date
   const dateGroups = useMemo(() => {
