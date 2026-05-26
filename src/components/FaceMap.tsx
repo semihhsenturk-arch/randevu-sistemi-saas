@@ -49,6 +49,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
 
   const isFemale = gender === "female";
   const imgSrc = isFemale ? "/images/face-female.png" : "/images/face-male.png";
+  const fullscreenBgColor = isFemale ? "#d8c9c1" : "#e0d1c9";
 
   // Group treatments by date
   const dateGroups = useMemo(() => {
@@ -317,11 +318,14 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
   };
 
   return (
-    <div className={`space-y-4 ${
-      isFullscreen 
-        ? `fixed inset-0 z-[9999] bg-white flex flex-col overflow-hidden ${isAnimatingOut ? 'animate-out fade-out zoom-out-95 duration-200 fill-mode-forwards opacity-0' : 'animate-in fade-in zoom-in-95 duration-200'}` 
-        : ""
-    }`}>
+    <div 
+      className={`space-y-4 ${
+        isFullscreen 
+          ? `fixed inset-0 z-[9999] flex flex-col overflow-hidden ${isAnimatingOut ? 'animate-out fade-out zoom-out-95 duration-200 fill-mode-forwards opacity-0' : 'animate-in fade-in zoom-in-95 duration-200'}` 
+          : ""
+      }`}
+      style={isFullscreen ? { backgroundColor: fullscreenBgColor } : undefined}
+    >
       
       {/* Fullscreen Header Controls (Legend & Exit) */}
       {isFullscreen && (
