@@ -327,9 +327,9 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
       {isFullscreen && (
         <button
           onClick={handleExitFullscreen}
-          className="absolute top-6 right-6 z-[100] flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-extrabold border transition-all shadow-xl bg-white hover:bg-slate-50 border-slate-200 text-slate-800"
+          className="absolute top-10 right-6 z-[100] flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all shadow-xl bg-white hover:bg-slate-50 border-slate-200 text-slate-800"
         >
-          <Minimize2 className="w-4 h-4" /> Tam Ekrandan Çık
+          <Minimize2 className="w-3.5 h-3.5" /> Tam Ekrandan Çık
         </button>
       )}
 
@@ -479,7 +479,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
           </div>
 
           {/* Legend */}
-          <div className={`flex items-center justify-center gap-4 ${isFullscreen ? "absolute top-6 left-6 z-50 bg-white/90 backdrop-blur-md px-5 py-2.5 rounded-full border border-slate-200 shadow-xl" : "mt-2"}`}>
+          <div className={`flex items-center justify-center gap-4 ${isFullscreen ? "absolute top-10 left-6 z-50 bg-white/90 backdrop-blur-md px-4 py-2 rounded-full border border-slate-200 shadow-xl" : "mt-2"}`}>
             <div className="flex items-center gap-1.5">
               <div className="w-3 h-3 rounded-full" style={{ background: "rgba(59,130,246,0.85)" }} />
               <span className={`text-[0.6rem] font-bold ${isFullscreen ? "text-slate-700" : "text-slate-500"}`}>Botoks</span>
