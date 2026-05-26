@@ -206,63 +206,65 @@ export default function AdminUsersPage() {
                 ) : (
                   users.map((u) => (
                     <TableRow key={u.id} className="hover:bg-slate-50/50 transition-colors">
-                      <TableCell>
-                        <div className="font-medium text-slate-900 max-w-[130px] truncate" title={u.clinic_name}>
+                      <TableCell className="text-center">
+                        <div className="font-medium text-slate-900 max-w-[130px] mx-auto truncate" title={u.clinic_name}>
                           {u.clinic_name}
                         </div>
-                        <div className="lg:hidden flex items-center gap-1 mt-1 text-xs text-slate-500 max-w-[130px] truncate" title={u.email}>
+                        <div className="lg:hidden flex items-center justify-center gap-1 mt-1 text-xs text-slate-500 max-w-[130px] mx-auto truncate" title={u.email}>
                           <Mail className="w-3 h-3 text-slate-400 shrink-0" />
                           <span className="truncate">{u.email || "—"}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="hidden lg:table-cell">
-                        <div className="flex items-center gap-1.5 text-sm text-slate-600 max-w-[150px] truncate" title={u.email}>
+                      <TableCell className="hidden lg:table-cell text-center">
+                        <div className="flex items-center justify-center gap-1.5 text-sm text-slate-600 max-w-[150px] mx-auto truncate" title={u.email}>
                           <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                           <span className="truncate">{u.email || "—"}</span>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col xl:flex-row items-start xl:items-center gap-1.5">
+                      <TableCell className="text-center">
+                        <div className="flex flex-col xl:flex-row items-center justify-center gap-1.5">
                           <Select
                             value={u.plan || "starter"}
                             onValueChange={(value) => updateUserPlan(u.id, value)}
                             disabled={u.role === 'admin'}
                           >
-                            <SelectTrigger className="w-[125px] h-8 text-xs">
+                            <SelectTrigger className="w-[125px] h-8 text-xs flex justify-center text-center">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="starter">
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center justify-center gap-2 w-full">
                                   <Zap className="w-3 h-3 text-amber-500" />
                                   <span>Starter</span>
                                 </div>
                               </SelectItem>
                               <SelectItem value="professional">
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center justify-center gap-2 w-full">
                                   <ShieldCheck className="w-3 h-3 text-emerald-500" />
                                   <span>Professional</span>
                                 </div>
                               </SelectItem>
                               <SelectItem value="advanced">
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center justify-center gap-2 w-full">
                                   <Star className="w-3 h-3 text-purple-500" />
                                   <span>Advanced</span>
                                 </div>
                               </SelectItem>
                             </SelectContent>
                           </Select>
-                          {getBillingBadge(u.billing_cycle)}
+                          <div className="flex justify-center">
+                            {getBillingBadge(u.billing_cycle)}
+                          </div>
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-center">
                         {u.role === 'admin' ? (
-                          <span className="text-xs text-slate-400 italic">—</span>
+                          <span className="text-xs text-slate-400 italic block text-center">—</span>
                         ) : (
-                          <div className="flex flex-col gap-1">
+                          <div className="flex flex-col items-center justify-center gap-1">
                             {getPaymentBadge(u.payment_status)}
                             {u.approved_at && u.payment_status !== 'paid' && (
-                              <div className="text-[10px] font-medium text-slate-500">
+                              <div className="text-[10px] font-medium text-slate-500 text-center">
                                 {(() => {
                                   const diff = new Date().getTime() - new Date(u.approved_at!).getTime();
                                   const days = 7 - Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -275,26 +277,26 @@ export default function AdminUsersPage() {
                           </div>
                         )}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-center">
                         <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${u.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-700'}`}>
                           {u.role === 'admin' ? 'Yönetici' : 'Kiracı'}
                         </span>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-center">
                         {u.is_approved ? (
-                          <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
+                          <span className="inline-flex items-center justify-center gap-1.5 px-2 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
                             <CheckCircle className="w-3.5 h-3.5" />
                             Onaylı
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+                          <span className="inline-flex items-center justify-center gap-1.5 px-2 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
                             <XCircle className="w-3.5 h-3.5" />
                             Beklemede
                           </span>
                         )}
                       </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
+                      <TableCell className="text-center">
+                        <div className="flex justify-center gap-2">
                           <Button 
                             variant={u.is_approved ? "outline" : "default"} 
                             size="sm"
