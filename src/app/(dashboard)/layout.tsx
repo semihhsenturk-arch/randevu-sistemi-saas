@@ -34,7 +34,7 @@ export default function DashboardLayout({
 
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
       
-      <main className="flex-1 xl:ml-[280px] p-4 md:p-6 lg:p-8 pt-20 lg:pt-24 xl:pt-8 w-full max-w-[1600px] mx-auto min-h-screen transition-all">
+      <main className="flex-1 xl:ml-[280px] p-4 md:p-6 lg:p-8 pt-24 md:pt-24 lg:pt-24 xl:pt-8 w-full max-w-[1600px] mx-auto min-h-screen transition-all">
         {children}
       </main>
     </div>
