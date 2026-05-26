@@ -329,29 +329,29 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
       
       {/* Fullscreen Header Controls (Legend & Exit) */}
       {isFullscreen && (
-        <div className="absolute top-8 left-2 right-2 md:left-4 md:right-4 z-[100] flex justify-between items-center pointer-events-none">
+        <div className="absolute top-3 left-2 right-2 z-[100] flex justify-between items-start pointer-events-none">
           {/* Legend */}
-          <div className="flex items-center gap-4 bg-white/90 backdrop-blur-md px-4 py-2 rounded-full border border-slate-200 shadow-xl pointer-events-auto">
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full" style={{ background: "rgba(59,130,246,0.85)" }} />
-              <span className="text-xs font-bold text-slate-700">Botoks</span>
+          <div className="flex flex-col gap-1 bg-white/80 backdrop-blur-sm px-2.5 py-1.5 rounded-lg border border-slate-200/70 shadow-md pointer-events-auto">
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 rounded-full" style={{ background: "rgba(59,130,246,0.85)" }} />
+              <span className="text-[0.6rem] font-semibold text-slate-600">Botoks</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full" style={{ background: "rgba(236,72,153,0.85)" }} />
-              <span className="text-xs font-bold text-slate-700">Dolgu</span>
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 rounded-full" style={{ background: "rgba(236,72,153,0.85)" }} />
+              <span className="text-[0.6rem] font-semibold text-slate-600">Dolgu</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full" style={{ background: "rgba(16,185,129,0.85)" }} />
-              <span className="text-xs font-bold text-slate-700">Mezoterapi</span>
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 rounded-full" style={{ background: "rgba(16,185,129,0.85)" }} />
+              <span className="text-[0.6rem] font-semibold text-slate-600">Mezoterapi</span>
             </div>
           </div>
           
           {/* Exit Button */}
           <button
             onClick={handleExitFullscreen}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold border transition-all shadow-xl bg-white hover:bg-slate-50 border-slate-200 text-slate-800 pointer-events-auto backdrop-blur-md"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[0.6rem] font-semibold border transition-all shadow-md bg-white/80 hover:bg-white border-slate-200/70 text-slate-700 pointer-events-auto backdrop-blur-sm"
           >
-            <Minimize2 className="w-3.5 h-3.5" /> Kapat
+            <Minimize2 className="w-3 h-3" /> Kapat
           </button>
         </div>
       )}
