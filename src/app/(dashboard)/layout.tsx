@@ -15,21 +15,21 @@ export default function DashboardLayout({
   return (
     <div className="flex min-h-screen w-full bg-slate-50 overflow-x-hidden">
       {/* Mobile Header */}
-      <div className="xl:hidden fixed top-0 left-0 right-0 h-16 bg-[#1e293b] border-b border-white/5 flex items-center justify-between px-5 z-[1000] shadow-lg">
+      <div className="xl:hidden fixed top-0 left-0 right-0 h-16 bg-[#1e293b] border-b border-white/5 flex items-center px-5 z-[1000] shadow-lg gap-4">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="text-white hover:bg-white/10 shrink-0 -ml-2"
+          onClick={() => setIsSidebarOpen(true)}
+        >
+          <Menu className="w-6 h-6" />
+        </Button>
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-[#0a3d34] rounded-lg flex items-center justify-center">
             <span className="text-white font-black text-sm">B</span>
           </div>
           <span className="text-white font-bold text-sm tracking-tight uppercase">BiCalendar</span>
         </div>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="text-white hover:bg-white/10"
-          onClick={() => setIsSidebarOpen(true)}
-        >
-          <Menu className="w-6 h-6" />
-        </Button>
       </div>
 
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
