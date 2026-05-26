@@ -206,21 +206,23 @@ export default function AdminUsersPage() {
                 ) : (
                   users.map((u) => (
                     <TableRow key={u.id} className="hover:bg-slate-50/50 transition-colors">
-                      <TableCell className="font-medium text-slate-900">{u.clinic_name}</TableCell>
+                      <TableCell className="font-medium text-slate-900 max-w-[130px] truncate" title={u.clinic_name}>
+                        {u.clinic_name}
+                      </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-1.5 text-sm text-slate-600">
-                          <Mail className="w-3.5 h-3.5 text-slate-400" />
-                          {u.email || "—"}
+                        <div className="flex items-center gap-1.5 text-sm text-slate-600 max-w-[150px] truncate" title={u.email}>
+                          <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          <span className="truncate">{u.email || "—"}</span>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-col xl:flex-row items-start xl:items-center gap-1.5">
                           <Select
                             value={u.plan || "starter"}
                             onValueChange={(value) => updateUserPlan(u.id, value)}
                             disabled={u.role === 'admin'}
                           >
-                            <SelectTrigger className="w-[140px] h-8 text-xs">
+                            <SelectTrigger className="w-[125px] h-8 text-xs">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -269,7 +271,7 @@ export default function AdminUsersPage() {
                       </TableCell>
                       <TableCell>
                         <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${u.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-700'}`}>
-                          {u.role === 'admin' ? 'Yönetici' : 'Kiracı (Tenant)'}
+                          {u.role === 'admin' ? 'Yönetici' : 'Kiracı'}
                         </span>
                       </TableCell>
                       <TableCell>
