@@ -56,49 +56,49 @@ export function CalendarHeader({
         </div>
 
         {/* Center: Stats Cards */}
-        <div className="hidden md:flex items-center gap-2 lg:gap-3">
-          <div className="flex gap-2 lg:gap-4">
+        <div className="hidden md:flex items-center gap-1 lg:gap-3">
+          <div className="flex gap-1 lg:gap-4">
             {/* Bugün */}
-            <div className="flex items-center gap-2 lg:gap-3.5 px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-xl lg:rounded-2xl border border-slate-100 hover:border-[#0a3d3420] hover:bg-[#0a3d3405] transition-all group shadow-sm bg-slate-50/20">
-              <div className="w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center rounded-lg lg:rounded-xl bg-blue-50 text-blue-600 shadow-sm">
-                <CalendarCheck className="w-4 h-4 lg:w-5 lg:h-5" />
+            <div className="flex items-center gap-1.5 lg:gap-3.5 px-1.5 lg:px-4 py-1 lg:py-2 rounded-lg lg:rounded-2xl border border-slate-100 hover:border-[#0a3d3420] hover:bg-[#0a3d3405] transition-all group shadow-sm bg-slate-50/20">
+              <div className="w-6 h-6 lg:w-10 lg:h-10 flex items-center justify-center rounded-md lg:rounded-xl bg-blue-50 text-blue-600 shadow-sm">
+                <CalendarCheck className="w-3 h-3 lg:w-5 lg:h-5" />
               </div>
               <div>
-                <div className="text-[0.6rem] lg:text-[0.72rem] font-bold text-slate-500 uppercase tracking-wider leading-none mb-1">Bugün</div>
-                <div className="text-sm lg:text-lg font-black text-[#1e293b]">{stats.todayCount}</div>
+                <div className="text-[0.55rem] lg:text-[0.72rem] font-bold text-slate-500 uppercase tracking-wider leading-none mb-0.5 lg:mb-1">Bugün</div>
+                <div className="text-xs lg:text-lg font-black text-[#1e293b]">{stats.todayCount}</div>
               </div>
             </div>
             
             {/* Hafta */}
-            <div className="flex items-center gap-2 lg:gap-3.5 px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-xl lg:rounded-2xl border border-slate-100 hover:border-[#0a3d3420] hover:bg-[#0a3d3405] transition-all group shadow-sm bg-slate-50/20">
-              <div className="w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center rounded-lg lg:rounded-xl bg-emerald-50 text-emerald-600 shadow-sm">
-                <CalendarRange className="w-4 h-4 lg:w-5 lg:h-5" />
+            <div className="flex items-center gap-1.5 lg:gap-3.5 px-1.5 lg:px-4 py-1 lg:py-2 rounded-lg lg:rounded-2xl border border-slate-100 hover:border-[#0a3d3420] hover:bg-[#0a3d3405] transition-all group shadow-sm bg-slate-50/20">
+              <div className="w-6 h-6 lg:w-10 lg:h-10 flex items-center justify-center rounded-md lg:rounded-xl bg-emerald-50 text-emerald-600 shadow-sm">
+                <CalendarRange className="w-3 h-3 lg:w-5 lg:h-5" />
               </div>
               <div>
-                <div className="text-[0.6rem] lg:text-[0.72rem] font-bold text-slate-500 uppercase tracking-wider leading-none mb-1">Hafta</div>
-                <div className="text-sm lg:text-lg font-black text-[#1e293b]">{stats.weekCount}</div>
+                <div className="text-[0.55rem] lg:text-[0.72rem] font-bold text-slate-500 uppercase tracking-wider leading-none mb-0.5 lg:mb-1">Hafta</div>
+                <div className="text-xs lg:text-lg font-black text-[#1e293b]">{stats.weekCount}</div>
               </div>
             </div>
 
             {/* Doluluk */}
-            <div className="flex items-center gap-2 lg:gap-3.5 px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-xl lg:rounded-2xl border border-slate-100 hover:border-[#0a3d3420] hover:bg-[#0a3d3405] transition-all group shadow-sm bg-slate-50/20">
-              <div className="w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center rounded-lg lg:rounded-xl bg-amber-50 text-amber-600 shadow-sm">
-                <Percent className="w-4 h-4 lg:w-5 lg:h-5" />
+            <div className="flex items-center gap-1.5 lg:gap-3.5 px-1.5 lg:px-4 py-1 lg:py-2 rounded-lg lg:rounded-2xl border border-slate-100 hover:border-[#0a3d3420] hover:bg-[#0a3d3405] transition-all group shadow-sm bg-slate-50/20">
+              <div className="w-6 h-6 lg:w-10 lg:h-10 flex items-center justify-center rounded-md lg:rounded-xl bg-amber-50 text-amber-600 shadow-sm">
+                <Percent className="w-3 h-3 lg:w-5 lg:h-5" />
               </div>
               <div>
-                <div className="text-[0.6rem] lg:text-[0.72rem] font-bold text-slate-500 uppercase tracking-wider leading-none mb-1">Doluluk</div>
-                <div className="text-sm lg:text-lg font-black text-[#1e293b]">{stats.occupancy}%</div>
+                <div className="text-[0.55rem] lg:text-[0.72rem] font-bold text-slate-500 uppercase tracking-wider leading-none mb-0.5 lg:mb-1">Doluluk</div>
+                <div className="text-xs lg:text-lg font-black text-[#1e293b]">{stats.occupancy}%</div>
               </div>
             </div>
 
             {/* Gelir */}
-            <div className="flex items-center gap-2 lg:gap-3.5 px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-xl lg:rounded-2xl border border-slate-100 hover:border-[#0a3d3420] hover:bg-[#0a3d3405] transition-all group shadow-sm bg-slate-50/20">
-              <div className="w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center rounded-lg lg:rounded-xl bg-[#0a3d3408] text-[#0a3d34] shadow-sm">
-                <Banknote className="w-4 h-4 lg:w-5 lg:h-5" />
+            <div className="flex items-center gap-1.5 lg:gap-3.5 px-1.5 lg:px-4 py-1 lg:py-2 rounded-lg lg:rounded-2xl border border-slate-100 hover:border-[#0a3d3420] hover:bg-[#0a3d3405] transition-all group shadow-sm bg-slate-50/20">
+              <div className="w-6 h-6 lg:w-10 lg:h-10 flex items-center justify-center rounded-md lg:rounded-xl bg-[#0a3d3408] text-[#0a3d34] shadow-sm">
+                <Banknote className="w-3 h-3 lg:w-5 lg:h-5" />
               </div>
               <div>
-                <div className="text-[0.6rem] lg:text-[0.72rem] font-bold text-slate-500 uppercase tracking-wider leading-none mb-1">Gelir</div>
-                <div className="text-sm lg:text-lg font-black text-[#1e293b]">{stats.income} TL</div>
+                <div className="text-[0.55rem] lg:text-[0.72rem] font-bold text-slate-500 uppercase tracking-wider leading-none mb-0.5 lg:mb-1">Gelir</div>
+                <div className="text-xs lg:text-lg font-black text-[#1e293b]">{stats.income} TL</div>
               </div>
             </div>
           </div>
