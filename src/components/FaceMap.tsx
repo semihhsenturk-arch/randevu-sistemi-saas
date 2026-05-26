@@ -319,18 +319,37 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
   return (
     <div className={`space-y-4 ${
       isFullscreen 
-        ? `fixed inset-y-0 right-0 left-0 xl:left-[280px] z-[9999] bg-white flex flex-col overflow-hidden ${isAnimatingOut ? 'animate-out fade-out zoom-out-95 duration-200 fill-mode-forwards opacity-0' : 'animate-in fade-in zoom-in-95 duration-200'}` 
+        ? `fixed inset-0 z-[9999] bg-slate-900/95 backdrop-blur-md flex flex-col overflow-hidden ${isAnimatingOut ? 'animate-out fade-out zoom-out-95 duration-200 fill-mode-forwards opacity-0' : 'animate-in fade-in zoom-in-95 duration-200'}` 
         : ""
     }`}>
       
-      {/* Fullscreen Exit Button */}
+      {/* Fullscreen Header Controls (Legend & Exit) */}
       {isFullscreen && (
-        <button
-          onClick={handleExitFullscreen}
-          className="absolute top-10 right-6 z-[100] flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all shadow-xl bg-white hover:bg-slate-50 border-slate-200 text-slate-800"
-        >
-          <Minimize2 className="w-3.5 h-3.5" /> Tam Ekrandan Çık
-        </button>
+        <div className="absolute top-8 left-6 right-6 z-[100] flex justify-between items-center pointer-events-none">
+          {/* Legend */}
+          <div className="flex items-center gap-4 bg-slate-800/80 backdrop-blur-md px-4 py-2 rounded-full border border-slate-700 shadow-xl pointer-events-auto">
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full" style={{ background: "rgba(59,130,246,0.85)" }} />
+              <span className="text-[0.6rem] font-bold text-slate-200">Botoks</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full" style={{ background: "rgba(236,72,153,0.85)" }} />
+              <span className="text-[0.6rem] font-bold text-slate-200">Dolgu</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full" style={{ background: "rgba(16,185,129,0.85)" }} />
+              <span className="text-[0.6rem] font-bold text-slate-200">Mezoterapi</span>
+            </div>
+          </div>
+          
+          {/* Exit Button */}
+          <button
+            onClick={handleExitFullscreen}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all shadow-xl bg-slate-800/80 hover:bg-slate-700 border-slate-700 text-slate-200 pointer-events-auto backdrop-blur-md"
+          >
+            <Minimize2 className="w-3.5 h-3.5" /> Tam Ekrandan Çık
+          </button>
+        </div>
       )}
 
       <div className={`flex flex-col lg:flex-row gap-6 min-h-0 flex-1 ${isFullscreen ? "relative items-center justify-center w-full" : ""}`}>
@@ -369,7 +388,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
             ref={containerRef}
             className={`select-none transition-all flex items-center justify-center touch-none ${
               isFullscreen 
-                ? "bg-white" 
+                ? "bg-transparent" 
                 : "border-2 rounded-2xl overflow-hidden shadow-inner bg-gradient-to-br from-slate-50 to-white border-slate-200/60"
             }`}
             style={
@@ -388,7 +407,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
           >
             <div
               ref={innerRef}
-              className={`relative aspect-square bg-white shrink-0 touch-none ${isFullscreen ? "" : "rounded-2xl shadow-lg overflow-hidden"}`}
+              className={`relative aspect-square shrink-0 touch-none ${isFullscreen ? "bg-transparent" : "bg-white rounded-2xl shadow-lg overflow-hidden"}`}
               style={{ 
                 width: "100%",
                 height: isFullscreen ? "auto" : "100%",
@@ -478,21 +497,23 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
             </div>
           </div>
 
-          {/* Legend */}
-          <div className={`flex items-center justify-center gap-4 ${isFullscreen ? "absolute top-10 left-6 z-50 bg-white/90 backdrop-blur-md px-4 py-2 rounded-full border border-slate-200 shadow-xl" : "mt-2"}`}>
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full" style={{ background: "rgba(59,130,246,0.85)" }} />
-              <span className={`text-[0.6rem] font-bold ${isFullscreen ? "text-slate-700" : "text-slate-500"}`}>Botoks</span>
+          {/* Legend is now moved to the top header in fullscreen mode */}
+          {!isFullscreen && (
+            <div className="flex items-center justify-center gap-4 mt-2">
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full" style={{ background: "rgba(59,130,246,0.85)" }} />
+                <span className="text-[0.6rem] font-bold text-slate-500">Botoks</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full" style={{ background: "rgba(236,72,153,0.85)" }} />
+                <span className="text-[0.6rem] font-bold text-slate-500">Dolgu</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full" style={{ background: "rgba(16,185,129,0.85)" }} />
+                <span className="text-[0.6rem] font-bold text-slate-500">Mezoterapi</span>
+              </div>
             </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full" style={{ background: "rgba(236,72,153,0.85)" }} />
-              <span className={`text-[0.6rem] font-bold ${isFullscreen ? "text-slate-700" : "text-slate-500"}`}>Dolgu</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full" style={{ background: "rgba(16,185,129,0.85)" }} />
-              <span className={`text-[0.6rem] font-bold ${isFullscreen ? "text-slate-700" : "text-slate-500"}`}>Mezoterapi</span>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Treatment Form Overlay (Fullscreen Mode) */}
