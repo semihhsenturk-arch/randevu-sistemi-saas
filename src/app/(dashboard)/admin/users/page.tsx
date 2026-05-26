@@ -190,7 +190,7 @@ export default function AdminUsersPage() {
                   <TableHead className="font-semibold text-white text-center">Klinik Adı / Ünvan</TableHead>
                   <TableHead className="hidden lg:table-cell font-semibold text-white text-center">E-posta</TableHead>
                   <TableHead className="font-semibold text-white text-center">Hizmet Paketi</TableHead>
-                  <TableHead className="font-semibold text-white text-center">Ödeme / Deneme</TableHead>
+                  <TableHead className="font-semibold text-white text-center">Ödeme</TableHead>
                   <TableHead className="font-semibold text-white text-center">Rol</TableHead>
                   <TableHead className="font-semibold text-white text-center">Durum</TableHead>
                   <TableHead className="text-center font-semibold text-white">İşlem</TableHead>
