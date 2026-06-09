@@ -24,6 +24,15 @@ export type FaceTreatment = {
   note?: string;
 };
 
+export type BeforeAfterPhoto = {
+  id: string;
+  date: string;
+  label: string;
+  before_image: string;
+  after_image?: string;
+  note?: string;
+};
+
 export type PatientProfile = {
   id?: string;
   patient_name: string;
@@ -36,6 +45,7 @@ export type PatientProfile = {
   stock_history: any[];
   face_treatments?: FaceTreatment[];
   face_gender?: 'female' | 'male';
+  before_after_photos?: BeforeAfterPhoto[];
 };
 
 export type InventoryItem = {
@@ -229,6 +239,7 @@ export function useDatabase() {
             stock_history: p.stock_history,
             face_treatments: p.face_treatments || [],
             face_gender: p.face_gender || 'female',
+            before_after_photos: p.before_after_photos || [],
           };
         });
         setCache(CACHE_KEYS.PROFILES, profiles);
@@ -264,6 +275,7 @@ export function useDatabase() {
       stock_history: profile.stock_history || [],
       face_treatments: profile.face_treatments || [],
       face_gender: profile.face_gender || 'female',
+      before_after_photos: profile.before_after_photos || [],
     };
 
     if (existing) payload.id = existing.id;

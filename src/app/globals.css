@@ -624,4 +624,287 @@
   .dialog-content-animate[data-state="closed"] {
     animation-name: dialogScaleOut;
   }
+
+  /* ─── Before/After Comparison Slider ─── */
+
+  .ba-slider-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    cursor: ew-resize;
+    user-select: none;
+    -webkit-user-select: none;
+    background: #0f172a;
+    border-radius: 16px;
+  }
+
+  .ba-slider-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+  }
+
+  .ba-slider-before {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+  }
+
+  .ba-slider-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: white;
+    z-index: 10;
+    transform: translateX(-50%);
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.3);
+    pointer-events: none;
+  }
+
+  .ba-slider-handle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+    border: 3px solid white;
+    box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    pointer-events: none;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .ba-slider-container:active .ba-slider-handle {
+    transform: translate(-50%, -50%) scale(1.12);
+    box-shadow: 0 6px 28px rgba(124, 58, 237, 0.55), 0 3px 12px rgba(0, 0, 0, 0.25);
+  }
+
+  .ba-label {
+    position: absolute;
+    bottom: 12px;
+    z-index: 15;
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    padding: 4px 12px;
+    border-radius: 8px;
+    pointer-events: none;
+  }
+
+  .ba-label-before {
+    left: 12px;
+    background: rgba(15, 23, 42, 0.7);
+    color: white;
+    backdrop-filter: blur(8px);
+  }
+
+  .ba-label-after {
+    right: 12px;
+    background: rgba(124, 58, 237, 0.8);
+    color: white;
+    backdrop-filter: blur(8px);
+  }
+
+  /* ─── Upload Zone ─── */
+
+  .ba-upload-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    aspect-ratio: 4 / 3;
+    border: 2px dashed #cbd5e1;
+    border-radius: 16px;
+    background: #f8fafc;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .ba-upload-zone:hover,
+  .ba-upload-zone-active {
+    border-color: #8b5cf6;
+    background: #f5f3ff;
+  }
+
+  .ba-upload-zone-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #7c3aed;
+  }
+
+  .ba-upload-zone-text {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #334155;
+  }
+
+  .ba-upload-zone-hint {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #94a3b8;
+  }
+
+  /* ─── Upload Preview ─── */
+
+  .ba-upload-preview {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 2px solid #e2e8f0;
+  }
+
+  .ba-upload-preview-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .ba-upload-preview-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.5) 0%, transparent 50%);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 10px;
+  }
+
+  .ba-upload-preview-label {
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    color: white;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 3px 10px;
+    border-radius: 6px;
+    backdrop-filter: blur(6px);
+  }
+
+  .ba-upload-clear-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(239, 68, 68, 0.9);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .ba-upload-clear-btn:hover {
+    transform: scale(1.1);
+  }
+
+  /* ─── Record Cards ─── */
+
+  .ba-record-card {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 12px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+  }
+
+  .ba-record-card:hover {
+    border-color: #c4b5fd;
+    box-shadow: 0 4px 16px -4px rgba(124, 58, 237, 0.12);
+    transform: translateY(-1px);
+  }
+
+  .ba-record-thumb {
+    width: 64px;
+    height: 48px;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    flex-shrink: 0;
+    border: 1px solid #f1f5f9;
+  }
+
+  .ba-record-thumb-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .ba-record-thumb-after {
+    position: absolute;
+    inset: 0;
+    clip-path: inset(0 0 0 50%);
+  }
+
+  .ba-record-thumb-pending {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 50%;
+    background: rgba(245, 158, 11, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-left: 1px dashed #f59e0b;
+  }
+
+  .ba-record-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .ba-record-delete {
+    opacity: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ef4444;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+
+  .ba-record-card:hover .ba-record-delete {
+    opacity: 1;
+  }
+
+  .ba-record-delete:hover {
+    background: #fecaca;
+    transform: scale(1.08);
+  }
 }

@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useDatabase, Appointment, PatientProfile, FaceTreatment, InventoryItem, Service, ConsentRecord, getCacheSync, CACHE_KEYS } from "@/hooks/use-database";
 import { FaceMap } from "@/components/FaceMap";
+import { BeforeAfterCompare } from "@/components/BeforeAfterCompare";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Contact, Search, Package, Users, Clock, CheckCircle2, History, Pill, FileText, Box, Trash2, Plus, X, Edit2, Notebook as Emerald, Loader2, Shield, MessageCircle, CalendarDays, Syringe } from "lucide-react";
+import { Contact, Search, Package, Users, Clock, CheckCircle2, History, Pill, FileText, Box, Trash2, Plus, X, Edit2, Notebook as Emerald, Loader2, Shield, MessageCircle, CalendarDays, Syringe, Camera } from "lucide-react";
 import { ConsentFormModal } from "@/components/ConsentFormModal";
 import { WhatsAppSimulator } from "@/components/WhatsAppSimulator";
 import { format, parseISO, isValid } from "date-fns";
@@ -41,7 +42,7 @@ export default function PatientListPage() {
 
   // Patient Modal
   const [modalOpen, setModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"info" | "timeline" | "meds" | "notes" | "stock" | "consent" | "facemap">("info");
+  const [activeTab, setActiveTab] = useState<"info" | "timeline" | "meds" | "notes" | "stock" | "consent" | "facemap" | "before-after">("info");
   const [selectedPatientName, setSelectedPatientName] = useState("");
   const [selectedPatientPhone, setSelectedPatientPhone] = useState("");
 
@@ -518,7 +519,7 @@ export default function PatientListPage() {
 
       {/* Patient Detail Modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className={`${activeTab === 'facemap' ? 'sm:max-w-[1050px] xl:ml-[140px]' : 'sm:max-w-[850px]'} max-w-[95vw] p-0 overflow-hidden bg-white border-slate-200 flex flex-col md:flex-row shadow-2xl transition-all`}>
+        <DialogContent className={`${activeTab === 'facemap' || activeTab === 'before-after' ? 'sm:max-w-[1050px] xl:ml-[140px]' : 'sm:max-w-[850px]'} max-w-[95vw] p-0 overflow-hidden bg-white border-slate-200 flex flex-col md:flex-row shadow-2xl transition-all`}>
           
           {/* Left Sidebar */}
           <div className="w-full md:w-[280px] bg-slate-50/50 border-r border-slate-200/60 p-6 flex flex-col items-center md:items-start shrink-0">
@@ -543,6 +544,7 @@ export default function PatientListPage() {
                   { id: 'consent', label: 'Onam Formları', icon: Shield, color: 'indigo' },
                   { id: 'timeline', label: 'Geçmiş İşlemler', icon: History, color: 'blue' },
                   { id: 'facemap', label: 'Yüz Haritası', icon: Syringe, color: 'rose' },
+                  { id: 'before-after', label: 'Önce / Sonra', icon: Camera, color: 'violet' },
                   { id: 'meds', label: 'İlaçlar / Reçete', icon: Pill, color: 'rose' },
                   { id: 'notes', label: 'Muayene / Notlar', icon: Emerald, color: 'emerald' },
                   { id: 'stock', label: 'Stok Geçmişi', icon: Box, color: 'amber' },
@@ -555,6 +557,7 @@ export default function PatientListPage() {
                     emerald: isActive ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'text-slate-500 hover:bg-emerald-50/50 hover:text-emerald-600',
                     amber: isActive ? 'bg-amber-50 text-amber-700 border-amber-200' : 'text-slate-500 hover:bg-amber-50/50 hover:text-amber-600',
                     indigo: isActive ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'text-slate-500 hover:bg-indigo-50/50 hover:text-indigo-600',
+                    violet: isActive ? 'bg-violet-50 text-violet-700 border-violet-200' : 'text-slate-500 hover:bg-violet-50/50 hover:text-violet-600',
                   };
                   const iconColors: Record<string, string> = {
                     blue: isActive ? 'text-blue-600' : 'text-blue-400 group-hover:text-blue-600',
@@ -562,6 +565,7 @@ export default function PatientListPage() {
                     emerald: isActive ? 'text-emerald-600' : 'text-emerald-400 group-hover:text-emerald-600',
                     amber: isActive ? 'text-amber-600' : 'text-amber-400 group-hover:text-amber-600',
                     indigo: isActive ? 'text-indigo-600' : 'text-indigo-400 group-hover:text-indigo-600',
+                    violet: isActive ? 'text-violet-600' : 'text-violet-400 group-hover:text-violet-600',
                   };
 
                   return (
@@ -593,6 +597,7 @@ export default function PatientListPage() {
                  {activeTab === 'consent' && 'Onam Formları'}
                  {activeTab === 'timeline' && 'Geçmiş İşlemler'}
                  {activeTab === 'facemap' && 'Yüz Haritası — Botoks & Dolgu & Mezoterapi'}
+                 {activeTab === 'before-after' && 'Önce / Sonra Karşılaştırma'}
                  {activeTab === 'meds' && 'İlaçlar ve Reçete'}
                  {activeTab === 'notes' && 'Muayene ve Notlar'}
                  {activeTab === 'stock' && 'Stok Geçmişi'}
@@ -760,6 +765,33 @@ export default function PatientListPage() {
                    }}
                  />
                )}
+
+               {activeTab === 'before-after' && (
+                  <BeforeAfterCompare
+                    photos={selProfile.before_after_photos || []}
+                    onAdd={async (photo) => {
+                      const current = profiles[selectedPatientName] || { notes_list: [], meds: [], stock_history: [] };
+                      const list = [...(current.before_after_photos || []), photo];
+                      const updated = { ...current, before_after_photos: list };
+                      setProfiles(prev => ({ ...prev, [selectedPatientName]: updated }));
+                      savePatientProfile(selectedPatientName, updated).catch(err => console.error('BA photo add err:', err));
+                    }}
+                    onUpdate={async (photo) => {
+                      const current = profiles[selectedPatientName] || { notes_list: [], meds: [], stock_history: [] };
+                      const list = (current.before_after_photos || []).map(p => p.id === photo.id ? photo : p);
+                      const updated = { ...current, before_after_photos: list };
+                      setProfiles(prev => ({ ...prev, [selectedPatientName]: updated }));
+                      savePatientProfile(selectedPatientName, updated).catch(err => console.error('BA photo update err:', err));
+                    }}
+                    onDelete={async (id) => {
+                      const current = profiles[selectedPatientName] || { notes_list: [], meds: [], stock_history: [] };
+                      const list = (current.before_after_photos || []).filter(p => p.id !== id);
+                      const updated = { ...current, before_after_photos: list };
+                      setProfiles(prev => ({ ...prev, [selectedPatientName]: updated }));
+                      savePatientProfile(selectedPatientName, updated).catch(err => console.error('BA photo delete err:', err));
+                    }}
+                  />
+                )}
 
                {activeTab === 'meds' && (
                  <div className="space-y-6">
