@@ -31,8 +31,7 @@ export default function LandingPage() {
 
   const handleDemoClick = () => {
     seedDemoData();
-    router.push("/takvim");
-    setTimeout(() => { router.refresh(); }, 150);
+    window.location.href = "/takvim";
   };
 
   useEffect(() => {
