@@ -343,13 +343,13 @@ export function BeforeAfterCompare({ photos, onAdd, onUpdate, onDelete }: Props)
   // ── NEW RECORD MODE ──
   if (mode === "new") {
     return (
-      <div className="space-y-5">
+      <div className="space-y-4">
         <button onClick={() => { resetForm(); setMode("list"); }} className="text-xs font-bold text-slate-500 hover:text-violet-600 flex items-center gap-1 transition-colors">
           <ChevronLeft className="w-4 h-4" /> Listeye Dön
         </button>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-5">
-          <div className="grid grid-cols-2 gap-4">
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div className="grid grid-cols-2 gap-3">
             <UploadZone label="Önce Fotoğrafı" image={beforeImg} onUpload={setBeforeImg} onClear={() => setBeforeImg("")} />
             <UploadZone label="Sonra Fotoğrafı" image={afterImg} onUpload={setAfterImg} onClear={() => setAfterImg("")} />
           </div>
@@ -360,25 +360,25 @@ export function BeforeAfterCompare({ photos, onAdd, onUpdate, onDelete }: Props)
               setSelectedId('__preview__');
             }}>
               <ComparisonSlider beforeSrc={beforeImg} afterSrc={afterImg} />
-              <div className="bg-violet-50 text-center py-2 text-[0.65rem] font-bold text-violet-600">Tam ekran görmek için tıklayın</div>
+              <div className="bg-violet-50 text-center py-1.5 text-[0.65rem] font-bold text-violet-600">Tam ekran görmek için tıklayın</div>
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="space-y-1">
               <Label className="text-[0.65rem] font-extrabold uppercase text-slate-500 ml-1 flex items-center gap-1"><Tag className="w-3 h-3" /> Etiket / İşlem Adı</Label>
-              <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Örn: Dudak Dolgusu" className="bg-slate-50 border-slate-200 focus-visible:ring-violet-500 h-10" />
+              <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Örn: Dudak Dolgusu" className="bg-slate-50 border-slate-200 focus-visible:ring-violet-500 h-9" />
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               <Label className="text-[0.65rem] font-extrabold uppercase text-slate-500 ml-1 flex items-center gap-1"><StickyNote className="w-3 h-3" /> Not (Opsiyonel)</Label>
-              <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Ek açıklama..." className="bg-slate-50 border-slate-200 focus-visible:ring-violet-500 h-10" />
+              <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Ek açıklama..." className="bg-slate-50 border-slate-200 focus-visible:ring-violet-500 h-9" />
             </div>
           </div>
         </div>
 
         <div className="flex gap-3">
-          <Button variant="outline" className="flex-1 h-11 font-bold rounded-xl" onClick={() => { resetForm(); setMode("list"); }}>İptal</Button>
-          <Button className="flex-1 h-11 font-bold bg-violet-600 hover:bg-violet-700 shadow-lg shadow-violet-600/20 rounded-xl" onClick={handleSaveNew}>
+          <Button variant="outline" className="flex-1 h-10 font-bold rounded-xl" onClick={() => { resetForm(); setMode("list"); }}>İptal</Button>
+          <Button className="flex-1 h-10 font-bold bg-violet-600 hover:bg-violet-700 shadow-lg shadow-violet-600/20 rounded-xl" onClick={handleSaveNew}>
             <Camera className="w-4 h-4 mr-2" /> Kaydı Oluştur
           </Button>
         </div>

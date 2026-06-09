@@ -590,7 +590,7 @@ export default function PatientListPage() {
           </div>
 
           {/* Right Content Area */}
-          <div className="flex-1 bg-white flex flex-col h-[550px] relative">
+          <div className="flex-1 bg-white flex flex-col h-[85vh] md:h-[650px] max-h-[90vh] relative">
              <div className="flex items-center justify-between px-8 py-6 border-b border-slate-100 shrink-0">
                <h3 className="text-lg font-extrabold text-[#1e293b]">
                  {activeTab === 'info' && 'Hasta Bilgileri'}
