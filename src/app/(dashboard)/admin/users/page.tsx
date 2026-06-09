@@ -39,6 +39,11 @@ export default function AdminUsersPage() {
       if (!profile || profile.role !== 'admin') {
         router.push('/dashboard');
       } else {
+        if (typeof window !== 'undefined' && localStorage.getItem('demo_mode') === 'true') {
+          setUsers([]);
+          return;
+        }
+
         // Load from cache first
         const cached = getCacheSync<UserProfile[]>(CACHE_KEYS.ADMIN_USERS);
         if (cached) setUsers(cached);

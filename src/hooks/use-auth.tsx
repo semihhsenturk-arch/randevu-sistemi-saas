@@ -305,7 +305,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       PROFILE_CACHE_KEY,
       'demo_mode',
       'cache_services',
-      'cache_consent_records'
+      'cache_consent_records',
+      'cache_admin_users'
     ];
 
     if (typeof window !== 'undefined' && window.localStorage) {
