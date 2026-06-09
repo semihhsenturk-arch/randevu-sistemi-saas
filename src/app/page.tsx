@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { seedDemoData } from "@/lib/demo-data";
 import { 
   CalendarDays, 
   ShieldCheck, 
@@ -25,6 +27,13 @@ export default function LandingPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const promoImages = ["/Promo-5.png", "/promo-6.png", "/facemap-promo.png", "/promo-2.png", "/promo-3.png"];
+  const router = useRouter();
+
+  const handleDemoClick = () => {
+    seedDemoData();
+    router.push("/takvim");
+    setTimeout(() => { router.refresh(); }, 150);
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -70,6 +79,9 @@ export default function LandingPage() {
               <Link href="/login" className="text-base lg:text-lg font-black text-[#0a3d34] hover:text-[#072b25] transition-colors lg:px-2 whitespace-nowrap">
                 Giriş Yap
               </Link>
+              <button onClick={handleDemoClick} className="text-base lg:text-lg font-bold text-emerald-600 hover:text-emerald-700 transition-colors lg:px-2 whitespace-nowrap">
+                Canlı Demo
+              </button>
               <Link href="/register">
                 <Button className="bg-[#0a3d34] hover:bg-[#072b25] text-white px-5 py-4 lg:px-8 lg:py-6 rounded-full font-black text-base lg:text-lg shadow-2xl shadow-[#0a3d34]/25 hover:-translate-y-1 transition-all active:scale-95 whitespace-nowrap">
                   Hemen Başla
@@ -93,6 +105,7 @@ export default function LandingPage() {
             <a href="#ozellikler" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-bold text-slate-900 border-b border-slate-50 pb-4">Özellikler</a>
             <a href="#fiyatlandirma" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-bold text-slate-900 border-b border-slate-50 pb-4">Paketler</a>
             <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-black text-[#0a3d34]">Giriş Yap</Link>
+            <button onClick={() => { setIsMobileMenuOpen(false); handleDemoClick(); }} className="text-left text-xl font-bold text-emerald-600">Canlı Demo</button>
             <Link href="/register" onClick={() => setIsMobileMenuOpen(false)}>
               <Button className="w-full bg-[#0a3d34] py-8 rounded-2xl text-xl font-black shadow-xl shadow-[#0a3d34]/20">Hemen Başla</Button>
             </Link>
@@ -121,9 +134,12 @@ export default function LandingPage() {
                   <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
-              <div className="text-base font-medium text-slate-500 italic">
-                7 Gün Ücretsiz Deneyin
-              </div>
+              <Button onClick={handleDemoClick} variant="outline" className="w-full sm:w-auto px-8 py-7 rounded-2xl text-lg font-bold border-2 border-emerald-100 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:border-emerald-200 transition-all">
+                Canlı Demo
+              </Button>
+            </div>
+            <div className="text-base font-medium text-slate-500 italic mt-2 text-center lg:text-left">
+              7 Gün Ücretsiz Deneyin
             </div>
           </div>
 

@@ -116,7 +116,7 @@ export function useDatabase() {
   // ─── Appointments ──────────────────────────────────────────────
 
   const fetchFreshAppointments = useCallback(async (): Promise<Appointment[]> => {
-    if (!userId) return getCache<Appointment[]>(CACHE_KEYS.APPOINTMENTS) || [];
+    if (!userId || userId === "demo-user") return getCache<Appointment[]>(CACHE_KEYS.APPOINTMENTS) || [];
 
     const { data, error } = await supabase
       .from("appointments")
@@ -156,6 +156,15 @@ export function useDatabase() {
 
   const saveAppointment = useCallback(async (apt: Appointment) => {
     if (!userId) throw new Error("Oturum kapatılmış, lütfen tekrar giriş yapın.");
+
+    if (userId === "demo-user") {
+      const updatedApt = { ...apt, id: (apt.id && !apt.id.startsWith("temp_")) ? apt.id : "demo_" + Date.now() } as Appointment;
+      let cached = getCache<Appointment[]>(CACHE_KEYS.APPOINTMENTS) || [];
+      cached = cached.filter((a) => a.id !== updatedApt.id && a.id !== apt.id);
+      cached.push(updatedApt);
+      setCache(CACHE_KEYS.APPOINTMENTS, cached);
+      return updatedApt;
+    }
 
     const payload: any = {
       user_id: userId,
@@ -207,8 +216,10 @@ export function useDatabase() {
 
   const deleteAppointment = useCallback(async (id: string) => {
     if (!userId) return;
-    const { error } = await supabase.from("appointments").delete().eq("id", id).eq("user_id", userId);
-    if (error) throw error;
+    if (userId !== "demo-user") {
+      const { error } = await supabase.from("appointments").delete().eq("id", id).eq("user_id", userId);
+      if (error) throw error;
+    }
 
     const cached = getCache<Appointment[]>(CACHE_KEYS.APPOINTMENTS) || [];
     const filtered = cached.filter((a) => a.id !== id);
@@ -219,7 +230,7 @@ export function useDatabase() {
 
   const getPatientProfiles = useCallback(async () => {
     try {
-      if (!userId) return getCache<Record<string, Omit<PatientProfile, "patient_name">>>(CACHE_KEYS.PROFILES) || {};
+      if (!userId || userId === "demo-user") return getCache<Record<string, Omit<PatientProfile, "patient_name">>>(CACHE_KEYS.PROFILES) || {};
 
       const { data, error } = await supabase
         .from("patient_profiles")
@@ -256,34 +267,36 @@ export function useDatabase() {
     if (!userId) return;
     const name = rawName.toLocaleUpperCase("tr-TR");
 
-    const { data: existing } = await supabase
-      .from("patient_profiles")
-      .select("id")
-      .eq("patient_name", name)
-      .eq("user_id", userId)
-      .maybeSingle();
+    if (userId !== "demo-user") {
+      const { data: existing } = await supabase
+        .from("patient_profiles")
+        .select("id")
+        .eq("patient_name", name)
+        .eq("user_id", userId)
+        .maybeSingle();
 
-    const payload: any = {
-      user_id: userId,
-      patient_name: name,
-      phone: profile.phone || "",
-      tc_no: profile.tc_no || "",
-      birth_date: profile.birth_date || "",
-      address: profile.address || "",
-      meds: profile.meds || [],
-      notes_list: profile.notes_list || [],
-      stock_history: profile.stock_history || [],
-      face_treatments: profile.face_treatments || [],
-      face_gender: profile.face_gender || 'female',
-      before_after_photos: profile.before_after_photos || [],
-    };
+      const payload: any = {
+        user_id: userId,
+        patient_name: name,
+        phone: profile.phone || "",
+        tc_no: profile.tc_no || "",
+        birth_date: profile.birth_date || "",
+        address: profile.address || "",
+        meds: profile.meds || [],
+        notes_list: profile.notes_list || [],
+        stock_history: profile.stock_history || [],
+        face_treatments: profile.face_treatments || [],
+        face_gender: profile.face_gender || 'female',
+        before_after_photos: profile.before_after_photos || [],
+      };
 
-    if (existing) payload.id = existing.id;
+      if (existing) payload.id = existing.id;
 
-    const { error } = await supabase.from("patient_profiles").upsert(payload, { onConflict: "id" });
-    if (error) {
-      console.error("Supabase Save Patient Profile Error:", error);
-      throw error;
+      const { error } = await supabase.from("patient_profiles").upsert(payload, { onConflict: "id" });
+      if (error) {
+        console.error("Supabase Save Patient Profile Error:", error);
+        throw error;
+      }
     }
     
     const cached = getCache<Record<string, Omit<PatientProfile, "patient_name">>>(CACHE_KEYS.PROFILES) || {};
@@ -295,7 +308,7 @@ export function useDatabase() {
 
   const getInventory = useCallback(async () => {
     try {
-      if (!userId) return getCache<{ stock: Record<string, number>; items: InventoryItem[] }>(CACHE_KEYS.INVENTORY) || { stock: {}, items: [] };
+      if (!userId || userId === "demo-user") return getCache<{ stock: Record<string, number>; items: InventoryItem[] }>(CACHE_KEYS.INVENTORY) || { stock: {}, items: [] };
 
       const { data, error } = await supabase
         .from("inventory")
@@ -327,26 +340,28 @@ export function useDatabase() {
   const saveInventoryItem = useCallback(async (item: InventoryItem, quantity: number) => {
     if (!userId) return;
 
-    const { data: existing } = await supabase
-      .from("inventory")
-      .select("id")
-      .eq("item_id", item.id)
-      .eq("user_id", userId)
-      .maybeSingle();
+    if (userId !== "demo-user") {
+      const { data: existing } = await supabase
+        .from("inventory")
+        .select("id")
+        .eq("item_id", item.id)
+        .eq("user_id", userId)
+        .maybeSingle();
 
-    const payload: any = {
-      user_id: userId,
-      item_id: item.id,
-      name: item.ad,
-      unit: item.birim,
-      quantity: quantity,
-      kritik_stok: item.kritik_stok || 10,
-    };
+      const payload: any = {
+        user_id: userId,
+        item_id: item.id,
+        name: item.ad,
+        unit: item.birim,
+        quantity: quantity,
+        kritik_stok: item.kritik_stok || 10,
+      };
 
-    if (existing) payload.id = existing.id;
+      if (existing) payload.id = existing.id;
 
-    const { error } = await supabase.from("inventory").upsert(payload, { onConflict: "id" });
-    if (!error) {
+      const { error } = await supabase.from("inventory").upsert(payload, { onConflict: "id" });
+      if (error) return; // Silent fail handled by cache anyway
+    }
       const cached = getCache<{ stock: Record<string, number>; items: InventoryItem[] }>(CACHE_KEYS.INVENTORY) || {
         stock: {},
         items: [],
@@ -356,13 +371,13 @@ export function useDatabase() {
         cached.items.push(item);
       }
       setCache(CACHE_KEYS.INVENTORY, cached);
-    }
   }, [userId]);
-
   const deleteInventoryItem = useCallback(async (itemId: string) => {
     if (!userId) return;
-    const { error } = await supabase.from("inventory").delete().eq("item_id", itemId).eq("user_id", userId);
-    if (error) throw error;
+    if (userId !== "demo-user") {
+      const { error } = await supabase.from("inventory").delete().eq("item_id", itemId).eq("user_id", userId);
+      if (error) throw error;
+    }
 
     const cached = getCache<{ stock: Record<string, number>; items: InventoryItem[] }>(CACHE_KEYS.INVENTORY);
     if (cached) {
@@ -376,7 +391,7 @@ export function useDatabase() {
 
   const getServices = useCallback(async (): Promise<Service[]> => {
     try {
-      if (!userId) return getCache<Service[]>(CACHE_KEYS.SERVICES) || [];
+      if (!userId || userId === "demo-user") return getCache<Service[]>(CACHE_KEYS.SERVICES) || [];
 
       const { data, error } = await supabase
         .from("services")
@@ -396,6 +411,16 @@ export function useDatabase() {
 
   const saveService = useCallback(async (service: Omit<Service, "id"> & { id?: string | number }) => {
     if (!userId) throw new Error("Oturum kapatılmış.");
+
+    if (userId === "demo-user") {
+      const saved = { ...service, id: service.id || "demo_srv_" + Date.now() } as Service;
+      const cached = getCache<Service[]>(CACHE_KEYS.SERVICES) || [];
+      const idx = cached.findIndex(s => s.id === saved.id || s.id === service.id);
+      if (idx > -1) cached[idx] = saved;
+      else cached.push(saved);
+      setCache(CACHE_KEYS.SERVICES, cached);
+      return saved;
+    }
 
     const payload: any = {
       user_id: userId,
@@ -437,8 +462,10 @@ export function useDatabase() {
 
   const deleteService = useCallback(async (id: string | number) => {
     if (!userId) return;
-    const { error } = await supabase.from("services").delete().eq("id", id).eq("user_id", userId);
-    if (error) throw error;
+    if (userId !== "demo-user") {
+      const { error } = await supabase.from("services").delete().eq("id", id).eq("user_id", userId);
+      if (error) throw error;
+    }
 
     const cached = getCache<Service[]>(CACHE_KEYS.SERVICES) || [];
     const filtered = cached.filter(s => s.id !== id);
@@ -449,6 +476,14 @@ export function useDatabase() {
 
   const saveConsentRecord = useCallback(async (record: ConsentRecord) => {
     if (!userId) throw new Error("Oturum kapatılmış, lütfen tekrar giriş yapın.");
+
+    if (userId === "demo-user") {
+      const newConsent = { ...record, id: record.id || "demo_cons_" + Date.now() };
+      const cached = getCache<ConsentRecord[]>(CACHE_KEYS.CONSENTS) || [];
+      cached.push(newConsent);
+      setCache(CACHE_KEYS.CONSENTS, cached);
+      return newConsent;
+    }
 
     const payload = {
       user_id: userId,
@@ -480,7 +515,11 @@ export function useDatabase() {
 
   const getConsentRecords = useCallback(async (patientName?: string): Promise<ConsentRecord[]> => {
     try {
-      if (!userId) return getCache<ConsentRecord[]>(CACHE_KEYS.CONSENTS) || [];
+      if (!userId || userId === "demo-user") {
+        const cached = getCache<ConsentRecord[]>(CACHE_KEYS.CONSENTS) || [];
+        if (patientName) return cached.filter(c => c.patient_name === patientName);
+        return cached;
+      }
 
       let query = supabase
         .from("consent_records")
@@ -510,6 +549,10 @@ export function useDatabase() {
   const getConsentByAppointment = useCallback(async (appointmentId: string): Promise<ConsentRecord | null> => {
     try {
       if (!userId) return null;
+      if (userId === "demo-user") {
+        const cached = getCache<ConsentRecord[]>(CACHE_KEYS.CONSENTS) || [];
+        return cached.find(c => c.appointment_id === appointmentId) || null;
+      }
 
       const { data, error } = await supabase
         .from("consent_records")

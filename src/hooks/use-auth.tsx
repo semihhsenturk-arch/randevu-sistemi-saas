@@ -199,6 +199,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
 
         if (mounted) {
+          // DEMO MODE CHECK
+          const isDemoMode = typeof window !== "undefined" && localStorage.getItem("demo_mode") === "true";
+          if (isDemoMode) {
+            const demoProfile: UserProfile = {
+              id: "demo-user",
+              clinic_name: "Demo Clinic",
+              email: "demo@bicalendar.com",
+              role: "admin",
+              is_approved: true,
+              plan: "advanced",
+              payment_status: "paid",
+            };
+            setSession({ user: { id: "demo-user" } } as Session);
+            setUser({ id: "demo-user", email: "demo@bicalendar.com" } as User);
+            setProfile(demoProfile);
+            setIsLoading(false);
+            if (currentPath === "/login" || currentPath === "/register" || currentPath === "/") {
+              router.replace("/takvim");
+              setTimeout(() => { if (mounted) router.refresh(); }, 150);
+            }
+            isProcessingRef.current = false;
+            return;
+          }
+
           setSession(session);
           setUser(session?.user ?? null);
           setProfile(currentProfile);
@@ -278,7 +302,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       'hasta_profilleri',
       'dashboard_start',
       'dashboard_end',
-      PROFILE_CACHE_KEY
+      PROFILE_CACHE_KEY,
+      'demo_mode',
+      'cache_services',
+      'cache_consent_records'
     ];
 
     if (typeof window !== 'undefined' && window.localStorage) {
