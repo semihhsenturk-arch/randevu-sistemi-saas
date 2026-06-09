@@ -43,7 +43,7 @@ async function resizeImage(file: File, maxSize = 800): Promise<string> {
 
 // ── Slider Component ─────────────────────────────────────────
 
-function ComparisonSlider({ beforeSrc, afterSrc }: { beforeSrc: string; afterSrc: string }) {
+function ComparisonSlider({ beforeSrc, afterSrc, fullscreen = false }: { beforeSrc: string; afterSrc: string; fullscreen?: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState(50);
   const isDragging = useRef(false);
@@ -75,7 +75,7 @@ function ComparisonSlider({ beforeSrc, afterSrc }: { beforeSrc: string; afterSrc
   return (
     <div
       ref={containerRef}
-      className="ba-slider-container"
+      className={fullscreen ? "ba-slider-fullscreen" : "ba-slider-container"}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
@@ -100,6 +100,39 @@ function ComparisonSlider({ beforeSrc, afterSrc }: { beforeSrc: string; afterSrc
       {/* Labels */}
       <span className="ba-label ba-label-before">ÖNCE</span>
       <span className="ba-label ba-label-after">SONRA</span>
+    </div>
+  );
+}
+
+// ── Fullscreen Overlay ───────────────────────────────────────
+
+function FullscreenOverlay({ beforeSrc, afterSrc, label, date, onClose }: {
+  beforeSrc: string;
+  afterSrc: string;
+  label: string;
+  date: string;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, []);
+
+  return (
+    <div className="ba-fullscreen-overlay">
+      {/* Top bar */}
+      <div className="ba-fullscreen-topbar">
+        <div className="flex items-center gap-2">
+          <span className="bg-violet-500/20 text-violet-200 border border-violet-400/30 px-3 py-1 rounded-full text-[0.72rem] font-extrabold">{label}</span>
+          <span className="text-[0.7rem] font-bold text-white/50">{date}</span>
+        </div>
+        <button onClick={onClose} className="ba-fullscreen-close">
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Slider — fills the screen */}
+      <ComparisonSlider beforeSrc={beforeSrc} afterSrc={afterSrc} fullscreen />
     </div>
   );
 }
@@ -171,6 +204,9 @@ type Props = {
 export function BeforeAfterCompare({ photos, onAdd, onUpdate, onDelete }: Props) {
   const [mode, setMode] = useState<"list" | "new" | "view">("list");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [fullscreenId, setFullscreenId] = useState<string | null>(null);
+
+  const fullscreenPhoto = photos.find((p) => p.id === fullscreenId);
 
   // New record form state
   const [beforeImg, setBeforeImg] = useState<string>("");
@@ -216,6 +252,17 @@ export function BeforeAfterCompare({ photos, onAdd, onUpdate, onDelete }: Props)
   // ── LIST MODE ──
   if (mode === "list") {
     return (
+      <>
+      {/* Fullscreen overlay — rendered above everything */}
+      {fullscreenPhoto && fullscreenPhoto.before_image && fullscreenPhoto.after_image && (
+        <FullscreenOverlay
+          beforeSrc={fullscreenPhoto.before_image}
+          afterSrc={fullscreenPhoto.after_image}
+          label={fullscreenPhoto.label}
+          date={fullscreenPhoto.date}
+          onClose={() => setFullscreenId(null)}
+        />
+      )}
       <div className="space-y-5">
         <div className="flex items-center justify-between">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
@@ -242,7 +289,13 @@ export function BeforeAfterCompare({ photos, onAdd, onUpdate, onDelete }: Props)
               <div
                 key={p.id}
                 className="ba-record-card group"
-                onClick={() => { setSelectedId(p.id); setMode("view"); }}
+                onClick={() => {
+                  if (p.after_image) {
+                    setFullscreenId(p.id);
+                  } else {
+                    setSelectedId(p.id); setMode("view");
+                  }
+                }}
               >
                 <div className="ba-record-thumb">
                   <img src={p.before_image} alt="Önce" className="ba-record-thumb-img" />
@@ -283,6 +336,7 @@ export function BeforeAfterCompare({ photos, onAdd, onUpdate, onDelete }: Props)
           </div>
         )}
       </div>
+      </>
     );
   }
 
@@ -301,8 +355,12 @@ export function BeforeAfterCompare({ photos, onAdd, onUpdate, onDelete }: Props)
           </div>
 
           {beforeImg && afterImg && (
-            <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
+            <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm cursor-pointer" onClick={() => {
+              // Preview fullscreen before saving
+              setSelectedId('__preview__');
+            }}>
               <ComparisonSlider beforeSrc={beforeImg} afterSrc={afterImg} />
+              <div className="bg-violet-50 text-center py-2 text-[0.65rem] font-bold text-violet-600">Tam ekran görmek için tıklayın</div>
             </div>
           )}
 
@@ -328,8 +386,25 @@ export function BeforeAfterCompare({ photos, onAdd, onUpdate, onDelete }: Props)
     );
   }
 
-  // ── VIEW MODE ──
+  // ── VIEW MODE (no after_image yet — upload it) ──
   if (mode === "view" && selectedPhoto) {
+    // If both images exist, go fullscreen immediately
+    if (selectedPhoto.before_image && selectedPhoto.after_image) {
+      return (
+        <>
+          <FullscreenOverlay
+            beforeSrc={selectedPhoto.before_image}
+            afterSrc={selectedPhoto.after_image}
+            label={selectedPhoto.label}
+            date={selectedPhoto.date}
+            onClose={() => { setSelectedId(null); setMode("list"); }}
+          />
+          <div /> {/* placeholder */}
+        </>
+      );
+    }
+
+    // Only before image — show upload for after
     return (
       <div className="space-y-5">
         <div className="flex items-center justify-between">
@@ -342,21 +417,15 @@ export function BeforeAfterCompare({ photos, onAdd, onUpdate, onDelete }: Props)
           </div>
         </div>
 
-        {selectedPhoto.before_image && selectedPhoto.after_image ? (
-          <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-lg">
-            <ComparisonSlider beforeSrc={selectedPhoto.before_image} afterSrc={selectedPhoto.after_image} />
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-4">
-            <div className="ba-upload-preview">
-              <img src={selectedPhoto.before_image} alt="Önce" className="ba-upload-preview-img" />
-              <div className="ba-upload-preview-overlay">
-                <span className="ba-upload-preview-label">ÖNCE</span>
-              </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="ba-upload-preview">
+            <img src={selectedPhoto.before_image} alt="Önce" className="ba-upload-preview-img" />
+            <div className="ba-upload-preview-overlay">
+              <span className="ba-upload-preview-label">ÖNCE</span>
             </div>
-            <UploadZone label="Sonra Fotoğrafı Ekle" onUpload={handleAddAfter} onClear={() => {}} />
           </div>
-        )}
+          <UploadZone label="Sonra Fotoğrafı Ekle" onUpload={handleAddAfter} onClear={() => {}} />
+        </div>
 
         {selectedPhoto.note && (
           <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-sm text-slate-600 font-medium">
@@ -364,20 +433,23 @@ export function BeforeAfterCompare({ photos, onAdd, onUpdate, onDelete }: Props)
             {selectedPhoto.note}
           </div>
         )}
-
-        {selectedPhoto.before_image && selectedPhoto.after_image && (
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-white border border-slate-100 rounded-xl p-3 text-center">
-              <img src={selectedPhoto.before_image} alt="Önce" className="w-full h-32 object-cover rounded-lg" />
-              <span className="text-[0.65rem] font-bold text-slate-400 mt-2 block">ÖNCE</span>
-            </div>
-            <div className="bg-white border border-slate-100 rounded-xl p-3 text-center">
-              <img src={selectedPhoto.after_image} alt="Sonra" className="w-full h-32 object-cover rounded-lg" />
-              <span className="text-[0.65rem] font-bold text-slate-400 mt-2 block">SONRA</span>
-            </div>
-          </div>
-        )}
       </div>
+    );
+  }
+
+  // Preview fullscreen from new record form
+  if (selectedId === '__preview__' && beforeImg && afterImg) {
+    return (
+      <>
+        <FullscreenOverlay
+          beforeSrc={beforeImg}
+          afterSrc={afterImg}
+          label={label || 'Önizleme'}
+          date={format(new Date(), 'dd.MM.yyyy')}
+          onClose={() => setSelectedId(null)}
+        />
+        <div /> {/* placeholder */}
+      </>
     );
   }
 
