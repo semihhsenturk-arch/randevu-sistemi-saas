@@ -1,6 +1,6 @@
 export const metadata = {
-  title: "Gizlilik Sözleşmesi | BiCalendar",
-  description: "BiCalendar Klinik Yönetim Sistemi Gizlilik Sözleşmesi ve Veri Güvenliği Politikası",
+  title: "Gizlilik Sözleşmesi | BiCalendo",
+  description: "BiCalendo Klinik Yönetim Sistemi Gizlilik Sözleşmesi ve Veri Güvenliği Politikası",
 };
 
 export default function PrivacyPage() {
@@ -19,7 +19,7 @@ export default function PrivacyPage() {
         <div className="space-y-4">
           <h2 className="text-xl font-bold text-slate-900">1. Giriş</h2>
           <p className="text-slate-600 leading-relaxed">
-            BiCalendar ("biz", "tarafımızca"), kullanıcılarımızın gizliliğine ve verilerinin güvenliğine en yüksek önemi vermektedir. Bu Gizlilik Sözleşmesi, BiCalendar Klinik Yönetim Sistemi platformu üzerinden toplanan bilgilerin nasıl kullanıldığını, saklandığını ve korunduğunu açıklamaktadır.
+            BiCalendo ("biz", "tarafımızca"), kullanıcılarımızın gizliliğine ve verilerinin güvenliğine en yüksek önemi vermektedir. Bu Gizlilik Sözleşmesi, BiCalendo Klinik Yönetim Sistemi platformu üzerinden toplanan bilgilerin nasıl kullanıldığını, saklandığını ve korunduğunu açıklamaktadır.
           </p>
         </div>
 
@@ -65,7 +65,7 @@ export default function PrivacyPage() {
         <div className="space-y-4">
           <h2 className="text-xl font-bold text-slate-900">5. Veri Paylaşımı</h2>
           <p className="text-slate-600 leading-relaxed">
-            BiCalendar, kullanıcı ve hasta verilerini üçüncü taraflara satmaz. Ancak, hizmetin ifası için zorunlu olan durumlarda (örneğin ödeme işlemleri için Iyzico, SMS gönderimi için aracı kurumlar) ilgili veriler paydaşlarla paylaşılabilir.
+            BiCalendo, kullanıcı ve hasta verilerini üçüncü taraflara satmaz. Ancak, hizmetin ifası için zorunlu olan durumlarda (örneğin ödeme işlemleri için Iyzico, SMS gönderimi için aracı kurumlar) ilgili veriler paydaşlarla paylaşılabilir.
           </p>
         </div>
 
@@ -79,7 +79,7 @@ export default function PrivacyPage() {
         <div className="space-y-4">
           <h2 className="text-xl font-bold text-slate-900">7. İletişim</h2>
           <p className="text-slate-600 leading-relaxed">
-            Gizlilik politikamızla ilgili sorularınız için bizimle iletişime geçebilirsiniz: <strong>destek@bicalendar.com</strong>
+            Gizlilik politikamızla ilgili sorularınız için bizimle iletişime geçebilirsiniz: <strong>destek@bicalendo.com</strong>
           </p>
         </div>
       </section>

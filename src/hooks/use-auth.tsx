@@ -205,14 +205,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             const demoProfile: UserProfile = {
               id: "demo-user",
               clinic_name: "Demo Clinic",
-              email: "demo@bicalendar.com",
+              email: "demo@bicalendo.com",
               role: "admin",
               is_approved: true,
               plan: "advanced",
               payment_status: "paid",
             };
             setSession({ user: { id: "demo-user" } } as Session);
-            setUser({ id: "demo-user", email: "demo@bicalendar.com" } as User);
+            setUser({ id: "demo-user", email: "demo@bicalendo.com" } as User);
             setProfile(demoProfile);
             setIsLoading(false);
             if (currentPath === "/login" || currentPath === "/register" || currentPath === "/") {

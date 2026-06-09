@@ -1,6 +1,6 @@
 export const metadata = {
-  title: "KVKK Aydınlatma Metni | BiCalendar",
-  description: "BiCalendar Kişisel Verilerin Korunması Kanunu (KVKK) Hakkında Aydınlatma Metni",
+  title: "KVKK Aydınlatma Metni | BiCalendo",
+  description: "BiCalendo Kişisel Verilerin Korunması Kanunu (KVKK) Hakkında Aydınlatma Metni",
 };
 
 export default function KVKKPage() {
@@ -19,7 +19,7 @@ export default function KVKKPage() {
         <div className="space-y-4">
           <h2 className="text-xl font-bold text-slate-900">1. Veri Sorumlusu</h2>
           <p className="text-slate-600 leading-relaxed">
-            BiCalendar olarak, 6698 sayılı Kişisel Verilerin Korunması Kanunu (“KVKK”) uyarınca, kişisel verilerinizi aşağıda açıklanan kapsamda işlemekteyiz.
+            BiCalendo olarak, 6698 sayılı Kişisel Verilerin Korunması Kanunu (“KVKK”) uyarınca, kişisel verilerinizi aşağıda açıklanan kapsamda işlemekteyiz.
           </p>
         </div>
 
@@ -68,7 +68,7 @@ export default function KVKKPage() {
         <div className="space-y-4">
           <h2 className="text-xl font-bold text-slate-900">6. Başvuru</h2>
           <p className="text-slate-600 leading-relaxed">
-            Haklarınızı kullanmak için taleplerinizi <strong>kvkk@bicalendar.com</strong> adresine iletebilirsiniz. Başvurularınız kanuni süre olan 30 gün içinde yanıtlanacaktır.
+            Haklarınızı kullanmak için taleplerinizi <strong>kvkk@bicalendo.com</strong> adresine iletebilirsiniz. Başvurularınız kanuni süre olan 30 gün içinde yanıtlanacaktır.
           </p>
         </div>
       </section>

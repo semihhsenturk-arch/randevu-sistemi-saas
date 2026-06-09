@@ -15,7 +15,7 @@ export default function LegalLayout({
             <div className="w-8 h-8 bg-[#0a3d34] rounded-lg flex items-center justify-center transition-transform group-hover:scale-105">
               <CalendarDays className="text-white w-5 h-5" />
             </div>
-            <span className="font-extrabold text-lg tracking-tight text-[#0a3d34]">BiCalendar</span>
+            <span className="font-extrabold text-lg tracking-tight text-[#0a3d34]">BiCalendo</span>
           </Link>
           <Link 
             href="/" 
@@ -37,7 +37,7 @@ export default function LegalLayout({
       {/* Footer Simple */}
       <footer className="max-w-4xl mx-auto px-6 pb-12 text-center">
         <p className="text-xs text-slate-400">
-          © 2026 BiCalendar | Klinik Yönetim Sistemi. Tüm hakları saklıdır.
+          © 2026 BiCalendo | Klinik Yönetim Sistemi. Tüm hakları saklıdır.
         </p>
       </footer>
     </div>
