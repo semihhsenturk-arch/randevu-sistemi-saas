@@ -418,6 +418,7 @@ export default function LandingPage() {
 
       {/* WhatsApp Button */}
       <WhatsAppButton />
+      <DemoLeadModal open={isDemoModalOpen} onClose={() => setIsDemoModalOpen(false)} />
     </div>
   );
 }
