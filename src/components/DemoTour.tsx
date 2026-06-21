@@ -1,78 +1,134 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Joyride, Step, CallBackProps, STATUS } from "react-joyride";
+import { Joyride, Step, CallBackProps, STATUS, ACTIONS, EVENTS } from "react-joyride";
+import { usePathname, useRouter } from "next/navigation";
 
 export function DemoTour() {
   const [run, setRun] = useState(false);
+  const [steps, setSteps] = useState<Step[]>([]);
+  const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
-    // Only run if in demo mode and haven't seen the tour yet
-    if (typeof window !== "undefined") {
-      const isDemo = localStorage.getItem("demo_mode") === "true";
-      const hasSeenTour = localStorage.getItem("demo_tour_seen") === "true";
-      
-      // Delay slightly to ensure elements are mounted
-      if (isDemo && !hasSeenTour) {
-        setTimeout(() => setRun(true), 1000);
+    if (typeof window === "undefined") return;
+    const isDemo = localStorage.getItem("demo_mode") === "true";
+    if (!isDemo) return;
+
+    const seenMap = JSON.parse(localStorage.getItem("demo_tours_seen") || "{}");
+    
+    // Check if we've already toured this specific path
+    if (!seenMap[pathname]) {
+      let pageSteps: Step[] = [];
+
+      if (pathname === "/takvim") {
+        pageSteps = [
+          {
+            target: "#tour-calendar-view",
+            content: "Bu ekrandan tüm randevularınızı gün, hafta veya ay bazında görebilir ve sürükle-bırak ile yönetebilirsiniz.",
+            disableBeacon: true,
+            placement: "bottom",
+            title: "1. Takvimde Randevuları Görün"
+          },
+          {
+            target: "#tour-add-appointment",
+            content: "Yeni bir randevu oluşturmak için buraya tıklayın. Hızlıca randevu ve hasta kaydı açabilirsiniz.",
+            placement: "bottom",
+            title: "2. Yeni Randevu Oluşturun"
+          },
+          {
+            target: "#tour-link-hasta-listesi",
+            content: "Harika! Şimdi FaceMap ve detaylı hasta profillerini görmek için sol menüdeki 'Hasta Listesi'ne tıklayalım.",
+            placement: "right",
+            title: "3. Hasta Listesine Geçiş",
+            spotlightClicks: true
+          }
+        ];
+      } else if (pathname === "/hasta-listesi") {
+        pageSteps = [
+          {
+            target: "body",
+            content: "Burası hasta listeniz. Listedeki herhangi bir hastanın ismine tıklayarak detaylı profiline ulaşabilirsiniz.",
+            disableBeacon: true,
+            placement: "center",
+            title: "4. Hasta Detayları"
+          },
+          {
+            target: "body",
+            content: "Hasta profili içindeki gelişmiş FaceMap sekmesine tıklayarak, hastaların yüzünde işlem yapılan bölgeleri görsel olarak işaretleyebilir ve kaydedebilirsiniz.",
+            placement: "center",
+            title: "5. FaceMap ile İşlem Takibi"
+          },
+          {
+            target: "#tour-link-stok-yonetimi",
+            content: "Şimdi de kliniğinizin stoklarını nasıl otomatik yöneteceğinizi görmek için 'Stok Yönetimi'ne geçin.",
+            placement: "right",
+            title: "6. Stok Yönetimine Geçiş",
+            spotlightClicks: true
+          }
+        ];
+      } else if (pathname === "/stok-yonetimi") {
+        pageSteps = [
+          {
+            target: "body",
+            content: "Kliniğinizdeki botoks, dolgu, enjektör gibi tüm malzemelerin giriş-çıkışlarını takip edin. Azalan ürünlerde otomatik uyarı alırsınız.",
+            disableBeacon: true,
+            placement: "center",
+            title: "7. Otomatik Stok Takibi"
+          },
+          {
+            target: "#tour-link-dashboard",
+            content: "Son adım! Yapay zeka ile kliniğinizin performansını incelemek için 'Analiz' sekmesine tıklayın.",
+            placement: "right",
+            title: "8. Analize Geçiş",
+            spotlightClicks: true
+          }
+        ];
+      } else if (pathname === "/dashboard") {
+        pageSteps = [
+          {
+            target: "body",
+            content: "Yapay zeka destekli grafiklerle aylık gelirinizi, en karlı hizmetlerinizi ve doluluk oranlarınızı buradan analiz edebilirsiniz.",
+            disableBeacon: true,
+            placement: "center",
+            title: "9. AI Performans Analizi"
+          }
+        ];
+      }
+
+      if (pageSteps.length > 0) {
+        setSteps(pageSteps);
+        setRun(false);
+        // Small delay to ensure page elements are mounted
+        setTimeout(() => setRun(true), 1200);
       }
     }
-  }, []);
+  }, [pathname]);
 
   const handleJoyrideCallback = (data: CallBackProps) => {
-    const { status } = data;
+    const { status, action, index, type } = data;
     const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
+
+    // Optional: Auto-navigate if they click Next on the last step that points to a link
+    if (action === ACTIONS.NEXT && type === EVENTS.STEP_AFTER && index === steps.length - 1) {
+       if (pathname === "/takvim") router.push("/hasta-listesi");
+       else if (pathname === "/hasta-listesi") router.push("/stok-yonetimi");
+       else if (pathname === "/stok-yonetimi") router.push("/dashboard");
+    }
 
     if (finishedStatuses.includes(status)) {
       setRun(false);
-      localStorage.setItem("demo_tour_seen", "true");
+      const seenMap = JSON.parse(localStorage.getItem("demo_tours_seen") || "{}");
+      seenMap[pathname] = true;
+      localStorage.setItem("demo_tours_seen", JSON.stringify(seenMap));
     }
   };
 
-  const steps: Step[] = [
-    {
-      target: "#tour-calendar-view",
-      content: "Bu ekrandan tüm randevularınızı gün, hafta veya ay bazında görebilir ve sürükle-bırak ile yönetebilirsiniz.",
-      disableBeacon: true,
-      placement: "bottom",
-      title: "1. Takvimde Randevuları Görün"
-    },
-    {
-      target: "#tour-add-appointment",
-      content: "Yeni bir randevu oluşturmak için buraya tıklayın. Hızlıca randevu ve hasta kaydı açabilirsiniz.",
-      placement: "bottom",
-      title: "2. Yeni Randevu Oluşturun"
-    },
-    {
-      target: "#tour-link-hasta-listesi",
-      content: "Hastalarınızın geçmiş randevularını, aldıkları tedavileri ve tüm dijital formlarını buradan detaylıca inceleyebilirsiniz.",
-      placement: "right",
-      title: "3. Hasta Profili Detayları"
-    },
-    {
-      target: "#tour-link-hasta-listesi", // FaceMap is inside patients
-      content: "Hasta profili içindeki gelişmiş FaceMap modülüyle, hastalarınızın yüzünde işlem yapılan bölgeleri görsel olarak işaretleyip kaydedebilirsiniz.",
-      placement: "right",
-      title: "4. FaceMap ile Tedavi Bölgeleri"
-    },
-    {
-      target: "#tour-link-stok-yonetimi",
-      content: "Kliniğinizdeki botoks, dolgu, enjektör gibi tüm malzemelerin giriş-çıkışlarını takip edin. Azalan ürünlerde otomatik uyarı alın.",
-      placement: "right",
-      title: "5. Otomatik Stok Takibi"
-    },
-    {
-      target: "#tour-link-dashboard",
-      content: "Yapay zeka destekli grafiklerle kliniğinizin aylık gelirini, en karlı hizmetleri ve doluluk oranlarını tek ekranda analiz edin.",
-      placement: "right",
-      title: "6. AI ile Performans Analizi"
-    }
-  ];
-
-  if (!run) return null;
+  if (!run || steps.length === 0) return null;
 
   return (
     <Joyride
+      key={pathname}
       steps={steps}
       run={run}
       continuous={true}
@@ -109,9 +165,9 @@ export function DemoTour() {
       locale={{
         back: "Geri",
         close: "Kapat",
-        last: "Bitir",
+        last: pathname === "/dashboard" ? "Bitir" : "İleri",
         next: "İleri",
-        skip: "Turu Geç"
+        skip: "Turu Kapat"
       }}
     />
   );

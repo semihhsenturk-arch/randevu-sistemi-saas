@@ -2,6 +2,7 @@
 
 import { Sidebar } from "@/components/Sidebar";
 import { DemoBanner } from "@/components/DemoBanner";
+import { DemoTour } from "@/components/DemoTour";
 import { useState, useEffect } from "react";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ export default function DashboardLayout({
     <div className="flex min-h-screen w-full bg-slate-50 overflow-x-hidden">
       {/* Demo Banner — fixed top bar with countdown */}
       {isDemoMode && <DemoBanner />}
+      {isDemoMode && <DemoTour />}
 
       {/* Mobile Header */}
       <div className={`xl:hidden fixed left-0 right-0 h-16 bg-[#1e293b] border-b border-white/5 flex items-center px-5 z-40 shadow-lg gap-4 ${isDemoMode ? "top-[52px]" : "top-0"}`}>

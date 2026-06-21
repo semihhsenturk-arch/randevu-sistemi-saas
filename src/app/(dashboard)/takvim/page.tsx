@@ -42,7 +42,6 @@ import {
 import { CalendarHeader } from "@/components/calendar/CalendarHeader";
 import { DraggableAppointment } from "@/components/calendar/DraggableAppointment";
 import { DroppableSlot } from "@/components/calendar/DroppableSlot";
-import { DemoTour } from "@/components/DemoTour";
 
 const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwPSOfJE332q-Ci1XOAfLtY6CBY0IzyB_HmpAJUgtPMoGzrFM_ND5RpHtzpzLX12-dM/exec";
 
@@ -571,7 +570,6 @@ export default function CalendarPage() {
 
   return (
     <div className="flex flex-col gap-4 relative">
-      <DemoTour />
       <CalendarHeader 
         monday={monday} 
         sunday={sunday} 
