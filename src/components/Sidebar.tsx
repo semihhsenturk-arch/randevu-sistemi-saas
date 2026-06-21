@@ -35,7 +35,9 @@ export function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean; setIsOpen?: (
     { href: "/hizmet-yonetimi", label: "Hizmet Yönetimi", icon: Layers, minTier: "starter" },
   ];
 
-  if (profile?.role === "admin") {
+  const isDemo = typeof window !== 'undefined' && localStorage.getItem('demo_mode') === 'true';
+
+  if (profile?.role === "admin" && !isDemo) {
     navItems.push({ href: "/admin/users", label: "Kullanıcılar", icon: Users, minTier: "starter" });
   }
 

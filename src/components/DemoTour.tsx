@@ -139,6 +139,24 @@ const getStepsForPath = (pathname: string): Step[] => {
         title: "Akıllı Stok Takibi"
       },
       {
+        target: "#tour-link-hizmet-yonetimi",
+        content: "Şimdi klinik hizmetlerinizi ve fiyatlandırmalarınızı yönetebileceğiniz Hizmet Yönetimi modülünü incelemek için bir sonraki adıma geçelim.",
+        disableBeacon: true,
+        placement: "right",
+        title: "Hizmet Yönetimine Geçiş",
+        spotlightClicks: true
+      }
+    ];
+  } else if (pathname === "/hizmet-yonetimi") {
+    return [
+      {
+        target: "body",
+        content: "Bu ekranda kliniğinizde sunduğunuz tüm işlemleri listeleyebilir, her bir işlem için tahmini süre ve fiyat bilgilerini girerek randevu planlamanızı otomatize edebilirsiniz.",
+        disableBeacon: true,
+        placement: "center",
+        title: "Hizmet ve Fiyatlandırma Yönetimi"
+      },
+      {
         target: "#tour-link-dashboard",
         content: "Son olarak, kliniğinizin finansal ve operasyonel büyümesini yapay zeka destekli raporlarla görmek için Analiz paneline göz atalım.",
         disableBeacon: true,
@@ -203,11 +221,11 @@ export function DemoTour() {
     const { status, action, index, type } = data;
     const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
 
-    // Optional: Auto-navigate if they click Next on the last step that points to a link
     if (action === ACTIONS.NEXT && type === EVENTS.STEP_AFTER && index === steps.length - 1) {
        if (pathname === "/takvim") router.push("/hasta-listesi");
        else if (pathname === "/hasta-listesi") router.push("/stok-yonetimi");
-       else if (pathname === "/stok-yonetimi") router.push("/dashboard");
+       else if (pathname === "/stok-yonetimi") router.push("/hizmet-yonetimi");
+       else if (pathname === "/hizmet-yonetimi") router.push("/dashboard");
     }
 
     if (finishedStatuses.includes(status)) {
