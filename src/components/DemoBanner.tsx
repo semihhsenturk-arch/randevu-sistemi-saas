@@ -127,7 +127,7 @@ export function DemoBanner() {
               </button>
               
               <a
-                href="https://wa.me/905XXXXXXXXX"
+                href="https://wa.me/905373709939"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full flex items-center justify-center gap-2 border-2 border-slate-200 hover:border-emerald-300 text-slate-700 hover:text-emerald-700 py-3.5 px-6 rounded-2xl font-bold text-base transition-all hover:bg-emerald-50"
