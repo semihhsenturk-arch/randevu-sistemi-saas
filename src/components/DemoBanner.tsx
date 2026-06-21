@@ -166,17 +166,26 @@ export function DemoBanner() {
             </div>
           </div>
 
-          {/* Center: Progress bar (hidden on very small screens) */}
-          <div className="hidden sm:flex flex-1 max-w-xs items-center gap-2">
-            <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all duration-1000 ease-linear"
-                style={{ width: `${percentage}%`, backgroundColor: barColor }}
-              />
+          {/* Center: Progress bar and Site Turu */}
+          <div className="hidden sm:flex flex-1 max-w-md items-center gap-4 justify-center">
+            <button
+              onClick={() => window.dispatchEvent(new Event("start_demo_tour"))}
+              className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-all active:scale-95 border border-white/10"
+            >
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              Site Turu
+            </button>
+            <div className="flex items-center gap-2 flex-1 max-w-[200px]">
+              <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-1000 ease-linear"
+                  style={{ width: `${percentage}%`, backgroundColor: barColor }}
+                />
+              </div>
+              <span className="text-[10px] text-white/40 font-medium whitespace-nowrap">
+                {Math.round(percentage)}%
+              </span>
             </div>
-            <span className="text-[10px] text-white/40 font-medium whitespace-nowrap">
-              {Math.round(percentage)}%
-            </span>
           </div>
 
           {/* Right: CTA buttons */}
