@@ -3,12 +3,15 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { getDemoTimeRemaining, getDemoDurationMs, clearDemoData } from "@/lib/demo-data";
-import { Timer, Rocket, ArrowRight, RotateCcw, Phone } from "lucide-react";
+import { sendAnalyticsToWebhook, getDemoEventsSummary } from "@/lib/analytics";
+import { Timer, Rocket, ArrowRight, RotateCcw, Phone, CheckCircle2 } from "lucide-react";
+import { WhatsAppButton } from "@/components/WhatsAppButton";
 
 export function DemoBanner() {
   const [remaining, setRemaining] = useState<number | null>(null);
   const [duration, setDuration] = useState<number>(30 * 60 * 1000);
   const [isExpired, setIsExpired] = useState(false);
+  const [summary, setSummary] = useState<any>({});
   const router = useRouter();
 
   useEffect(() => {
@@ -18,13 +21,18 @@ export function DemoBanner() {
     
     const initial = getDemoTimeRemaining();
     setRemaining(initial);
-    if (initial !== null && initial <= 0) setIsExpired(true);
+    if (initial !== null && initial <= 0) {
+      setIsExpired(true);
+      setSummary(getDemoEventsSummary());
+    }
 
     const timer = setInterval(() => {
       const r = getDemoTimeRemaining();
       setRemaining(r);
       if (r !== null && r <= 0) {
         setIsExpired(true);
+        setSummary(getDemoEventsSummary());
+        sendAnalyticsToWebhook();
         clearInterval(timer);
       }
     }, 1000);
@@ -33,13 +41,19 @@ export function DemoBanner() {
   }, []);
 
   const handleEndDemo = useCallback(() => {
-    clearDemoData();
-    window.location.href = "/";
+    sendAnalyticsToWebhook();
+    setTimeout(() => {
+      clearDemoData();
+      window.location.href = "/";
+    }, 100); // small delay to allow fetch
   }, []);
 
   const handleRegister = useCallback(() => {
-    clearDemoData();
-    window.location.href = "/register";
+    sendAnalyticsToWebhook();
+    setTimeout(() => {
+      clearDemoData();
+      window.location.href = "/register";
+    }, 100);
   }, []);
 
   // Not in demo mode
@@ -72,13 +86,33 @@ export function DemoBanner() {
               <Timer className="w-10 h-10 text-red-500" />
             </div>
 
-            <div className="space-y-2">
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                Demo Süreniz Doldu
+            <div className="space-y-4">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                Harika Bir İştı! <br/>
+                <span className="text-lg text-slate-500 font-medium tracking-normal mt-1 block">Demoyu başarıyla tamamladınız.</span>
               </h2>
-              <p className="text-slate-500 text-base leading-relaxed max-w-sm mx-auto">
-                {Math.round(duration / 60000)} dakikalık deneme süreniz sona erdi. Kliniğinizi dijitalleştirmeye hazır mısınız?
-              </p>
+              
+              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 text-left space-y-3 shadow-inner">
+                <p className="text-[0.8rem] font-bold text-slate-700 uppercase tracking-wider mb-2">Bu süre zarfında:</p>
+                <ul className="space-y-2.5 text-slate-600 text-[0.95rem] font-medium">
+                  {summary?.featuresExplored > 1 && (
+                    <li className="flex items-start gap-2.5">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                      <span>Sistemin <strong className="text-slate-900">{summary.featuresExplored} farklı</strong> modülünü gezdiniz.</span>
+                    </li>
+                  )}
+                  {summary?.appointmentsCreated > 0 && (
+                    <li className="flex items-start gap-2.5">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                      <span>Takvime <strong className="text-slate-900">{summary.appointmentsCreated} yeni randevu</strong> ekleyip sistemi test ettiniz.</span>
+                    </li>
+                  )}
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                    <span>Kliniğinizi tamamen dijitalleştirmek için ne kadar kolay olduğunu gördünüz.</span>
+                  </li>
+                </ul>
+              </div>
             </div>
 
             {/* CTA Buttons */}
@@ -117,49 +151,52 @@ export function DemoBanner() {
 
   // ACTIVE DEMO BANNER (sticky top bar)
   return (
-    <div className="fixed top-0 left-0 right-0 z-[3000] xl:left-[280px]">
-      <div className="bg-[#1e293b]/95 backdrop-blur-md border-b border-white/5 px-4 py-2.5 flex items-center justify-between gap-4">
-        {/* Left: Demo label + timer */}
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="flex items-center gap-1.5 bg-emerald-500/15 text-emerald-400 px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider shrink-0">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            Demo
+    <>
+      <div className="fixed top-0 left-0 right-0 z-[3000] xl:left-[280px]">
+        <div className="bg-[#1e293b]/95 backdrop-blur-md border-b border-white/5 px-4 py-2.5 flex items-center justify-between gap-4">
+          {/* Left: Demo label + timer */}
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="flex items-center gap-1.5 bg-emerald-500/15 text-emerald-400 px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider shrink-0">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Demo
+            </div>
+            <div className={`flex items-center gap-1.5 font-mono font-bold text-sm ${textColor} ${pulseClass}`}>
+              <Timer className="w-3.5 h-3.5" />
+              <span>{String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}</span>
+            </div>
           </div>
-          <div className={`flex items-center gap-1.5 font-mono font-bold text-sm ${textColor} ${pulseClass}`}>
-            <Timer className="w-3.5 h-3.5" />
-            <span>{String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}</span>
-          </div>
-        </div>
 
-        {/* Center: Progress bar (hidden on very small screens) */}
-        <div className="hidden sm:flex flex-1 max-w-xs items-center gap-2">
-          <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-1000 ease-linear"
-              style={{ width: `${percentage}%`, backgroundColor: barColor }}
-            />
+          {/* Center: Progress bar (hidden on very small screens) */}
+          <div className="hidden sm:flex flex-1 max-w-xs items-center gap-2">
+            <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-1000 ease-linear"
+                style={{ width: `${percentage}%`, backgroundColor: barColor }}
+              />
+            </div>
+            <span className="text-[10px] text-white/40 font-medium whitespace-nowrap">
+              {Math.round(percentage)}%
+            </span>
           </div>
-          <span className="text-[10px] text-white/40 font-medium whitespace-nowrap">
-            {Math.round(percentage)}%
-          </span>
-        </div>
 
-        {/* Right: CTA buttons */}
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            onClick={handleRegister}
-            className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3.5 py-1.5 rounded-lg transition-all hover:shadow-lg hover:shadow-emerald-500/20 active:scale-95"
-          >
-            Hemen Başla
-          </button>
-          <button
-            onClick={handleEndDemo}
-            className="text-white/40 hover:text-white/70 text-xs font-medium transition-colors hidden sm:block"
-          >
-            Çıkış
-          </button>
+          {/* Right: CTA buttons */}
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={handleRegister}
+              className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3.5 py-1.5 rounded-lg transition-all hover:shadow-lg hover:shadow-emerald-500/20 active:scale-95"
+            >
+              Hemen Başla
+            </button>
+            <button
+              onClick={handleEndDemo}
+              className="text-white/40 hover:text-white/70 text-xs font-medium transition-colors hidden sm:block"
+            >
+              Çıkış
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+      <WhatsAppButton />
+    </>
   );
 }

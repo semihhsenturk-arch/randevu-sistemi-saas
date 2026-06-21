@@ -3,6 +3,7 @@ import { Outfit } from "next/font/google";
 import "./globals.css";
 import "./react-calendar-custom.css";
 import { AuthProvider } from "@/hooks/use-auth";
+import { AnalyticsProvider } from "@/components/AnalyticsProvider";
 
 const outfit = Outfit({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700", "800"] });
 
@@ -22,7 +23,9 @@ export default function RootLayout({
     <html lang="tr" suppressHydrationWarning>
       <body className={`${outfit.className} antialiased`}>
         <AuthProvider>
-          {children}
+          <AnalyticsProvider>
+            {children}
+          </AnalyticsProvider>
         </AuthProvider>
         <Toaster position="top-right" expand={true} richColors />
       </body>
