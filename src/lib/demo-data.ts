@@ -26,14 +26,14 @@ export const seedDemoData = () => {
   const formatTarih = (d: Date) => d.toISOString().split("T")[0];
 
   const demoServices = [
-    { id: 1, ad: "Botoks", sure: 30, fiyat: 3000, renk: "#fdf4ff" },
-    { id: 2, ad: "Dudak Dolgusu", sure: 30, fiyat: 4500, renk: "#fff1f2" },
-    { id: 3, ad: "Cilt Bakımı", sure: 60, fiyat: 1500, renk: "#f0fdf4" },
-    { id: 4, ad: "Lazer Epilasyon", sure: 45, fiyat: 1200, renk: "#f0f9ff" },
-    { id: 5, ad: "Mezoterapi", sure: 45, fiyat: 2500, renk: "#fefce8" },
-    { id: 6, ad: "PRP Tedavisi", sure: 40, fiyat: 3500, renk: "#fef2f2" },
-    { id: 7, ad: "Karbon Peeling", sure: 30, fiyat: 1800, renk: "#f5f3ff" },
-    { id: 8, ad: "Yüz Germe (İplik)", sure: 60, fiyat: 8000, renk: "#ecfdf5" },
+    { id: 1, ad: "Botoks", sure: 30, fiyat: 3000, renk: "#d8b4e2" },
+    { id: 2, ad: "Dudak Dolgusu", sure: 30, fiyat: 4500, renk: "#ffb3ba" },
+    { id: 3, ad: "Cilt Bakımı", sure: 60, fiyat: 1500, renk: "#baffc9" },
+    { id: 4, ad: "Lazer Epilasyon", sure: 45, fiyat: 1200, renk: "#bae1ff" },
+    { id: 5, ad: "Mezoterapi", sure: 45, fiyat: 2500, renk: "#fdfd96" },
+    { id: 6, ad: "PRP Tedavisi", sure: 40, fiyat: 3500, renk: "#ffdfba" },
+    { id: 7, ad: "Karbon Peeling", sure: 30, fiyat: 1800, renk: "#cbaacb" },
+    { id: 8, ad: "Yüz Germe (İplik)", sure: 60, fiyat: 8000, renk: "#abdee6" },
   ];
   localStorage.setItem("cache_services", JSON.stringify(demoServices));
 
