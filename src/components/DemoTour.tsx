@@ -6,7 +6,6 @@ import { usePathname, useRouter } from "next/navigation";
 
 // Custom Premium Tooltip Component for Joyride
 const CustomTooltip = ({
-  continuous,
   index,
   step,
   backProps,
@@ -19,58 +18,69 @@ const CustomTooltip = ({
   return (
     <div 
       {...tooltipProps} 
-      className="bg-white rounded-2xl shadow-[0_20px_60px_-10px_rgba(0,0,0,0.25)] border border-[#0a3d34]/15 overflow-hidden w-[340px] md:w-[380px] z-[10000] font-sans"
+      className="bg-white rounded-2xl shadow-[0_12px_40px_-10px_rgba(0,0,0,0.15)] border border-slate-200/80 overflow-hidden w-[320px] md:w-[360px] z-[10000] font-sans"
     >
-      <div className="bg-gradient-to-r from-[#0a3d34] to-[#125c50] p-5 pb-6 relative overflow-hidden">
-        {/* Abstract pattern overlay */}
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-white via-transparent to-transparent"></div>
-        
-        <div className="flex items-center justify-between mb-2 relative z-10">
-          <span className="text-emerald-100/80 text-[0.65rem] font-black tracking-[0.15em] uppercase">
-            Adım {index + 1} / {size}
-          </span>
+      <div className="p-5 flex flex-col gap-3.5">
+        {/* Header part */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[#0a3d34]/10 text-[#0a3d34] text-[0.7rem] font-bold">
+              {index + 1}
+            </div>
+            <span className="text-slate-400 text-[0.65rem] font-bold tracking-wider uppercase">
+              Adım {index + 1} / {size}
+            </span>
+          </div>
           <button 
             {...skipProps} 
-            className="text-white/50 hover:text-white transition-colors text-[0.7rem] font-bold uppercase tracking-wider"
+            className="text-slate-400 hover:text-slate-700 transition-colors rounded-md p-1 hover:bg-slate-100"
+            title="Turu Kapat"
           >
-            Turu Kapat
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
         </div>
-        <h3 className="text-white font-extrabold text-[1.15rem] leading-tight drop-shadow-sm relative z-10">
-          {step.title}
-        </h3>
-      </div>
-      
-      <div className="p-6 bg-white relative">
-        <div className="absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-[#0a3d34]/10 to-transparent transform -translate-y-px"></div>
-        <p className="text-slate-600 font-medium text-[0.95rem] leading-relaxed">
-          {step.content}
-        </p>
+
+        {/* Title and Content */}
+        <div className="flex flex-col gap-1.5">
+          <h3 className="text-slate-900 font-extrabold text-[1.1rem] leading-snug">
+            {step.title}
+          </h3>
+          <p className="text-slate-600 font-medium text-[0.9rem] leading-relaxed">
+            {step.content}
+          </p>
+        </div>
       </div>
 
-      <div className="bg-slate-50/80 px-6 py-4 flex items-center justify-between border-t border-slate-100">
+      {/* Footer */}
+      <div className="bg-slate-50/80 px-5 py-3.5 flex items-center justify-between border-t border-slate-100">
         <div className="flex gap-1.5 items-center">
           {Array.from({ length: size }).map((_, i) => (
              <div 
               key={i} 
-              className={`h-1.5 rounded-full transition-all duration-300 ${i === index ? 'w-4 bg-[#0a3d34]' : 'w-1.5 bg-slate-200'}`} 
+              className={`h-1.5 rounded-full transition-all duration-300 ${i === index ? 'w-5 bg-[#0a3d34]' : 'w-1.5 bg-slate-200'}`} 
             />
           ))}
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
           {index > 0 && (
             <button 
               {...backProps} 
-              className="px-4 py-2.5 rounded-xl text-[0.8rem] font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 hover:text-slate-900 transition-all shadow-sm active:scale-95"
+              className="px-3 py-2 rounded-xl text-[0.8rem] font-bold text-slate-500 hover:text-slate-800 transition-colors"
             >
               Geri
             </button>
           )}
           <button 
             {...primaryProps} 
-            className="px-5 py-2.5 rounded-xl text-[0.8rem] font-bold text-white bg-gradient-to-br from-[#0a3d34] to-[#125c50] hover:to-[#0a3d34] hover:shadow-lg hover:shadow-[#0a3d34]/20 transition-all active:scale-95"
+            className="px-4 py-2 rounded-xl text-[0.8rem] font-bold text-white bg-[#0a3d34] hover:bg-[#072b24] shadow-sm transition-all flex items-center gap-1.5 active:scale-95"
           >
-            {isLastStep ? 'Anladım' : 'İleri'}
+            {isLastStep ? 'Turu Bitir' : 'İleri'}
+            {!isLastStep && (
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            )}
+            {isLastStep && (
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            )}
           </button>
         </div>
       </div>
