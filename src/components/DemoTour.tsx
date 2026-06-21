@@ -139,11 +139,11 @@ const getStepsForPath = (pathname: string): Step[] => {
         title: "Akıllı Stok Takibi"
       },
       {
-        target: "#tour-link-hizmet-yonetimi",
-        content: "Şimdi klinik hizmetlerinizi ve fiyatlandırmalarınızı yönetebileceğiniz Hizmet Yönetimi modülünü incelemek için bir sonraki adıma geçelim.",
+        target: "#tour-link-dashboard",
+        content: "Son olarak, kliniğinizin finansal ve operasyonel büyümesini yapay zeka destekli raporlarla görmek için Analiz paneline göz atalım.",
         disableBeacon: true,
         placement: "right",
-        title: "Hizmet Yönetimine Geçiş",
+        title: "Analiz ve Raporlamaya Geçiş",
         spotlightClicks: true
       }
     ];
@@ -156,14 +156,6 @@ const getStepsForPath = (pathname: string): Step[] => {
         placement: "center",
         title: "Hizmet ve Fiyatlandırma Yönetimi"
       },
-      {
-        target: "#tour-link-dashboard",
-        content: "Son olarak, kliniğinizin finansal ve operasyonel büyümesini yapay zeka destekli raporlarla görmek için Analiz paneline göz atalım.",
-        disableBeacon: true,
-        placement: "right",
-        title: "Analiz ve Raporlamaya Geçiş",
-        spotlightClicks: true
-      }
     ];
   } else if (pathname === "/dashboard") {
     return [
@@ -173,6 +165,14 @@ const getStepsForPath = (pathname: string): Step[] => {
         disableBeacon: true,
         placement: "center",
         title: "Yapay Zeka Destekli Analiz"
+      },
+      {
+        target: "#tour-link-hizmet-yonetimi",
+        content: "Şimdi klinik hizmetlerinizi ve fiyatlandırmalarınızı yönetebileceğiniz Hizmet Yönetimi modülünü incelemek için bir sonraki adıma geçelim.",
+        disableBeacon: true,
+        placement: "right",
+        title: "Hizmet Yönetimine Geçiş",
+        spotlightClicks: true
       }
     ];
   }
@@ -231,8 +231,8 @@ export function DemoTour() {
     if (action === ACTIONS.NEXT && type === EVENTS.STEP_AFTER && index === steps.length - 1) {
        if (pathname === "/takvim") router.push("/hasta-listesi");
        else if (pathname === "/hasta-listesi") router.push("/stok-yonetimi");
-       else if (pathname === "/stok-yonetimi") router.push("/hizmet-yonetimi");
-       else if (pathname === "/hizmet-yonetimi") router.push("/dashboard");
+       else if (pathname === "/stok-yonetimi") router.push("/dashboard");
+       else if (pathname === "/dashboard") router.push("/hizmet-yonetimi");
     }
 
     if (finishedStatuses.includes(status) || action === ACTIONS.CLOSE) {
