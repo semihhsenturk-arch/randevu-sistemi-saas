@@ -181,7 +181,6 @@ const getStepsForPath = (pathname: string): Step[] => {
 
 export function DemoTour() {
   const [run, setRun] = useState(false);
-  const [stepIndex, setStepIndex] = useState(0);
   const [steps, setSteps] = useState<Step[]>([]);
   const pathname = usePathname();
   const router = useRouter();
@@ -200,7 +199,6 @@ export function DemoTour() {
       // Auto-start only if we haven't seen it, OR if explicitly forced (e.g. clicking Site Turu)
       if (!seenMap[pathname] || forceRun) {
         setRun(false);
-        setStepIndex(0);
         setTimeout(() => setRun(true), forceRun ? 300 : 1200);
       }
     }
@@ -222,11 +220,6 @@ export function DemoTour() {
   const handleJoyrideCallback = (data: CallBackProps) => {
     const { status, action, index, type } = data;
     const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
-
-    if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
-      // Update state to advance the tour
-      setStepIndex(index + (action === ACTIONS.PREV ? -1 : 1));
-    }
 
     if (action === ACTIONS.NEXT && type === EVENTS.STEP_AFTER && index === steps.length - 1) {
        if (pathname === "/takvim") router.push("/hasta-listesi");
@@ -250,7 +243,6 @@ export function DemoTour() {
       key={`${pathname}-${run}`}
       steps={steps}
       run={run}
-      stepIndex={stepIndex}
       continuous={true}
       showProgress={false}
       showSkipButton={true}
