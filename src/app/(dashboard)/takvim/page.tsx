@@ -42,6 +42,7 @@ import {
 import { CalendarHeader } from "@/components/calendar/CalendarHeader";
 import { DraggableAppointment } from "@/components/calendar/DraggableAppointment";
 import { DroppableSlot } from "@/components/calendar/DroppableSlot";
+import { DemoTour } from "@/components/DemoTour";
 
 const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwPSOfJE332q-Ci1XOAfLtY6CBY0IzyB_HmpAJUgtPMoGzrFM_ND5RpHtzpzLX12-dM/exec";
 
@@ -570,6 +571,7 @@ export default function CalendarPage() {
 
   return (
     <div className="flex flex-col gap-4 relative">
+      <DemoTour />
       <CalendarHeader 
         monday={monday} 
         sunday={sunday} 
@@ -584,7 +586,7 @@ export default function CalendarPage() {
 
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_280px] gap-6 pb-20">
         {/* Sol Kolon: Takvim Alanı */}
-        <div className="flex-1 w-full bg-transparent min-w-0">
+        <div id="tour-calendar-view" className="flex-1 w-full bg-transparent min-w-0">
           <DndContext sensors={sensors} collisionDetection={pointerWithin} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd} onDragCancel={handleDragCancel} measuring={measuringConfig}>
             {/* Mobile Day Selector */}
             <div className="lg:hidden grid grid-cols-7 gap-1 mb-2">
@@ -737,7 +739,7 @@ export default function CalendarPage() {
         {/* Sağ Kolon: Sidebar / Bekleme Odası */}
         <div className="w-full animate-fade-in">
           <div className="flex flex-col gap-4 sticky top-6">
-            <Card className="rounded-[20px] shadow-sm border-slate-200 overflow-hidden">
+            <Card id="tour-waiting-room" className="rounded-[20px] shadow-sm border-slate-200 overflow-hidden">
               <CardHeader className="p-4 pb-2 border-b border-slate-50">
                 <CardTitle className="text-[0.95rem] font-extrabold text-[#1e293b] flex items-center justify-between">
                   Bekleme Odası {waitingApps.length > 0 && <span className="bg-amber-100 text-amber-600 px-2 py-0.5 rounded-full text-[0.7rem]">{waitingApps.length}</span>}

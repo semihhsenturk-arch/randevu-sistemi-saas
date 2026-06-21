@@ -109,6 +109,7 @@ export function CalendarHeader({
         {/* Right: New Appointment Button */}
         <div className="flex items-center w-full lg:w-auto shrink-0">
           <Button 
+            id="tour-add-appointment"
             onClick={() => onNewAppointment(format(new Date(), "yyyy-MM-dd"), "09:00")}
             className="w-full lg:w-auto bg-[#0a3d34] hover:bg-[#072b25] text-white p-4 lg:p-[10px_20px] xl:p-[14px_32px] rounded-xl font-bold text-[0.9rem] lg:text-[0.8rem] xl:text-[1rem] uppercase tracking-[0.05em] shadow-[0_6px_20px_-4px_rgba(10,61,52,0.4)] transition-all hover:-translate-y-[2px] active:scale-95 h-auto"
           >

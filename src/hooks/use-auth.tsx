@@ -304,6 +304,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       'dashboard_end',
       PROFILE_CACHE_KEY,
       'demo_mode',
+      'demo_started_at',
+      'demo_seeded',
       'cache_services',
       'cache_consent_records',
       'cache_admin_users'

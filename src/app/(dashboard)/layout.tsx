@@ -1,7 +1,8 @@
 "use client";
 
 import { Sidebar } from "@/components/Sidebar";
-import { useState } from "react";
+import { DemoBanner } from "@/components/DemoBanner";
+import { useState, useEffect } from "react";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -11,11 +12,21 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState(false);
+
+  useEffect(() => {
+    setIsDemoMode(
+      typeof window !== "undefined" && localStorage.getItem("demo_mode") === "true"
+    );
+  }, []);
 
   return (
     <div className="flex min-h-screen w-full bg-slate-50 overflow-x-hidden">
+      {/* Demo Banner — fixed top bar with countdown */}
+      {isDemoMode && <DemoBanner />}
+
       {/* Mobile Header */}
-      <div className="xl:hidden fixed top-0 left-0 right-0 h-16 bg-[#1e293b] border-b border-white/5 flex items-center px-5 z-40 shadow-lg gap-4">
+      <div className={`xl:hidden fixed left-0 right-0 h-16 bg-[#1e293b] border-b border-white/5 flex items-center px-5 z-40 shadow-lg gap-4 ${isDemoMode ? "top-[52px]" : "top-0"}`}>
         <Button 
           variant="ghost" 
           size="icon" 
@@ -34,9 +45,10 @@ export default function DashboardLayout({
 
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
       
-      <main className="flex-1 xl:ml-[280px] p-4 md:p-6 lg:p-8 pt-24 md:pt-24 lg:pt-24 xl:pt-8 w-full max-w-[1600px] mx-auto min-h-screen transition-all">
+      <main className={`flex-1 xl:ml-[280px] p-4 md:p-6 lg:p-8 w-full max-w-[1600px] mx-auto min-h-screen transition-all ${isDemoMode ? "pt-[100px] md:pt-[100px] lg:pt-[100px] xl:pt-[60px]" : "pt-24 md:pt-24 lg:pt-24 xl:pt-8"}`}>
         {children}
       </main>
     </div>
   );
 }
+

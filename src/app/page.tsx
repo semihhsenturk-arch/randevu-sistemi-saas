@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { seedDemoData } from "@/lib/demo-data";
+import { DemoLeadModal } from "@/components/DemoLeadModal";
 import { 
   CalendarDays, 
   ShieldCheck, 
@@ -29,9 +30,10 @@ export default function LandingPage() {
   const promoImages = ["/promo-2.png", "/promo-3.png", "/Promo-7.png", "/promo-6.png", "/facemap-promo.png"];
   const router = useRouter();
 
+  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
+
   const handleDemoClick = () => {
-    seedDemoData();
-    window.location.href = "/takvim";
+    setIsDemoModalOpen(true);
   };
 
   useEffect(() => {
