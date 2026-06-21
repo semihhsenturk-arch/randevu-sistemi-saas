@@ -367,7 +367,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [profile]);
 
   const isTrialActive = profile?.approved_at 
-    ? (new Date().getTime() - new Date(profile.approved_at.endsWith('Z') ? profile.approved_at : profile.approved_at + 'Z').getTime()) < 7 * 24 * 60 * 60 * 1000
+    ? (new Date().getTime() - new Date(profile.approved_at).getTime()) < 7 * 24 * 60 * 60 * 1000
     : false;
 
   return (
