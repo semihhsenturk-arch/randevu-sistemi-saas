@@ -82,10 +82,10 @@ const getStepsForPath = (pathname: string): Step[] => {
   if (pathname === "/takvim") {
     return [
       {
-        target: "#tour-calendar-view",
+        target: "body",
         content: "Takvim arayüzü üzerinden kliniğinizin günlük iş akışını anlık takip edebilir, sürükle-bırak özelliği ile randevularınızı hızlıca organize edebilirsiniz.",
         disableBeacon: true,
-        placement: "bottom",
+        placement: "center",
         title: "Kapsamlı Takvim Yönetimi"
       },
       {
@@ -181,6 +181,7 @@ const getStepsForPath = (pathname: string): Step[] => {
 
 export function DemoTour() {
   const [run, setRun] = useState(false);
+  const [stepIndex, setStepIndex] = useState(0);
   const [steps, setSteps] = useState<Step[]>([]);
   const pathname = usePathname();
   const router = useRouter();
@@ -199,7 +200,8 @@ export function DemoTour() {
       // Auto-start only if we haven't seen it, OR if explicitly forced (e.g. clicking Site Turu)
       if (!seenMap[pathname] || forceRun) {
         setRun(false);
-        setTimeout(() => setRun(true), forceRun ? 100 : 1200);
+        setStepIndex(0);
+        setTimeout(() => setRun(true), forceRun ? 300 : 1200);
       }
     }
   }, [pathname]);
@@ -221,6 +223,11 @@ export function DemoTour() {
     const { status, action, index, type } = data;
     const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
 
+    if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
+      // Update state to advance the tour
+      setStepIndex(index + (action === ACTIONS.PREV ? -1 : 1));
+    }
+
     if (action === ACTIONS.NEXT && type === EVENTS.STEP_AFTER && index === steps.length - 1) {
        if (pathname === "/takvim") router.push("/hasta-listesi");
        else if (pathname === "/hasta-listesi") router.push("/stok-yonetimi");
@@ -228,7 +235,7 @@ export function DemoTour() {
        else if (pathname === "/hizmet-yonetimi") router.push("/dashboard");
     }
 
-    if (finishedStatuses.includes(status)) {
+    if (finishedStatuses.includes(status) || action === ACTIONS.CLOSE) {
       setRun(false);
       const seenMap = JSON.parse(localStorage.getItem("demo_tours_seen") || "{}");
       seenMap[pathname] = true;
@@ -240,13 +247,15 @@ export function DemoTour() {
 
   return (
     <Joyride
-      key={pathname}
+      key={`${pathname}-${run}`}
       steps={steps}
       run={run}
+      stepIndex={stepIndex}
       continuous={true}
       showProgress={false}
       showSkipButton={true}
       disableOverlayClose={true}
+      disableBeacon={true}
       tooltipComponent={CustomTooltip}
       callback={handleJoyrideCallback}
       styles={{
