@@ -115,7 +115,7 @@ export function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean; setIsOpen?: (
             }
 
             return (
-              <li key={item.href}>
+              <li key={item.href} id={`tour-link${item.href.replace('/', '-')}`}>
                 <Link
                   href={item.href}
                   onClick={() => setIsOpen?.(false)}
