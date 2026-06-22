@@ -69,6 +69,7 @@ export default function AyarlarPage() {
   const [cancelResult, setCancelResult] = useState<"success" | "error" | null>(null);
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<PlanType | null>(null);
+  const [selectedResubscribePlan, setSelectedResubscribePlan] = useState<PlanType | null>(null);
   const [changingPlan, setChangingPlan] = useState(false);
 
   if (!profile || !user) {
@@ -281,13 +282,14 @@ export default function AyarlarPage() {
                     const Icon = p.icon;
                     const pd = PLAN_PRICES[p.key];
                     const isCurrentPlan = p.key === plan;
+                    const isSelected = p.key === (selectedResubscribePlan || plan);
                     return (
                       <button
                         key={p.key}
-                        onClick={() => handleResubscribe(p.key)}
+                        onClick={() => setSelectedResubscribePlan(p.key)}
                         disabled={changingPlan}
                         className={`relative text-left rounded-2xl border-2 p-4 transition-all hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.98] ${
-                          isCurrentPlan
+                          isSelected
                             ? `${p.border} ${p.bg} ring-2 ring-offset-2 ring-${p.color.replace("text-", "")}`
                             : "border-slate-200 bg-white hover:border-slate-300"
                         }`}
@@ -316,6 +318,19 @@ export default function AyarlarPage() {
                       </button>
                     );
                   })}
+                </div>
+                <div className="mt-4 flex justify-end">
+                  <Button
+                    onClick={() => handleResubscribe(selectedResubscribePlan || plan)}
+                    disabled={changingPlan}
+                    className="bg-[#0a3d34] hover:bg-[#072b25] font-bold shadow-md hover:-translate-y-0.5 transition-all h-11 px-6"
+                  >
+                    {changingPlan ? (
+                      <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Yönlendiriliyor...</>
+                    ) : (
+                      <>{PLAN_PRICES[selectedResubscribePlan || plan].name} Paketi İle Abone Ol <ArrowRight className="w-4 h-4 ml-2" /></>
+                    )}
+                  </Button>
                 </div>
               </div>
             </div>
