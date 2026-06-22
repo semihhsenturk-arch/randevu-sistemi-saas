@@ -336,9 +336,22 @@ function OdemeContent() {
                   </Button>
                 </div>
               ) : (
-                <p className="text-sm text-slate-500">
-                  {profile?.approved_at ? "Deneme süreniz sona erdi." : "Hesabınız onaylandı!"} Aşağıdaki paketiniz için ödeme yaparak tüm özelliklere erişim sağlayın.
-                </p>
+                <div className="text-sm text-slate-500 space-y-2">
+                  <p>
+                    {profile?.payment_status === "cancelled"
+                      ? "Aboneliğiniz iptal edildi. Yeniden abone olmak için aşağıdaki paketle devam edin."
+                      : profile?.approved_at 
+                      ? "Deneme süreniz sona erdi. Aşağıdaki paketiniz için ödeme yaparak tüm özelliklere erişim sağlayın." 
+                      : "Hesabınız onaylandı! Aşağıdaki paketiniz için ödeme yaparak tüm özelliklere erişim sağlayın."}
+                  </p>
+                  <Button 
+                    variant="link" 
+                    onClick={() => router.push('/ayarlar')}
+                    className="text-emerald-700 font-bold h-auto p-0"
+                  >
+                    Farklı bir paket mi seçmek istiyorsunuz? Ayarlara gidin <ArrowRight className="w-3 h-3 ml-1" />
+                  </Button>
+                </div>
               )}
             </div>
           </CardHeader>

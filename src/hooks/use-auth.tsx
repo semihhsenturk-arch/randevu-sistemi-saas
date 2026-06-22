@@ -240,7 +240,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               ? (new Date().getTime() - new Date(currentProfile.approved_at).getTime()) < 7 * 24 * 60 * 60 * 1000
               : false;
 
-            const target = (currentProfile && currentProfile.payment_status !== 'paid' && currentProfile.payment_status !== 'cancelled' && !isTrialActive && currentProfile.role !== 'admin')
+            const target = (currentProfile && currentProfile.payment_status !== 'paid' && !isTrialActive && currentProfile.role !== 'admin')
               ? "/odeme"
               : "/takvim";
             

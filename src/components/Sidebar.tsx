@@ -19,11 +19,10 @@ export function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean; setIsOpen?: (
   const [hasSent, setHasSent] = useState(false);
 
   // Ödeme yapılmamışsa VE deneme süresi aktif değilse /odeme dışındaki sayfalara erişimi engelle
-  // "cancelled" durumundaki kullanıcılar da dönem sonuna kadar erişebilir
-  const needsPayment = !isLoading && profile && profile.payment_status !== 'paid' && profile.payment_status !== 'cancelled' && !isTrialActive && profile.role !== 'admin';
+  const needsPayment = !isLoading && profile && profile.payment_status !== 'paid' && !isTrialActive && profile.role !== 'admin';
 
   useEffect(() => {
-    if (needsPayment && pathname !== '/odeme') {
+    if (needsPayment && pathname !== '/odeme' && pathname !== '/ayarlar') {
       router.replace('/odeme');
     }
   }, [needsPayment, pathname, router]);
