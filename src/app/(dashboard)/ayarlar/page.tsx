@@ -261,77 +261,79 @@ export default function AyarlarPage() {
             </div>
           )}
 
-          {/* İptal Edilmiş — Tekrar Abone Ol */}
+          {/* İptal Edilmiş Uyarı */}
           {isCancelled && (
-            <div className="space-y-4">
-              <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
-                <XCircle className="w-5 h-5 text-red-500 mt-0.5 shrink-0" />
-                <div>
-                  <p className="text-sm font-bold text-red-800">Aboneliğiniz İptal Edildi</p>
-                  <p className="text-xs text-red-600 mt-1">
-                    Aşağıdan mevcut paketinizle devam edebilir veya farklı bir paket seçerek yeniden abone olabilirsiniz.
-                  </p>
-                </div>
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+              <XCircle className="w-5 h-5 text-red-500 mt-0.5 shrink-0" />
+              <div>
+                <p className="text-sm font-bold text-red-800">Aboneliğiniz İptal Edildi</p>
+                <p className="text-xs text-red-600 mt-1">
+                  Aşağıdan mevcut paketinizle devam edebilir veya farklı bir paket seçerek yeniden abone olabilirsiniz.
+                </p>
               </div>
+            </div>
+          )}
 
-              {/* Tekrar Abone Ol — Paket Seçimi */}
-              <div className="space-y-3">
-                <p className="text-sm font-bold text-slate-700">Paket Seçin ve Tekrar Abone Olun:</p>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {PLANS.map((p) => {
-                    const Icon = p.icon;
-                    const pd = PLAN_PRICES[p.key];
-                    const isCurrentPlan = p.key === plan;
-                    const isSelected = p.key === (selectedResubscribePlan || plan);
-                    return (
-                      <button
-                        key={p.key}
-                        onClick={() => setSelectedResubscribePlan(p.key)}
-                        disabled={changingPlan}
-                        className={`relative text-left rounded-2xl border-2 p-4 transition-all hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.98] ${
-                          isSelected
-                            ? `${p.border} ${p.bg} ring-2 ring-offset-2 ring-${p.color.replace("text-", "")}`
-                            : "border-slate-200 bg-white hover:border-slate-300"
-                        }`}
-                      >
-                        {isCurrentPlan && (
-                          <span className="absolute -top-2 right-3 bg-emerald-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
-                            Mevcut
-                          </span>
-                        )}
-                        <div className={`w-9 h-9 rounded-lg ${p.bg} flex items-center justify-center mb-3`}>
-                          <Icon className={`w-5 h-5 ${p.color}`} />
-                        </div>
-                        <h4 className="font-extrabold text-slate-900 text-sm">{pd.name}</h4>
-                        <p className="text-lg font-black text-slate-900 mt-1">
-                          {pd.monthly.toLocaleString("tr-TR")} ₺
-                          <span className="text-xs text-slate-400 font-bold"> /ay</span>
-                        </p>
-                        <ul className="mt-2 space-y-1">
-                          {p.features.map((f, i) => (
-                            <li key={i} className="text-[11px] text-slate-500 flex items-start gap-1.5">
-                              <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0 mt-0.5" />
-                              {f}
-                            </li>
-                          ))}
-                        </ul>
-                      </button>
-                    );
-                  })}
-                </div>
-                <div className="mt-4 flex justify-end">
-                  <Button
-                    onClick={() => handleResubscribe(selectedResubscribePlan || plan)}
-                    disabled={changingPlan}
-                    className="bg-[#0a3d34] hover:bg-[#072b25] font-bold shadow-md hover:-translate-y-0.5 transition-all h-11 px-6"
-                  >
-                    {changingPlan ? (
-                      <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Yönlendiriliyor...</>
-                    ) : (
-                      <>{PLAN_PRICES[selectedResubscribePlan || plan].name} Paketi İle Abone Ol <ArrowRight className="w-4 h-4 ml-2" /></>
-                    )}
-                  </Button>
-                </div>
+          {/* Abone Olmamış veya İptal Edilmiş — Paket Seçimi */}
+          {(!isPaid && !isDemo && profile.role !== "admin") && (
+            <div className="space-y-3 pt-2">
+              <p className="text-sm font-bold text-slate-700">
+                {isCancelled ? "Paket Seçin ve Tekrar Abone Olun:" : "Aboneliğinizi Başlatmak İçin Bir Paket Seçin:"}
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {PLANS.map((p) => {
+                  const Icon = p.icon;
+                  const pd = PLAN_PRICES[p.key];
+                  const isCurrentPlan = p.key === plan;
+                  const isSelected = p.key === (selectedResubscribePlan || plan);
+                  return (
+                    <button
+                      key={p.key}
+                      onClick={() => setSelectedResubscribePlan(p.key)}
+                      disabled={changingPlan}
+                      className={`relative text-left rounded-2xl border-2 p-4 transition-all hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.98] ${
+                        isSelected
+                          ? `${p.border} ${p.bg} ring-2 ring-offset-2 ring-${p.color.replace("text-", "")}`
+                          : "border-slate-200 bg-white hover:border-slate-300"
+                      }`}
+                    >
+                      {isCurrentPlan && (
+                        <span className="absolute -top-2 right-3 bg-emerald-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
+                          Mevcut
+                        </span>
+                      )}
+                      <div className={`w-9 h-9 rounded-lg ${p.bg} flex items-center justify-center mb-3`}>
+                        <Icon className={`w-5 h-5 ${p.color}`} />
+                      </div>
+                      <h4 className="font-extrabold text-slate-900 text-sm">{pd.name}</h4>
+                      <p className="text-lg font-black text-slate-900 mt-1">
+                        {pd.monthly.toLocaleString("tr-TR")} ₺
+                        <span className="text-xs text-slate-400 font-bold"> /ay</span>
+                      </p>
+                      <ul className="mt-2 space-y-1">
+                        {p.features.map((f, i) => (
+                          <li key={i} className="text-[11px] text-slate-500 flex items-start gap-1.5">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0 mt-0.5" />
+                            {f}
+                          </li>
+                        ))}
+                      </ul>
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="mt-4 flex justify-end">
+                <Button
+                  onClick={() => handleResubscribe(selectedResubscribePlan || plan)}
+                  disabled={changingPlan}
+                  className="bg-[#0a3d34] hover:bg-[#072b25] font-bold shadow-md hover:-translate-y-0.5 transition-all h-11 px-6"
+                >
+                  {changingPlan ? (
+                    <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Yönlendiriliyor...</>
+                  ) : (
+                    <>{PLAN_PRICES[selectedResubscribePlan || plan].name} Paketi İle Abone Ol <ArrowRight className="w-4 h-4 ml-2" /></>
+                  )}
+                </Button>
               </div>
             </div>
           )}
