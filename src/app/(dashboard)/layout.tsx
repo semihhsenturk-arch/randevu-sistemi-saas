@@ -3,6 +3,8 @@
 import { Sidebar } from "@/components/Sidebar";
 import { DemoBanner } from "@/components/DemoBanner";
 import { DemoTour } from "@/components/DemoTour";
+import { TrialBanner } from "@/components/TrialBanner";
+import { useAuth } from "@/hooks/use-auth";
 import { useState, useEffect } from "react";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +16,7 @@ export default function DashboardLayout({
 }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
+  const { profile, isTrialActive, isLoading } = useAuth();
 
   useEffect(() => {
     setIsDemoMode(
@@ -21,14 +24,29 @@ export default function DashboardLayout({
     );
   }, []);
 
+  // Determine if trial banner should show (not demo, in trial, not paid, not admin)
+  const showTrialBanner =
+    !isDemoMode &&
+    !isLoading &&
+    isTrialActive &&
+    profile?.payment_status !== "paid" &&
+    profile?.payment_status !== "cancelled" &&
+    profile?.role !== "admin";
+
+  // Any top banner showing?
+  const hasTopBanner = isDemoMode || showTrialBanner;
+
   return (
     <div className="flex min-h-screen w-full bg-slate-50 overflow-x-hidden">
       {/* Demo Banner — fixed top bar with countdown */}
       {isDemoMode && <DemoBanner />}
       {isDemoMode && <DemoTour />}
 
+      {/* Trial Banner — fixed top bar with 7-day countdown */}
+      {showTrialBanner && <TrialBanner />}
+
       {/* Mobile Header */}
-      <div className={`xl:hidden fixed left-0 right-0 h-16 bg-[#1e293b] border-b border-white/5 flex items-center px-5 z-40 shadow-lg gap-4 ${isDemoMode ? "top-[52px]" : "top-0"}`}>
+      <div className={`xl:hidden fixed left-0 right-0 h-16 bg-[#1e293b] border-b border-white/5 flex items-center px-5 z-40 shadow-lg gap-4 ${hasTopBanner ? "top-[52px]" : "top-0"}`}>
         <Button 
           variant="ghost" 
           size="icon" 
@@ -47,7 +65,7 @@ export default function DashboardLayout({
 
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
       
-      <main className={`flex-1 xl:ml-[280px] p-4 md:p-6 lg:p-8 w-full max-w-[1600px] mx-auto min-h-screen transition-all ${isDemoMode ? "pt-[100px] md:pt-[100px] lg:pt-[100px] xl:pt-[60px]" : "pt-24 md:pt-24 lg:pt-24 xl:pt-8"}`}>
+      <main className={`flex-1 xl:ml-[280px] p-4 md:p-6 lg:p-8 w-full max-w-[1600px] mx-auto min-h-screen transition-all ${hasTopBanner ? "pt-[100px] md:pt-[100px] lg:pt-[100px] xl:pt-[60px]" : "pt-24 md:pt-24 lg:pt-24 xl:pt-8"}`}>
         {children}
       </main>
     </div>
