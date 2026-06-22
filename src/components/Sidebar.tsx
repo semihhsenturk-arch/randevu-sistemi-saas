@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { CalendarDays, Contact, Warehouse, ChartPie, HelpCircle, LogOut, Users, Lock, CreditCard, Layers, X } from "lucide-react";
+import { CalendarDays, Contact, Warehouse, ChartPie, HelpCircle, LogOut, Users, Lock, CreditCard, Layers, X, Settings } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -19,7 +19,8 @@ export function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean; setIsOpen?: (
   const [hasSent, setHasSent] = useState(false);
 
   // Ödeme yapılmamışsa VE deneme süresi aktif değilse /odeme dışındaki sayfalara erişimi engelle
-  const needsPayment = !isLoading && profile && profile.payment_status !== 'paid' && !isTrialActive && profile.role !== 'admin';
+  // "cancelled" durumundaki kullanıcılar da dönem sonuna kadar erişebilir
+  const needsPayment = !isLoading && profile && profile.payment_status !== 'paid' && profile.payment_status !== 'cancelled' && !isTrialActive && profile.role !== 'admin';
 
   useEffect(() => {
     if (needsPayment && pathname !== '/odeme') {
@@ -33,6 +34,7 @@ export function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean; setIsOpen?: (
     { href: "/stok-yonetimi", label: "Stok Yönetimi", icon: Warehouse, minTier: "advanced" },
     { href: "/dashboard", label: "Analiz", icon: ChartPie, minTier: "advanced" },
     { href: "/hizmet-yonetimi", label: "Hizmet Yönetimi", icon: Layers, minTier: "starter" },
+    { href: "/ayarlar", label: "Ayarlar", icon: Settings, minTier: "starter" },
   ];
 
   const isDemo = typeof window !== 'undefined' && localStorage.getItem('demo_mode') === 'true';

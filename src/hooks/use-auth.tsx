@@ -20,9 +20,10 @@ export interface UserProfile {
   role: string;
   is_approved: boolean;
   plan?: PlanType;
-  payment_status?: "pending" | "paid";
+  payment_status?: "pending" | "paid" | "cancelled";
   billing_cycle?: "monthly" | "yearly";
   approved_at?: string;
+  cancelled_at?: string;
   google_sheet_url?: string;
 }
 
@@ -239,7 +240,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               ? (new Date().getTime() - new Date(currentProfile.approved_at).getTime()) < 7 * 24 * 60 * 60 * 1000
               : false;
 
-            const target = (currentProfile && currentProfile.payment_status !== 'paid' && !isTrialActive && currentProfile.role !== 'admin')
+            const target = (currentProfile && currentProfile.payment_status !== 'paid' && currentProfile.payment_status !== 'cancelled' && !isTrialActive && currentProfile.role !== 'admin')
               ? "/odeme"
               : "/takvim";
             
