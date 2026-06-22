@@ -7,7 +7,41 @@ import { PLAN_PRICES, PlanType, BillingCycle } from "@/lib/iyzico-config";
 import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, CreditCard, Loader2, AlertCircle, ArrowRight, Shield, Zap, ShieldCheck, Star, Sparkles } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { CheckCircle, CreditCard, Loader2, AlertCircle, ArrowRight, Shield, Zap, ShieldCheck, Star, Sparkles, Crown } from "lucide-react";
+
+const PLANS: { key: PlanType; icon: any; color: string; bg: string; border: string; features: string[] }[] = [
+  {
+    key: "starter",
+    icon: Zap,
+    color: "text-amber-500",
+    bg: "bg-amber-50",
+    border: "border-amber-200",
+    features: ["Randevu Takvimi", "E-posta & WhatsApp Desteği", "KVKK Uyumu"],
+  },
+  {
+    key: "professional",
+    icon: ShieldCheck,
+    color: "text-emerald-500",
+    bg: "bg-emerald-50",
+    border: "border-emerald-200",
+    features: ["Starter'daki her şey", "Hasta Listesi & Kayıt Yönetimi", "Dijital Onam Formu"],
+  },
+  {
+    key: "advanced",
+    icon: Star,
+    color: "text-purple-500",
+    bg: "bg-purple-50",
+    border: "border-purple-200",
+    features: ["Professional'daki her şey", "Stok Yönetimi", "Detaylı Analiz & Raporlama", "Google Sheets Senkronu"],
+  },
+];
 
 function OdemeContent() {
   const { profile, user, isLoading, refreshProfile, isTrialActive } = useAuth();
@@ -22,6 +56,33 @@ function OdemeContent() {
   // URL params'dan callback durumu kontrol - useSearchParams bazen gecikebilir veya Suspense hatası verebilir
   const [callbackStatus, setCallbackStatus] = useState<string | null>(null);
   const [callbackMessage, setCallbackMessage] = useState<string | null>(null);
+  const [changePlanDialogOpen, setChangePlanDialogOpen] = useState(false);
+  const [changingPlan, setChangingPlan] = useState(false);
+
+  const handleChangePlan = async (newPlan: PlanType) => {
+    setChangingPlan(true);
+    try {
+      const res = await fetch("/api/auth/set-plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user?.id,
+          plan: newPlan,
+          billingCycle: profile?.billing_cycle || "monthly",
+          email: profile?.email || user?.email,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        await refreshProfile();
+        setChangePlanDialogOpen(false);
+      }
+    } catch (e) {
+      console.error("Plan change error:", e);
+    } finally {
+      setChangingPlan(false);
+    }
+  };
 
   useEffect(() => {
     // Client-side'da window.location'dan doğrudan al
@@ -368,7 +429,15 @@ function OdemeContent() {
                   </div>
                   <div>
                     <h3 className="font-extrabold text-slate-900">{planData.name}</h3>
-                    <p className="text-xs text-slate-500">{cycle === "monthly" ? "Aylık Abonelik" : "Yıllık Abonelik"}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs text-slate-500">{cycle === "monthly" ? "Aylık Abonelik" : "Yıllık Abonelik"}</p>
+                      <button 
+                        onClick={() => setChangePlanDialogOpen(true)}
+                        className="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 underline underline-offset-2"
+                      >
+                        Değiştir
+                      </button>
+                    </div>
                   </div>
                 </div>
                 <div className="flex flex-col items-end justify-center">
@@ -422,6 +491,78 @@ function OdemeContent() {
           </CardContent>
         </Card>
       )}
+
+      {/* Paket Değiştir Modalı */}
+      <Dialog open={changePlanDialogOpen} onOpenChange={setChangePlanDialogOpen}>
+        <DialogContent className="sm:max-w-[520px]">
+          <DialogHeader>
+            <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-2">
+              <Crown className="w-7 h-7 text-emerald-600" />
+            </div>
+            <DialogTitle className="text-xl font-extrabold text-slate-900 text-center">
+              Paket Seçimi
+            </DialogTitle>
+            <DialogDescription className="text-center text-sm text-slate-500 pt-1">
+              İhtiyacınıza uygun paketi seçerek ödemenize devam edebilirsiniz.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2 max-h-[60vh] overflow-y-auto pr-1">
+            {PLANS.map((p) => {
+              const Icon = p.icon;
+              const pd = PLAN_PRICES[p.key];
+              const isCurrentPlan = p.key === plan;
+              return (
+                <button
+                  key={p.key}
+                  onClick={() => {
+                    if (!isCurrentPlan) handleChangePlan(p.key);
+                  }}
+                  disabled={changingPlan || isCurrentPlan}
+                  className={`w-full text-left rounded-2xl border-2 p-5 transition-all group ${
+                    isCurrentPlan 
+                      ? `${p.border} ${p.bg} ring-2 ring-offset-2 ring-${p.color.replace("text-", "")} opacity-100` 
+                      : `border-slate-200 bg-white hover:border-slate-300 hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.98] ${changingPlan ? 'opacity-50' : ''}`
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-11 h-11 rounded-xl ${p.bg} border ${p.border} flex items-center justify-center`}>
+                        <Icon className={`w-6 h-6 ${p.color}`} />
+                      </div>
+                      <div>
+                        <h4 className="font-extrabold text-slate-900 flex items-center gap-2">
+                          {pd.name}
+                          {isCurrentPlan && (
+                            <span className="bg-emerald-500 text-white text-[9px] px-1.5 py-0.5 rounded-sm uppercase tracking-wider">
+                              Seçili
+                            </span>
+                          )}
+                        </h4>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          {p.features.join(" • ")}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0 ml-3">
+                      <p className="text-xl font-black text-slate-900">{pd.monthly.toLocaleString("tr-TR")} ₺</p>
+                      <p className="text-[10px] font-bold text-slate-400">/ay</p>
+                    </div>
+                  </div>
+                  {!isCurrentPlan && (
+                    <div className="mt-3 flex items-center justify-center gap-1.5 text-sm font-bold text-emerald-600 group-hover:text-emerald-700">
+                      {changingPlan ? (
+                        <><Loader2 className="w-4 h-4 animate-spin" /> Yönlendiriliyor...</>
+                      ) : (
+                        <>Bu Paketi Seç <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" /></>
+                      )}
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
