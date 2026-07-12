@@ -46,7 +46,7 @@ export function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean; setIsOpen?: (
     if (!supportMessage.trim()) return;
     setIsSending(true);
     try {
-      const SUPPORT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwPSOfJE332q-Ci1XOAfLtY6CBY0IzyB_HmpAJUgtPMoGzrFM_ND5RpHtzpzLX12-dM/exec';
+      const SUPPORT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyxbUp848x-F_H5Jf1IjX5kTzGzW6_nCPxFd7UODQ8a57_oZ1gDpaj66H0tldyg8SmRbA/exec';
       await fetch(SUPPORT_SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',

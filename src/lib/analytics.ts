@@ -38,11 +38,23 @@ export const getDemoEventsSummary = () => {
     const events = JSON.parse(eventsStr);
     
     // Özet istatistikler çıkar
+    const pageViewEvents = events.filter((e: any) => e.eventName === 'Page_Viewed');
+    const uniquePages = new Set(pageViewEvents.map((e: any) => e.path));
+    
     const summary = {
-      pageViews: events.filter((e: any) => e.eventName === 'Page_Viewed').length,
+      totalEvents: events.length,
+      pageViews: pageViewEvents.length,
       appointmentsCreated: events.filter((e: any) => e.eventName === 'Appointment_Created').length,
       appointmentsMoved: events.filter((e: any) => e.eventName === 'Appointment_Moved').length,
-      featuresExplored: new Set(events.filter((e: any) => e.eventName === 'Page_Viewed').map((e: any) => e.path)).size,
+      patientsViewed: events.filter((e: any) => e.eventName === 'Patient_Viewed').length,
+      faceMapUsed: events.filter((e: any) => e.eventName === 'FaceMap_Used').length,
+      consentSigned: events.filter((e: any) => e.eventName === 'Consent_Signed').length,
+      stockUsed: events.filter((e: any) => e.eventName === 'Stock_Used').length,
+      beforeAfterViewed: events.filter((e: any) => e.eventName === 'BeforeAfter_Viewed').length,
+      featuresExplored: uniquePages.size,
+      visitedPages: Array.from(uniquePages) as string[],
+      // Kronolojik oturum akışı
+      sessionFlow: pageViewEvents.map((e: any) => e.path).filter(Boolean),
     };
     
     return summary;
@@ -58,7 +70,7 @@ export const clearAnalytics = () => {
   }
 };
 
-const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwPSOfJE332q-Ci1XOAfLtY6CBY0IzyB_HmpAJUgtPMoGzrFM_ND5RpHtzpzLX12-dM/exec";
+const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyxbUp848x-F_H5Jf1IjX5kTzGzW6_nCPxFd7UODQ8a57_oZ1gDpaj66H0tldyg8SmRbA/exec";
 
 export const sendAnalyticsToWebhook = async () => {
   if (typeof window === 'undefined') return;
@@ -66,14 +78,46 @@ export const sendAnalyticsToWebhook = async () => {
   // Prevent sending multiple times
   if (localStorage.getItem('demo_analytics_sent') === 'true') return;
   
-  const summary = getDemoEventsSummary();
+  const summary = getDemoEventsSummary() as any;
   // Don't send if empty
-  if (Object.keys(summary).length === 0 || (summary as any).pageViews === 0) return;
+  if (Object.keys(summary).length === 0 || summary.pageViews === 0) return;
 
-  const leadName = localStorage.getItem('demo_lead_name') || 'Anonim';
-  const leadPhone = localStorage.getItem('demo_lead_phone') || 'Bilinmiyor';
-  const leadClinic = localStorage.getItem('demo_lead_clinic') || 'Bilinmiyor';
+  // Read lead info — try individual keys first, then fall back to JSON blob
+  let leadName = localStorage.getItem('demo_lead_name') || 'Anonim';
+  let leadPhone = localStorage.getItem('demo_lead_phone') || 'Bilinmiyor';
+  let leadClinic = localStorage.getItem('demo_lead_clinic') || 'Bilinmiyor';
+  
+  // Fallback: try parsing the demo_lead JSON blob
+  if (leadName === 'Anonim') {
+    try {
+      const leadBlob = localStorage.getItem('demo_lead');
+      if (leadBlob) {
+        const parsed = JSON.parse(leadBlob);
+        leadName = parsed.name || 'Anonim';
+        leadPhone = parsed.phone || 'Bilinmiyor';
+        leadClinic = parsed.clinic || 'Bilinmiyor';
+      }
+    } catch {}
+  }
+
   const duration = localStorage.getItem('demo_duration_minutes') || 'Bilinmiyor';
+
+  // Build detailed message
+  const visitedPages = (summary.visitedPages || []).join(', ') || 'Yok';
+  const detailLines = [
+    `Demo Süresi: ${duration} dk`,
+    `Gezilen Sayfa: ${summary.pageViews}`,
+    `Görülen Modül: ${summary.featuresExplored}`,
+    `Ziyaret Edilen Sayfalar: ${visitedPages}`,
+    `Eklenen Randevu: ${summary.appointmentsCreated}`,
+    `Taşınan Randevu: ${summary.appointmentsMoved}`,
+    `Görüntülenen Hasta Profili: ${summary.patientsViewed || 0}`,
+    `Yüz Haritası Kullanımı: ${summary.faceMapUsed || 0}`,
+    `İmzalanan Onam Formu: ${summary.consentSigned || 0}`,
+    `Stok Malzeme Kullanımı: ${summary.stockUsed || 0}`,
+    `Önce/Sonra Karşılaştırma: ${summary.beforeAfterViewed || 0}`,
+    `Toplam Olay: ${summary.totalEvents || 0}`,
+  ];
 
   try {
     const formData = new FormData();
@@ -81,7 +125,7 @@ export const sendAnalyticsToWebhook = async () => {
     formData.append("ad", leadName);
     formData.append("telefon", leadPhone);
     formData.append("klinik", leadClinic);
-    formData.append("mesaj", `Demo Süresi: ${duration} dk. Gezilen Sayfa: ${(summary as any).pageViews}, Görülen Modül: ${(summary as any).featuresExplored}, Eklenen Randevu: ${(summary as any).appointmentsCreated}, Taşınan Randevu: ${(summary as any).appointmentsMoved}`);
+    formData.append("mesaj", detailLines.join('. '));
     
     // We use no-cors so we don't await the actual response text, just send and forget
     fetch(WEBHOOK_URL, {
@@ -96,4 +140,3 @@ export const sendAnalyticsToWebhook = async () => {
     console.error("📊 [Analytics] Failed to send report to webhook:", error);
   }
 };
-

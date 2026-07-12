@@ -22,6 +22,7 @@ import { RefreshCw, Check, X, AlertTriangle, Trash2, Loader2, Settings } from "l
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { trackEvent } from "@/lib/analytics";
 
 // DND Kit Imports
 import { 
@@ -43,7 +44,7 @@ import { CalendarHeader } from "@/components/calendar/CalendarHeader";
 import { DraggableAppointment } from "@/components/calendar/DraggableAppointment";
 import { DroppableSlot } from "@/components/calendar/DroppableSlot";
 
-const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwPSOfJE332q-Ci1XOAfLtY6CBY0IzyB_HmpAJUgtPMoGzrFM_ND5RpHtzpzLX12-dM/exec";
+const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyxbUp848x-F_H5Jf1IjX5kTzGzW6_nCPxFd7UODQ8a57_oZ1gDpaj66H0tldyg8SmRbA/exec";
 
 const SHIFTS = Array.from({ length: 18 }, (_, i) => {
   const hour = Math.floor(i / 2) + 9;
@@ -420,6 +421,7 @@ export default function CalendarPage() {
 
     const updated = { ...apt, tarih: date, saat: time };
     setAppointments(prev => prev.map(a => a.id === aptId ? updated : a));
+    trackEvent("Appointment_Moved", { from: `${apt.tarih} ${apt.saat}`, to: `${date} ${time}`, patient: apt.musteriAdi });
     try {
       const saved = await saveAppointment(updated);
       if (saved && saved.id !== aptId) {
@@ -478,6 +480,9 @@ export default function CalendarPage() {
 
     setAppointments(prev => currentApt.id ? prev.map(a => a.id === payload.id ? payload : a) : [...prev, payload]);
     setModalOpen(false);
+    if (!currentApt.id) {
+      trackEvent("Appointment_Created", { patient: payload.musteriAdi, date: payload.tarih, time: payload.saat });
+    }
     
     try {
       const saved = await saveAppointment(payload);

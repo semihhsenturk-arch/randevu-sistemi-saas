@@ -21,17 +21,20 @@ export function DemoLeadModal({ open, onClose }: DemoLeadModalProps) {
     if (!name.trim() || !phone.trim()) return;
     setIsSending(true);
 
-    // Save lead info locally
+    // Save lead info locally (individual keys for analytics webhook compatibility)
     localStorage.setItem("demo_lead", JSON.stringify({
       name: name.trim(),
       phone: phone.trim(),
       clinic: clinic.trim() || undefined,
       timestamp: new Date().toISOString(),
     }));
+    localStorage.setItem("demo_lead_name", name.trim());
+    localStorage.setItem("demo_lead_phone", phone.trim());
+    localStorage.setItem("demo_lead_clinic", clinic.trim() || "Belirtilmedi");
 
     // Fire-and-forget: send lead to Google Apps Script
     try {
-      const LEAD_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwPSOfJE332q-Ci1XOAfLtY6CBY0IzyB_HmpAJUgtPMoGzrFM_ND5RpHtzpzLX12-dM/exec';
+      const LEAD_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyxbUp848x-F_H5Jf1IjX5kTzGzW6_nCPxFd7UODQ8a57_oZ1gDpaj66H0tldyg8SmRbA/exec';
       fetch(LEAD_SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
@@ -45,6 +48,7 @@ export function DemoLeadModal({ open, onClose }: DemoLeadModalProps) {
 
     // Full 30-min demo
     localStorage.setItem("demo_duration_override", "30");
+    localStorage.setItem("demo_duration_minutes", "30");
     seedDemoData();
     window.location.href = "/takvim";
   };
@@ -52,6 +56,7 @@ export function DemoLeadModal({ open, onClose }: DemoLeadModalProps) {
   const handleSkip = () => {
     // Reduced 15-min demo for skippers
     localStorage.setItem("demo_duration_override", "15");
+    localStorage.setItem("demo_duration_minutes", "15");
     seedDemoData();
     window.location.href = "/takvim";
   };

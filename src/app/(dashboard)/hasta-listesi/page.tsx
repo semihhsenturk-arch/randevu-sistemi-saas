@@ -23,6 +23,7 @@ import { InputDatePicker } from "@/components/ui/input-date-picker";
 import { useAuth } from "@/hooks/use-auth";
 import { UpgradeScreen } from "@/components/UpgradeScreen";
 import { toast } from "sonner";
+import { trackEvent } from "@/lib/analytics";
 
 export default function PatientListPage() {
   const router = useRouter();
@@ -170,6 +171,7 @@ export default function PatientListPage() {
     setNoteMuayene("");
     setModalOpen(true);
     setActiveTab("info");
+    trackEvent("Patient_Viewed", { patient: name });
 
     // Load consent records for this patient
     getConsentRecords(name).then(records => setPatientConsents(records)).catch(() => {});
@@ -332,6 +334,7 @@ export default function PatientListPage() {
     setProfiles(prev => ({ ...prev, [selectedPatientName]: updatedProf }));
     setMaterialModalOpen(false);
     setCurrentCart([]);
+    trackEvent("Stock_Used", { patient: selectedPatientName, items: finalCart.length });
 
     // 3. Background Saves
     try {
@@ -579,6 +582,8 @@ export default function PatientListPage() {
                           router.push(`/takvim?newApt=true&name=${encodeURIComponent(selectedPatientName)}&phone=${encodeURIComponent(pPhone || selectedPatientPhone)}`);
                         } else {
                           setActiveTab(tab.id as any);
+                          if (tab.id === 'facemap') trackEvent("FaceMap_Used", { patient: selectedPatientName });
+                          if (tab.id === 'before-after') trackEvent("BeforeAfter_Viewed", { patient: selectedPatientName });
                         }
                       }}
                     >

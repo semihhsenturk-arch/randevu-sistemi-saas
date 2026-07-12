@@ -441,9 +441,15 @@ export const clearDemoData = () => {
   localStorage.removeItem("demo_seeded");
   localStorage.removeItem("demo_started_at");
   localStorage.removeItem("demo_duration_override");
+  localStorage.removeItem("demo_duration_minutes");
   localStorage.removeItem("demo_lead");
+  localStorage.removeItem("demo_lead_name");
+  localStorage.removeItem("demo_lead_phone");
+  localStorage.removeItem("demo_lead_clinic");
   localStorage.removeItem("demo_tours_seen");
   localStorage.removeItem("demo_tours_enabled");
+  localStorage.removeItem("demo_events");
+  localStorage.removeItem("demo_analytics_sent");
   localStorage.removeItem("cache_services");
   localStorage.removeItem("cache_appointments");
   localStorage.removeItem("cache_patient_profiles");

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { SignatureCanvas, SignatureCanvasHandle } from "@/components/SignatureCanvas";
 import { useDatabase, ConsentRecord } from "@/hooks/use-database";
 import { toast } from "sonner";
+import { trackEvent } from "@/lib/analytics";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale/tr";
 import {
@@ -156,6 +157,7 @@ export function ConsentFormModal({
       };
 
       await saveConsentRecord(record);
+      trackEvent("Consent_Signed", { patient: patientName, date: appointmentDate });
       toast.success("Onam Formu Kaydedildi", {
         description: `${patientName} için dijital onam formu başarıyla oluşturuldu.`,
       });
