@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import { tr } from "date-fns/locale/tr";
 import { useAuth } from "@/hooks/use-auth";
 import { UpgradeScreen } from "@/components/UpgradeScreen";
+import { toast } from "sonner";
 
 export default function StockManagementPage() {
   const { profile, isLoading, checkAccess } = useAuth();
@@ -61,6 +62,16 @@ export default function StockManagementPage() {
     
     await saveInventoryItem(item, newQty);
     setInventory(prev => ({ ...prev, stock: { ...prev.stock, [item.id]: newQty } }));
+    
+    if (delta > 0) {
+      toast.success(`${item.ad} stoku eklendi.`, {
+        description: `Yeni Stok: ${newQty} ${item.birim}`
+      });
+    } else {
+      toast.info(`${item.ad} stoku kullanıldı.`, {
+        description: `Kalan Stok: ${newQty} ${item.birim}`
+      });
+    }
   };
 
   const handleCreateNew = async (e: React.FormEvent) => {
@@ -73,6 +84,7 @@ export default function StockManagementPage() {
       items: [...prev.items, itemObj],
       stock: { ...prev.stock, [id]: newItem.baslangic }
     }));
+    toast.success(`${newItem.ad} stoka eklendi.`);
     setModalOpen(false);
     setNewItem({ ad: "", birim: "Adet", kritik: 10, baslangic: 0 });
   };
@@ -84,6 +96,7 @@ export default function StockManagementPage() {
       items: prev.items.filter(i => i.id !== selectedItemToDelete.id),
       stock: { ...prev.stock, [selectedItemToDelete.id]: 0 }
     }));
+    toast.success(`${selectedItemToDelete.ad} başarıyla silindi.`);
     setConfirmDeleteOpen(false);
     setSelectedItemToDelete(null);
   };
