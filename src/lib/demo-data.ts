@@ -442,6 +442,8 @@ export const clearDemoData = () => {
   localStorage.removeItem("demo_started_at");
   localStorage.removeItem("demo_duration_override");
   localStorage.removeItem("demo_lead");
+  localStorage.removeItem("demo_tours_seen");
+  localStorage.removeItem("demo_tours_enabled");
   localStorage.removeItem("cache_services");
   localStorage.removeItem("cache_appointments");
   localStorage.removeItem("cache_patient_profiles");

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { getDemoTimeRemaining, getDemoDurationMs, clearDemoData } from "@/lib/demo-data";
 import { sendAnalyticsToWebhook, getDemoEventsSummary } from "@/lib/analytics";
-import { Timer, Rocket, ArrowRight, RotateCcw, Phone, CheckCircle2 } from "lucide-react";
+import { Timer, Rocket, ArrowRight, RotateCcw, Phone, CheckCircle2, Info, InfoIcon } from "lucide-react";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 
 export function DemoBanner() {
@@ -12,6 +12,7 @@ export function DemoBanner() {
   const [duration, setDuration] = useState<number>(30 * 60 * 1000);
   const [isExpired, setIsExpired] = useState(false);
   const [summary, setSummary] = useState<any>({});
+  const [toursEnabled, setToursEnabled] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
@@ -24,6 +25,16 @@ export function DemoBanner() {
     if (initial !== null && initial <= 0) {
       setIsExpired(true);
       setSummary(getDemoEventsSummary());
+    }
+
+    // Initialize tours enabled state from localStorage
+    const storedToursEnabled = localStorage.getItem("demo_tours_enabled");
+    // Default to true (enabled) on first visit
+    if (storedToursEnabled === null) {
+      localStorage.setItem("demo_tours_enabled", "true");
+      setToursEnabled(true);
+    } else {
+      setToursEnabled(storedToursEnabled === "true");
     }
 
     const timer = setInterval(() => {
@@ -39,6 +50,17 @@ export function DemoBanner() {
 
     return () => clearInterval(timer);
   }, []);
+
+  const handleToggleTours = useCallback(() => {
+    const newState = !toursEnabled;
+    setToursEnabled(newState);
+    localStorage.setItem("demo_tours_enabled", newState.toString());
+    
+    // Dispatch custom event so DemoTour component reacts
+    window.dispatchEvent(new CustomEvent("toggle_demo_tours", { 
+      detail: { enabled: newState } 
+    }));
+  }, [toursEnabled]);
 
   const handleEndDemo = useCallback(() => {
     sendAnalyticsToWebhook();
@@ -166,8 +188,8 @@ export function DemoBanner() {
             </div>
           </div>
 
-          {/* Center: Progress bar and Site Turu */}
-          <div className="hidden sm:flex flex-1 max-w-md items-center gap-4 justify-center">
+          {/* Center: Progress bar, Site Turu and Tours Toggle */}
+          <div className="hidden sm:flex flex-1 max-w-lg items-center gap-3 justify-center">
             <button
               onClick={() => window.dispatchEvent(new Event("start_demo_tour"))}
               className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-all active:scale-95 border border-white/10"
@@ -175,6 +197,21 @@ export function DemoBanner() {
               <CheckCircle2 className="w-3.5 h-3.5" />
               Site Turu
             </button>
+            
+            {/* Tours Toggle Button */}
+            <button
+              onClick={handleToggleTours}
+              title={toursEnabled ? "Bilgilendirme kutularını kapat" : "Bilgilendirme kutularını aç"}
+              className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg transition-all active:scale-95 border ${
+                toursEnabled 
+                  ? "bg-amber-500/20 text-amber-300 border-amber-400/30 hover:bg-amber-500/30" 
+                  : "bg-white/5 text-white/40 border-white/10 hover:bg-white/10 hover:text-white/60"
+              }`}
+            >
+              <Info className="w-3.5 h-3.5" />
+              {toursEnabled ? "Rehber Açık" : "Rehber Kapalı"}
+            </button>
+
             <div className="flex items-center gap-2 flex-1 max-w-[200px]">
               <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
                 <div
@@ -190,6 +227,18 @@ export function DemoBanner() {
 
           {/* Right: CTA buttons */}
           <div className="flex items-center gap-2 shrink-0">
+            {/* Mobile-only tours toggle */}
+            <button
+              onClick={handleToggleTours}
+              title={toursEnabled ? "Bilgilendirme kutularını kapat" : "Bilgilendirme kutularını aç"}
+              className={`sm:hidden flex items-center justify-center w-8 h-8 rounded-lg transition-all active:scale-95 border ${
+                toursEnabled 
+                  ? "bg-amber-500/20 text-amber-300 border-amber-400/30" 
+                  : "bg-white/5 text-white/40 border-white/10"
+              }`}
+            >
+              <Info className="w-4 h-4" />
+            </button>
             <button
               onClick={handleRegister}
               className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3.5 py-1.5 rounded-lg transition-all hover:shadow-lg hover:shadow-emerald-500/20 active:scale-95"

@@ -200,14 +200,19 @@ export function DemoTour() {
     const isDemo = localStorage.getItem("demo_mode") === "true";
     if (!isDemo) return;
 
+    // Check if tours are enabled — default to true if not set (first visit)
+    const toursEnabled = localStorage.getItem("demo_tours_enabled") !== "false";
+    
     const seenMap = JSON.parse(localStorage.getItem("demo_tours_seen") || "{}");
     const pageSteps = getStepsForPath(pathname);
     
     if (pageSteps.length > 0) {
       setSteps(pageSteps);
       
-      // Auto-start only if we haven't seen it, OR if explicitly forced (e.g. clicking Site Turu)
-      if (!seenMap[pathname] || forceRun) {
+      // Auto-start only if:
+      // 1. Tours are enabled AND we haven't seen this page's tour yet, OR
+      // 2. Explicitly forced (e.g. clicking "Site Turu" button)
+      if (forceRun || (toursEnabled && !seenMap[pathname])) {
         setRun(false);
         setTimeout(() => setRun(true), forceRun ? 300 : 1200);
       }
@@ -227,6 +232,25 @@ export function DemoTour() {
     return () => window.removeEventListener("start_demo_tour", handleStartDemoTour);
   }, [initTour]);
 
+  // Listen for tours enabled/disabled toggle
+  useEffect(() => {
+    const handleToursToggle = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const enabled = customEvent.detail?.enabled;
+      if (enabled) {
+        // When re-enabled, reset all seen states so tours show again
+        localStorage.removeItem("demo_tours_seen");
+        // Trigger the current page's tour
+        initTour(true);
+      } else {
+        // When disabled, stop any running tour
+        setRun(false);
+      }
+    };
+    window.addEventListener("toggle_demo_tours", handleToursToggle);
+    return () => window.removeEventListener("toggle_demo_tours", handleToursToggle);
+  }, [initTour]);
+
   const handleJoyrideCallback = (data: CallBackProps) => {
     const { status, action, index, type } = data;
     const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
@@ -240,6 +264,7 @@ export function DemoTour() {
 
     if (finishedStatuses.includes(status) || action === ACTIONS.CLOSE) {
       setRun(false);
+      // Mark this page's tour as seen
       const seenMap = JSON.parse(localStorage.getItem("demo_tours_seen") || "{}");
       seenMap[pathname] = true;
       localStorage.setItem("demo_tours_seen", JSON.stringify(seenMap));
