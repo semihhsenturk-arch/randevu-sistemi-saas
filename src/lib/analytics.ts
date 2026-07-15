@@ -120,18 +120,18 @@ export const sendAnalyticsToWebhook = async () => {
   ];
 
   try {
-    const formData = new FormData();
-    formData.append("tip", "Demo_Analitik_Raporu");
-    formData.append("ad", leadName);
-    formData.append("telefon", leadPhone);
-    formData.append("klinik", leadClinic);
-    formData.append("mesaj", detailLines.join('. '));
+    const params = new URLSearchParams();
+    params.append("tip", "Demo_Analitik_Raporu");
+    params.append("ad", leadName);
+    params.append("telefon", leadPhone);
+    params.append("klinik", leadClinic);
+    params.append("mesaj", detailLines.join('. '));
     
-    // We use no-cors so we don't await the actual response text, just send and forget
     fetch(WEBHOOK_URL, {
       method: "POST",
       mode: "no-cors",
-      body: formData,
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: params.toString(),
     });
     
     localStorage.setItem('demo_analytics_sent', 'true');

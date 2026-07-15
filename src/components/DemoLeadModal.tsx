@@ -32,19 +32,20 @@ export function DemoLeadModal({ open, onClose }: DemoLeadModalProps) {
     localStorage.setItem("demo_lead_phone", phone.trim());
     localStorage.setItem("demo_lead_clinic", clinic.trim() || "Belirtilmedi");
 
-    // Fire-and-forget: send lead to Google Apps Script (FormData for no-cors compatibility)
+    // Fire-and-forget: send lead to Google Apps Script (URLSearchParams for e.parameter compatibility)
     try {
       const LEAD_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwciYrNdgDOai3YdjQV3Ks1N9JDjcpRg36Z5PDBz_KkWrs_8V4kUNyF05-vlEkJfg-ieA/exec';
-      const formData = new FormData();
-      formData.append('tip', 'Demo_Lead');
-      formData.append('ad', name.trim());
-      formData.append('telefon', phone.trim());
-      formData.append('klinik', clinic.trim() || 'Belirtilmedi');
-      formData.append('mesaj', `🎯 YENİ DEMO LEAD - Demo başlatıldı`);
+      const params = new URLSearchParams();
+      params.append('tip', 'Demo_Lead');
+      params.append('ad', name.trim());
+      params.append('telefon', phone.trim());
+      params.append('klinik', clinic.trim() || 'Belirtilmedi');
+      params.append('mesaj', '🎯 YENİ DEMO LEAD - Demo başlatıldı');
       fetch(LEAD_SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
-        body: formData,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params.toString(),
       }).catch(() => {});
     } catch {}
 
