@@ -34,7 +34,7 @@ export function DemoLeadModal({ open, onClose }: DemoLeadModalProps) {
 
     // Fire-and-forget: send lead to Google Apps Script (URLSearchParams for e.parameter compatibility)
     try {
-      const LEAD_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwciYrNdgDOai3YdjQV3Ks1N9JDjcpRg36Z5PDBz_KkWrs_8V4kUNyF05-vlEkJfg-ieA/exec';
+      const LEAD_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwpKL3U1FQZM6B8XHOaQcyH3kDC90wsBoTBjqfltwVy72K1qJ4zUpAdiQRAqCwRRzL26A/exec';
       const params = new URLSearchParams();
       params.append('tip', 'Demo_Lead');
       params.append('ad', name.trim());

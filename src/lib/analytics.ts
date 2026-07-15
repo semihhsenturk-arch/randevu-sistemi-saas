@@ -70,7 +70,7 @@ export const clearAnalytics = () => {
   }
 };
 
-const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwciYrNdgDOai3YdjQV3Ks1N9JDjcpRg36Z5PDBz_KkWrs_8V4kUNyF05-vlEkJfg-ieA/exec";
+const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwpKL3U1FQZM6B8XHOaQcyH3kDC90wsBoTBjqfltwVy72K1qJ4zUpAdiQRAqCwRRzL26A/exec";
 
 export const sendAnalyticsToWebhook = async () => {
   if (typeof window === 'undefined') return;
