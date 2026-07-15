@@ -34,7 +34,7 @@ export function DemoLeadModal({ open, onClose }: DemoLeadModalProps) {
 
     // Fire-and-forget: send lead to Google Apps Script
     try {
-      const LEAD_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyxbUp848x-F_H5Jf1IjX5kTzGzW6_nCPxFd7UODQ8a57_oZ1gDpaj66H0tldyg8SmRbA/exec';
+      const LEAD_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwciYrNdgDOai3YdjQV3Ks1N9JDjcpRg36Z5PDBz_KkWrs_8V4kUNyF05-vlEkJfg-ieA/exec';
       fetch(LEAD_SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
