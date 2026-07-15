@@ -127,11 +127,9 @@ export const sendAnalyticsToWebhook = async () => {
     params.append("klinik", leadClinic);
     params.append("mesaj", detailLines.join('. '));
     
-    fetch(WEBHOOK_URL, {
+    fetch(`${WEBHOOK_URL}?${params.toString()}`, {
       method: "POST",
       mode: "no-cors",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: params.toString(),
     });
     
     localStorage.setItem('demo_analytics_sent', 'true');

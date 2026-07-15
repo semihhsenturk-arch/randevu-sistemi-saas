@@ -32,7 +32,7 @@ export function DemoLeadModal({ open, onClose }: DemoLeadModalProps) {
     localStorage.setItem("demo_lead_phone", phone.trim());
     localStorage.setItem("demo_lead_clinic", clinic.trim() || "Belirtilmedi");
 
-    // Fire-and-forget: send lead to Google Apps Script (URLSearchParams for e.parameter compatibility)
+    // Fire-and-forget: send lead to Google Apps Script (query string → e.parameter garantili)
     try {
       const LEAD_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwpKL3U1FQZM6B8XHOaQcyH3kDC90wsBoTBjqfltwVy72K1qJ4zUpAdiQRAqCwRRzL26A/exec';
       const params = new URLSearchParams();
@@ -41,11 +41,9 @@ export function DemoLeadModal({ open, onClose }: DemoLeadModalProps) {
       params.append('telefon', phone.trim());
       params.append('klinik', clinic.trim() || 'Belirtilmedi');
       params.append('mesaj', '🎯 YENİ DEMO LEAD - Demo başlatıldı');
-      fetch(LEAD_SCRIPT_URL, {
+      fetch(`${LEAD_SCRIPT_URL}?${params.toString()}`, {
         method: 'POST',
         mode: 'no-cors',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params.toString(),
       }).catch(() => {});
     } catch {}
 
