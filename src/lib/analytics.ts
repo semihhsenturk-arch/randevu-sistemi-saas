@@ -70,7 +70,7 @@ export const clearAnalytics = () => {
   }
 };
 
-const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwfc8JSGlL4JetSTE4xwV4OMAONk1_GgYHyEKl2yrdADvDNENfAZxzdI7ycv9cctzmDeA/exec";
+const WEBHOOK_URL = "/api/demo-report";
 
 export const sendAnalyticsToWebhook = async () => {
   if (typeof window === 'undefined') return;
@@ -120,16 +120,16 @@ export const sendAnalyticsToWebhook = async () => {
   ];
 
   try {
-    const params = new URLSearchParams();
-    params.append("tip", "Demo_Analitik_Raporu");
-    params.append("ad", leadName);
-    params.append("telefon", leadPhone);
-    params.append("klinik", leadClinic);
-    params.append("mesaj", detailLines.join('. '));
-    
-    fetch(`${WEBHOOK_URL}?${params.toString()}`, {
-      method: "GET",
-      mode: "no-cors",
+    fetch('/api/demo-report', {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        tip: "Demo_Analitik_Raporu",
+        ad: leadName,
+        telefon: leadPhone,
+        klinik: leadClinic,
+        mesaj: detailLines.join('. ')
+      }),
     });
     
     localStorage.setItem('demo_analytics_sent', 'true');

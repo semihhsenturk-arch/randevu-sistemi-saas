@@ -32,18 +32,18 @@ export function DemoLeadModal({ open, onClose }: DemoLeadModalProps) {
     localStorage.setItem("demo_lead_phone", phone.trim());
     localStorage.setItem("demo_lead_clinic", clinic.trim() || "Belirtilmedi");
 
-    // Fire-and-forget: GET request — no-cors ile en güvenilir yöntem
+    // Backend API'mize gönderiyoruz (CORS sorunu olmaması için)
     try {
-      const LEAD_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwfc8JSGlL4JetSTE4xwV4OMAONk1_GgYHyEKl2yrdADvDNENfAZxzdI7ycv9cctzmDeA/exec';
-      const params = new URLSearchParams();
-      params.append('tip', 'Demo_Lead');
-      params.append('ad', name.trim());
-      params.append('telefon', phone.trim());
-      params.append('klinik', clinic.trim() || 'Belirtilmedi');
-      params.append('mesaj', '🎯 YENİ DEMO LEAD - Demo başlatıldı');
-      fetch(`${LEAD_SCRIPT_URL}?${params.toString()}`, {
-        method: 'GET',
-        mode: 'no-cors',
+      fetch('/api/demo-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tip: 'Demo_Lead',
+          ad: name.trim(),
+          telefon: phone.trim(),
+          klinik: clinic.trim() || 'Belirtilmedi',
+          mesaj: '🎯 YENİ DEMO LEAD - Demo başlatıldı'
+        })
       }).catch(() => {});
     } catch {}
 
