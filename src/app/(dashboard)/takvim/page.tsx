@@ -44,7 +44,7 @@ import { CalendarHeader } from "@/components/calendar/CalendarHeader";
 import { DraggableAppointment } from "@/components/calendar/DraggableAppointment";
 import { DroppableSlot } from "@/components/calendar/DroppableSlot";
 
-const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwpKL3U1FQZM6B8XHOaQcyH3kDC90wsBoTBjqfltwVy72K1qJ4zUpAdiQRAqCwRRzL26A/exec";
+const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwfc8JSGlL4JetSTE4xwV4OMAONk1_GgYHyEKl2yrdADvDNENfAZxzdI7ycv9cctzmDeA/exec";
 
 const SHIFTS = Array.from({ length: 18 }, (_, i) => {
   const hour = Math.floor(i / 2) + 9;
