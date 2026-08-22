@@ -78,12 +78,12 @@ export type ConsentRecord = {
 };
 
 export const CACHE_KEYS = {
-  APPOINTMENTS: "cache_appointments",
-  PROFILES: "cache_patient_profiles",
+  APPOINTMENTS: "cache_appointments_v2",
+  PROFILES: "cache_patient_profiles_v2",
   INVENTORY: "cache_inventory",
   ADMIN_USERS: "cache_admin_users",
   SERVICES: "cache_services",
-  CONSENTS: "cache_consent_records",
+  CONSENTS: "cache_consent_records_v2",
 };
 
 export function getCacheSync<T>(key: string): T | null {
