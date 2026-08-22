@@ -624,9 +624,14 @@ export default function PatientListPage() {
                   return (
                     <button 
                       key={tab.id}
-                      className={`flex items-center justify-center md:justify-start gap-3 px-4 py-4 rounded-2xl text-sm font-bold transition-all whitespace-nowrap md:whitespace-normal border group
+                      className={`flex items-center justify-center md:justify-start gap-3 px-4 py-4 rounded-2xl text-sm font-bold transition-all whitespace-nowrap md:whitespace-normal border group cursor-pointer
                         ${colors[tab.color] || ''} ${isActive ? 'shadow-sm shadow-black/5' : 'border-transparent'}
                       `}
+                      onPointerDown={(e) => {
+                        if (e.pointerType === 'pen') {
+                          e.currentTarget.click();
+                        }
+                      }}
                       onClick={() => {
                         if (tab.id === 'new-appointment') {
                           router.push(`/takvim?newApt=true&name=${encodeURIComponent(selectedPatientName)}&phone=${encodeURIComponent(pPhone || selectedPatientPhone)}`);
