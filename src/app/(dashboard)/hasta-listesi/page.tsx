@@ -59,7 +59,7 @@ export default function PatientListPage() {
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [currentCart, setCurrentCart] = useState<{ id: string; name: string; unit: string; amount: number }[]>([]);
   const [selectedStockId, setSelectedStockId] = useState("");
-  const [stockAmount, setStockAmount] = useState(1);
+  const [stockAmount, setStockAmount] = useState<number | string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Forms
@@ -193,7 +193,7 @@ export default function PatientListPage() {
     setSelectedPatientName(name);
     setCurrentCart([]);
     setSelectedStockId("");
-    setStockAmount(1);
+    setStockAmount("");
     setMaterialModalOpen(true);
   };
 
@@ -271,19 +271,22 @@ export default function PatientListPage() {
     const item = inventory.items.find(i => i.id === selectedStockId);
     if (!item) return;
 
+    const parsedAmount = Number(stockAmount) || 0;
+    if (parsedAmount <= 0) return;
+
     const currentStock = inventory.stock[selectedStockId] || 0;
-    if (stockAmount > currentStock) {
+    if (parsedAmount > currentStock) {
       alert(`Stokta yeterli miktar yok. Mevcut: ${currentStock}`);
       return;
     }
 
     const existing = currentCart.find(c => c.id === selectedStockId);
     if (existing) {
-      setCurrentCart(currentCart.map(c => c.id === selectedStockId ? { ...c, amount: c.amount + stockAmount } : c));
+      setCurrentCart(currentCart.map(c => c.id === selectedStockId ? { ...c, amount: c.amount + parsedAmount } : c));
     } else {
-      setCurrentCart([...currentCart, { id: item.id, name: item.ad, unit: item.birim, amount: stockAmount }]);
+      setCurrentCart([...currentCart, { id: item.id, name: item.ad, unit: item.birim, amount: parsedAmount }]);
     }
-    setStockAmount(1);
+    setStockAmount("");
   };
 
   const handleMaterialSubmit = async (e: React.FormEvent) => {
@@ -293,22 +296,23 @@ export default function PatientListPage() {
     let finalCart = [...currentCart];
 
     // Try to add un-added selection if exists
-    if (selectedStockId && stockAmount > 0) {
+    const parsedStockAmount = Number(stockAmount) || 0;
+    if (selectedStockId && parsedStockAmount > 0) {
       const item = inventory.items.find(i => i.id === selectedStockId);
       if (item) {
         const currentStock = inventory.stock[selectedStockId] || 0;
-        if (stockAmount > currentStock) {
+        if (parsedStockAmount > currentStock) {
            alert(`Stokta yeterli miktar yok. Mevcut: ${currentStock}`);
            return;
         }
         const existing = finalCart.find(c => c.id === selectedStockId);
         if (existing) {
-          finalCart = finalCart.map(c => c.id === selectedStockId ? { ...c, amount: c.amount + stockAmount } : c);
+          finalCart = finalCart.map(c => c.id === selectedStockId ? { ...c, amount: c.amount + parsedStockAmount } : c);
         } else {
-          finalCart.push({ id: item.id, name: item.ad, unit: item.birim, amount: stockAmount });
+          finalCart.push({ id: item.id, name: item.ad, unit: item.birim, amount: parsedStockAmount });
         }
         setSelectedStockId("");
-        setStockAmount(1);
+        setStockAmount("");
       }
     }
 
@@ -954,7 +958,7 @@ export default function PatientListPage() {
                 </div>
                 <div className="w-24 space-y-1">
                   <Label>Miktar</Label>
-                  <Input type="number" min={1} value={stockAmount} onChange={e => setStockAmount(Number(e.target.value))} className="bg-white" />
+                  <Input type="number" min={1} value={stockAmount} onChange={e => setStockAmount(e.target.value)} className="bg-white" />
                 </div>
                 <Button variant="outline" className="h-10 border-[#0a3d34] text-[#0a3d34] hover:bg-[#0a3d34] hover:text-white" onClick={addToCart}><Plus className="w-4 h-4"/></Button>
              </div>

@@ -90,7 +90,11 @@ export function getCacheSync<T>(key: string): T | null {
   if (typeof window === "undefined") return null;
   try {
     const data = localStorage.getItem(key);
-    return data ? JSON.parse(data) : null;
+    const parsed = data ? JSON.parse(data) : null;
+    if (parsed && key === CACHE_KEYS.INVENTORY) {
+      return normalizeInventory(parsed as any) as unknown as T;
+    }
+    return parsed;
   } catch (e) {
     return null;
   }
@@ -106,6 +110,24 @@ function setCache(key: string, data: any) {
     localStorage.setItem(key, JSON.stringify(data));
   } catch (e) {}
 }
+
+const normalizeInventory = (inventory: { stock: Record<string, number>; items: InventoryItem[] }) => {
+  if (!inventory || !inventory.items) return inventory;
+  
+  let changed = false;
+  const items = inventory.items.map(item => {
+    const isAnestezi = item.ad.toLowerCase().includes("anestezi krem") && item.birim.toLowerCase() === "kutu";
+    const isEldiven = item.ad.toLowerCase().includes("eldiven") && item.birim.toLowerCase() === "kutu";
+
+    if (isAnestezi || isEldiven) {
+      changed = true;
+      return { ...item, birim: isAnestezi ? "Gram" : "Adet" };
+    }
+    return item;
+  });
+
+  return changed ? { stock: inventory.stock, items } : inventory;
+};
 
 import { useAuth } from "@/hooks/use-auth";
 
@@ -329,7 +351,10 @@ export function useDatabase() {
 
   const getInventory = useCallback(async () => {
     try {
-      if (!userId || userId === "demo-user") return getCache<{ stock: Record<string, number>; items: InventoryItem[] }>(CACHE_KEYS.INVENTORY) || { stock: {}, items: [] };
+      if (!userId || userId === "demo-user") {
+        const cached = getCache<{ stock: Record<string, number>; items: InventoryItem[] }>(CACHE_KEYS.INVENTORY);
+        return cached ? normalizeInventory(cached) : { stock: {}, items: [] };
+      }
 
       const { data, error } = await supabase
         .from("inventory")
@@ -340,10 +365,16 @@ export function useDatabase() {
         const stock: Record<string, number> = {};
         const items: InventoryItem[] = data.map((d: any) => {
           stock[d.item_id] = parseFloat(d.quantity);
+          let birim = d.unit;
+          if (d.name.toLowerCase().includes("anestezi krem") && birim.toLowerCase() === "kutu") {
+            birim = "Gram";
+          } else if (d.name.toLowerCase().includes("eldiven") && birim.toLowerCase() === "kutu") {
+            birim = "Adet";
+          }
           return {
             id: d.item_id,
             ad: d.name,
-            birim: d.unit,
+            birim: birim,
             kritik_stok: parseFloat(d.kritik_stok),
           };
         });
@@ -355,7 +386,8 @@ export function useDatabase() {
       console.warn("fetchFreshInventory failed, falling back to cache", e);
     }
 
-    return getCache<{ stock: Record<string, number>; items: InventoryItem[] }>(CACHE_KEYS.INVENTORY) || { stock: {}, items: [] };
+    const fallback = getCache<{ stock: Record<string, number>; items: InventoryItem[] }>(CACHE_KEYS.INVENTORY);
+    return fallback ? normalizeInventory(fallback) : { stock: {}, items: [] };
   }, [userId]);
 
   const saveInventoryItem = useCallback(async (item: InventoryItem, quantity: number) => {
