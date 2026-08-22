@@ -228,9 +228,24 @@ export function useDatabase() {
 
   // ─── Patient Profiles ──────────────────────────────────────────
 
+  // Eski "cc" birimini "ünite" olarak normalize et
+  const normalizeFaceTreatments = (treatments: FaceTreatment[]): FaceTreatment[] => {
+    if (!treatments || treatments.length === 0) return treatments;
+    return treatments.map(t => t.unit === "cc" ? { ...t, unit: "ünite" } : t);
+  };
+
   const getPatientProfiles = useCallback(async () => {
     try {
-      if (!userId || userId === "demo-user") return getCache<Record<string, Omit<PatientProfile, "patient_name">>>(CACHE_KEYS.PROFILES) || {};
+      if (!userId || userId === "demo-user") {
+        const cached = getCache<Record<string, Omit<PatientProfile, "patient_name">>>(CACHE_KEYS.PROFILES) || {};
+        // Normalize cached data
+        for (const key of Object.keys(cached)) {
+          if (cached[key].face_treatments) {
+            cached[key].face_treatments = normalizeFaceTreatments(cached[key].face_treatments!);
+          }
+        }
+        return cached;
+      }
 
       const { data, error } = await supabase
         .from("patient_profiles")
@@ -248,7 +263,7 @@ export function useDatabase() {
             meds: p.meds,
             notes_list: p.notes_list,
             stock_history: p.stock_history,
-            face_treatments: p.face_treatments || [],
+            face_treatments: normalizeFaceTreatments(p.face_treatments || []),
             face_gender: p.face_gender || 'female',
             before_after_photos: p.before_after_photos || [],
           };
@@ -260,7 +275,13 @@ export function useDatabase() {
       console.warn("fetchFreshProfiles failed, falling back to cache", e);
     }
 
-    return getCache<Record<string, Omit<PatientProfile, "patient_name">>>(CACHE_KEYS.PROFILES) || {};
+    const fallback = getCache<Record<string, Omit<PatientProfile, "patient_name">>>(CACHE_KEYS.PROFILES) || {};
+    for (const key of Object.keys(fallback)) {
+      if (fallback[key].face_treatments) {
+        fallback[key].face_treatments = normalizeFaceTreatments(fallback[key].face_treatments!);
+      }
+    }
+    return fallback;
   }, [userId]);
 
   const savePatientProfile = useCallback(async (rawName: string, profile: Omit<PatientProfile, "patient_name">) => {
