@@ -532,13 +532,16 @@ export function useDatabase() {
 
     if (userId === "demo-user") {
       const newConsent = { ...record, id: record.id || "demo_cons_" + Date.now() };
-      const cached = getCache<ConsentRecord[]>(CACHE_KEYS.CONSENTS) || [];
+      let cached = getCache<ConsentRecord[]>(CACHE_KEYS.CONSENTS) || [];
+      if (record.id) {
+        cached = cached.filter(c => c.id !== record.id);
+      }
       cached.push(newConsent);
       setCache(CACHE_KEYS.CONSENTS, cached);
       return newConsent;
     }
 
-    const payload = {
+    const payload: any = {
       user_id: userId,
       patient_name: record.patient_name,
       appointment_id: record.appointment_id || null,
@@ -551,19 +554,38 @@ export function useDatabase() {
       patient_phone: record.patient_phone || null,
     };
 
+    if (record.id && !record.id.startsWith("demo_")) {
+      payload.id = record.id;
+    }
+
     const { data, error } = await supabase
       .from("consent_records")
-      .insert(payload)
+      .upsert(payload, { onConflict: "id" })
       .select();
 
     if (error) throw error;
 
     // Update cache
-    const cached = getCache<ConsentRecord[]>(CACHE_KEYS.CONSENTS) || [];
-    if (data && data[0]) cached.push(data[0]);
+    let cached = getCache<ConsentRecord[]>(CACHE_KEYS.CONSENTS) || [];
+    if (data && data[0]) {
+      cached = cached.filter(c => c.id !== data[0].id);
+      cached.push(data[0]);
+    }
     setCache(CACHE_KEYS.CONSENTS, cached);
 
     return data?.[0];
+  }, [userId]);
+
+  const deleteConsentRecord = useCallback(async (id: string) => {
+    if (!userId) return;
+    if (userId !== "demo-user") {
+      const { error } = await supabase.from("consent_records").delete().eq("id", id).eq("user_id", userId);
+      if (error) throw error;
+    }
+
+    const cached = getCache<ConsentRecord[]>(CACHE_KEYS.CONSENTS) || [];
+    const filtered = cached.filter(c => c.id !== id);
+    setCache(CACHE_KEYS.CONSENTS, filtered);
   }, [userId]);
 
   const getConsentRecords = useCallback(async (patientName?: string): Promise<ConsentRecord[]> => {
@@ -635,6 +657,7 @@ export function useDatabase() {
     saveService,
     deleteService,
     saveConsentRecord,
+    deleteConsentRecord,
     getConsentRecords,
     getConsentByAppointment,
   };

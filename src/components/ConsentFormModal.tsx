@@ -29,6 +29,7 @@ type Props = {
   appointmentDate?: string;
   appointmentTime?: string;
   clinicName?: string;
+  initialData?: ConsentRecord | null;
   onSuccess?: () => void;
 };
 
@@ -89,6 +90,7 @@ export function ConsentFormModal({
   appointmentDate,
   appointmentTime,
   clinicName = "Klinik",
+  initialData,
   onSuccess,
 }: Props) {
   const { saveConsentRecord } = useDatabase();
@@ -102,6 +104,27 @@ export function ConsentFormModal({
   const [hasSigned, setHasSigned] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isScrolledToBottom, setIsScrolledToBottom] = useState(false);
+
+  // Initialize from initialData when modal opens
+  import { useEffect } from "react";
+  useEffect(() => {
+    if (open) {
+      if (initialData) {
+        setChecks({
+          read: initialData.checkboxes?.bilgilendirme_okundu || false,
+          questions: initialData.checkboxes?.soru_sorma_hakki || false,
+          kvkk: initialData.checkboxes?.kvkk_onay || false,
+        });
+        setHasSigned(false); // If they want to edit, they should re-sign or we assume they edit without touching signature? We can't easily re-draw a signature data URL to the canvas with our component. We will let them re-sign if they want. If we don't have a way to populate the canvas, we will require re-signing on edit.
+        setIsScrolledToBottom(true);
+      } else {
+        setChecks({ read: false, questions: false, kvkk: false });
+        setHasSigned(false);
+        setIsScrolledToBottom(false);
+      }
+      setTimeout(() => signatureRef.current?.clear(), 100);
+    }
+  }, [open, initialData]);
 
   const allChecked = checks.read && checks.questions && checks.kvkk;
   const canSubmit = allChecked && hasSigned && !isSubmitting;
@@ -141,10 +164,11 @@ export function ConsentFormModal({
       const signatureData = signatureRef.current?.toDataURL() || "";
 
       const record: ConsentRecord = {
+        id: initialData?.id,
         patient_name: patientName,
-        appointment_id: appointmentId,
-        appointment_date: appointmentDate,
-        appointment_time: appointmentTime,
+        appointment_id: appointmentId || initialData?.appointment_id,
+        appointment_date: appointmentDate || initialData?.appointment_date,
+        appointment_time: appointmentTime || initialData?.appointment_time,
         consent_text: consentFullText,
         signature_data: signatureData,
         checkboxes: {

@@ -32,7 +32,7 @@ export default function PatientListPage() {
   const isLocked = !checkAccess("professional");
   const canUseInventory = checkAccess("advanced");
   
-  const { getAppointments, getPatientProfiles, savePatientProfile, getInventory, saveInventoryItem, getServices, getConsentRecords } = useDatabase();
+  const { getAppointments, getPatientProfiles, savePatientProfile, getInventory, saveInventoryItem, getServices, getConsentRecords, deleteConsentRecord } = useDatabase();
   
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [profiles, setProfiles] = useState<Record<string, Omit<PatientProfile, "patient_name">>>({});
@@ -50,9 +50,12 @@ export default function PatientListPage() {
   // Consent
   const [consentModalOpen, setConsentModalOpen] = useState(false);
   const [consentAppointment, setConsentAppointment] = useState<Appointment | null>(null);
+  const [consentToEdit, setConsentToEdit] = useState<ConsentRecord | null>(null);
   const [patientConsents, setPatientConsents] = useState<ConsentRecord[]>([]);
   const [consentDetailOpen, setConsentDetailOpen] = useState(false);
   const [selectedConsent, setSelectedConsent] = useState<ConsentRecord | null>(null);
+  const [deleteConsentModalOpen, setDeleteConsentModalOpen] = useState(false);
+  const [consentToDelete, setConsentToDelete] = useState<ConsentRecord | null>(null);
 
   // Material Modal
   const [materialModalOpen, setMaterialModalOpen] = useState(false);
@@ -188,6 +191,7 @@ export default function PatientListPage() {
     setSelectedPatientName(name);
     setSelectedPatientPhone(apt.telefon || "");
     setConsentAppointment(apt);
+    setConsentToEdit(null);
     setConsentModalOpen(true);
   };
 
@@ -310,6 +314,21 @@ export default function PatientListPage() {
     setDeleteStockModalOpen(false);
     setStockToDelete(null);
     savePatientProfile(selectedPatientName, updated).catch(err => console.error("Background save err:", err));
+  };
+
+  const executeDeleteConsent = async () => {
+    if (!consentToDelete?.id) return;
+    try {
+      await deleteConsentRecord(consentToDelete.id);
+      setPatientConsents(prev => prev.filter(c => c.id !== consentToDelete.id));
+      toast.success("Onam formu başarıyla silindi.");
+    } catch (err: any) {
+      console.error("Delete consent err:", err);
+      toast.error("Silme işlemi başarısız oldu.");
+    } finally {
+      setDeleteConsentModalOpen(false);
+      setConsentToDelete(null);
+    }
   };
 
   const addToCart = () => {
@@ -714,7 +733,7 @@ export default function PatientListPage() {
                        <span className="italic text-sm text-slate-400 font-medium">Bu hastaya ait onam formu kaydı bulunmuyor.</span>
                      </div>
                    ) : patientConsents.map((c: any, i: number) => (
-                     <div key={c.id || i} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm hover:border-indigo-200 hover:shadow-md transition-all cursor-pointer" onClick={() => { setSelectedConsent(c); setConsentDetailOpen(true); }}>
+                     <div key={c.id || i} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm hover:border-indigo-200 hover:shadow-md transition-all cursor-pointer relative group" onClick={() => { setSelectedConsent(c); setConsentDetailOpen(true); }}>
                        <div className="flex items-start justify-between mb-3">
                          <div className="flex items-center gap-3">
                            <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 shrink-0 border border-indigo-100">
@@ -727,9 +746,36 @@ export default function PatientListPage() {
                              </div>
                            </div>
                          </div>
-                         <div className="flex items-center gap-1.5 bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-full text-[0.65rem] font-bold border border-emerald-100">
-                           <CheckCircle2 className="w-3 h-3" />
-                           İmzalandı
+                         <div className="flex items-center gap-2">
+                           <div className="flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity mr-1">
+                              <button 
+                                onClick={(e) => { 
+                                  e.stopPropagation(); 
+                                  setConsentToEdit(c); 
+                                  setConsentAppointment(null); 
+                                  setConsentModalOpen(true); 
+                                }}
+                                className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-100"
+                                title="Düzenle"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </button>
+                              <button 
+                                onClick={(e) => { 
+                                  e.stopPropagation(); 
+                                  setConsentToDelete(c); 
+                                  setDeleteConsentModalOpen(true); 
+                                }}
+                                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100"
+                                title="Sil"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                           </div>
+                           <div className="flex items-center gap-1.5 bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-full text-[0.65rem] font-bold border border-emerald-100 shrink-0">
+                             <CheckCircle2 className="w-3 h-3" />
+                             İmzalandı
+                           </div>
                          </div>
                        </div>
                        {c.signature_data && (
@@ -1116,6 +1162,7 @@ export default function PatientListPage() {
         appointmentDate={consentAppointment?.tarih}
         appointmentTime={consentAppointment?.saat}
         clinicName={profile?.clinic_name}
+        initialData={consentToEdit}
         onSuccess={() => {
           // Reload consents for the patient
           getConsentRecords(selectedPatientName).then(records => setPatientConsents(records)).catch(() => {});
@@ -1181,6 +1228,21 @@ export default function PatientListPage() {
            <div className="flex gap-3 mt-2">
               <Button variant="outline" className="flex-1 border-slate-200 font-bold" onClick={() => setDeleteStockModalOpen(false)}>İptal</Button>
               <Button className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold shadow-md shadow-red-600/20" onClick={executeDeleteStock}>Evet, Sil</Button>
+           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Consent Confirm Modal */}
+      <Dialog open={deleteConsentModalOpen} onOpenChange={setDeleteConsentModalOpen}>
+        <DialogContent className="sm:max-w-[400px] text-center p-8 bg-white border-slate-200">
+           <div className="mx-auto w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mb-4 rotate-3 shadow-sm border border-red-100">
+             <Trash2 className="w-8 h-8" />
+           </div>
+           <DialogHeader><DialogTitle className="text-center text-xl font-extrabold text-[#111827]">Onam Formu Silinecek</DialogTitle></DialogHeader>
+           <p className="text-sm font-medium text-slate-500 mb-6">Bu hastaya ait onam formu kaydını tamamen silmek istediğinize emin misiniz? Bu işlem geri alınamaz.</p>
+           <div className="flex gap-3 mt-2">
+              <Button variant="outline" className="flex-1 border-slate-200 font-bold" onClick={() => setDeleteConsentModalOpen(false)}>İptal</Button>
+              <Button className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold shadow-md shadow-red-600/20" onClick={executeDeleteConsent}>Evet, Sil</Button>
            </div>
         </DialogContent>
       </Dialog>

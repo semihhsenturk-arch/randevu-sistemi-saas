@@ -23,7 +23,7 @@ export default function StockManagementPage() {
   const [loading, setLoading] = useState(false);
   
   const [modalOpen, setModalOpen] = useState(false);
-  const [newItem, setNewItem] = useState<{ ad: string, birim: string, kritik: number, baslangic: number }>({ ad: "", birim: "Adet", kritik: 10, baslangic: 0 });
+  const [newItem, setNewItem] = useState<{ ad: string, birim: string, kritik: number | string, baslangic: number | string }>({ ad: "", birim: "Adet", kritik: "", baslangic: "" });
 
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [selectedItemToDelete, setSelectedItemToDelete] = useState<InventoryItem | null>(null);
@@ -78,15 +78,17 @@ export default function StockManagementPage() {
     e.preventDefault();
     if (!newItem.ad) return;
     const id = "item_" + Math.random().toString(36).substr(2, 9);
-    const itemObj: InventoryItem = { id, ad: newItem.ad, birim: newItem.birim, kritik_stok: newItem.kritik };
-    await saveInventoryItem(itemObj, newItem.baslangic);
+    const baslangicValue = Number(newItem.baslangic) || 0;
+    const kritikValue = Number(newItem.kritik) || 0;
+    const itemObj: InventoryItem = { id, ad: newItem.ad, birim: newItem.birim, kritik_stok: kritikValue };
+    await saveInventoryItem(itemObj, baslangicValue);
     setInventory(prev => ({
       items: [...prev.items, itemObj],
-      stock: { ...prev.stock, [id]: newItem.baslangic }
+      stock: { ...prev.stock, [id]: baslangicValue }
     }));
     toast.success(`${newItem.ad} stoka eklendi.`);
     setModalOpen(false);
-    setNewItem({ ad: "", birim: "Adet", kritik: 10, baslangic: 0 });
+    setNewItem({ ad: "", birim: "Adet", kritik: "", baslangic: "" });
   };
 
   const executeDelete = async () => {
@@ -358,8 +360,8 @@ export default function StockManagementPage() {
             <div className="space-y-2"><Label>Malzeme Adı</Label><Input required value={newItem.ad} onChange={e => setNewItem(prev => ({...prev, ad: e.target.value}))} /></div>
             <div className="space-y-2"><Label>Birimi (Adet, Ünite, Kutu vs.)</Label><Input required value={newItem.birim} onChange={e => setNewItem(prev => ({...prev, birim: e.target.value}))} /></div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label>Başlangıç Miktarı</Label><Input type="number" required value={newItem.baslangic} onChange={e => setNewItem(prev => ({...prev, baslangic: Number(e.target.value)}))} /></div>
-              <div className="space-y-2"><Label>Kritik Limit</Label><Input type="number" required value={newItem.kritik} onChange={e => setNewItem(prev => ({...prev, kritik: Number(e.target.value)}))} /></div>
+              <div className="space-y-2"><Label>Başlangıç Miktarı</Label><Input type="number" required value={newItem.baslangic} onChange={e => setNewItem(prev => ({...prev, baslangic: e.target.value === "" ? "" : Number(e.target.value)}))} /></div>
+              <div className="space-y-2"><Label>Kritik Limit</Label><Input type="number" required value={newItem.kritik} onChange={e => setNewItem(prev => ({...prev, kritik: e.target.value === "" ? "" : Number(e.target.value)}))} /></div>
             </div>
             <div className="flex gap-2 pt-4">
               <Button type="button" variant="outline" className="flex-1" onClick={() => setModalOpen(false)}>Vazgeç</Button>
