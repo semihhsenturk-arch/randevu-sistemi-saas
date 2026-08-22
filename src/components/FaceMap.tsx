@@ -43,7 +43,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
   // Form state
   const [formType, setFormType] = useState<"botoks" | "dolgu" | "mezoterapi">("botoks");
   const [formAmount, setFormAmount] = useState("");
-  const [formUnit, setFormUnit] = useState("cc");
+  const [formUnit, setFormUnit] = useState("ünite");
   const [formProduct, setFormProduct] = useState("");
   const [formNote, setFormNote] = useState("");
 
@@ -140,7 +140,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
     setShowForm(true);
     setFormType("botoks" as any);
     setFormAmount("");
-    setFormUnit("cc");
+    setFormUnit("ünite");
     setFormProduct("");
     setFormNote("");
   }, [readonly, zoom]);
@@ -282,7 +282,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
           setShowForm(true);
           setFormType("botoks" as any);
           setFormAmount("");
-          setFormUnit("cc");
+          setFormUnit("ünite");
           setFormProduct("");
           setFormNote("");
         }
@@ -531,7 +531,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
                 <Label className="text-[0.6rem] font-bold text-slate-500 uppercase">Tür</Label>
-                <Select value={formType} onValueChange={(v) => { setFormType(v as any); setFormUnit("cc"); }}>
+                <Select value={formType} onValueChange={(v) => { setFormType(v as any); setFormUnit("ünite"); }}>
                   <SelectTrigger className="h-8 text-xs bg-slate-50 text-slate-800"><SelectValue /></SelectTrigger>
                   <SelectContent className="bg-white border-slate-200 z-[99999]">
                     <SelectItem value="botoks" className="text-slate-800 cursor-pointer">💉 Botoks</SelectItem>
@@ -577,7 +577,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">
                       <Label className="text-[0.6rem] font-bold text-slate-500 uppercase">Tür</Label>
-                      <Select value={formType} onValueChange={(v) => { setFormType(v as any); setFormUnit("cc"); }}>
+                      <Select value={formType} onValueChange={(v) => { setFormType(v as any); setFormUnit("ünite"); }}>
                         <SelectTrigger className="h-8 text-xs bg-slate-50 text-slate-800"><SelectValue /></SelectTrigger>
                         <SelectContent className="bg-white border-slate-200 z-[99999]">
                           <SelectItem value="botoks" className="text-slate-800 cursor-pointer">💉 Botoks</SelectItem>
@@ -616,12 +616,15 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                     {selectedDate && <button onClick={() => setSelectedDate(null)} className="text-[0.55rem] font-bold text-emerald-600 hover:text-emerald-800 underline underline-offset-2">Tümü</button>}
                   </div>
                   <div className="flex flex-wrap gap-1">
-                    {dateGroups.map(([date, items]) => (
-                      <button key={date} onClick={() => setSelectedDate(selectedDate === date ? null : date)}
-                        className={`px-2.5 py-1 rounded-lg text-[0.6rem] font-bold transition-all border ${selectedDate === date ? "bg-emerald-50 text-emerald-700 border-emerald-200 shadow-sm" : "bg-white text-slate-500 border-slate-100 hover:border-slate-200"}`}>
-                        {date} ({items.length})
-                      </button>
-                    ))}
+                    {dateGroups.map(([date, items]) => {
+                      const totalUnits = items.reduce((sum, t) => sum + (t.amount || 0), 0);
+                      return (
+                        <button key={date} onClick={() => setSelectedDate(selectedDate === date ? null : date)}
+                          className={`px-2.5 py-1 rounded-lg text-[0.6rem] font-bold transition-all border ${selectedDate === date ? "bg-emerald-50 text-emerald-700 border-emerald-200 shadow-sm" : "bg-white text-slate-500 border-slate-100 hover:border-slate-200"}`}>
+                          {date} · {items.length} işlem · <span className="font-extrabold">{totalUnits} ünite</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}

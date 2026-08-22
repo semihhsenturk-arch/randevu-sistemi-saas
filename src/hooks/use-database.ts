@@ -17,7 +17,7 @@ export type FaceTreatment = {
   id: string;
   date: string;
   zone: string;
-  type: 'botoks' | 'dolgu';
+  type: 'botoks' | 'dolgu' | 'mezoterapi';
   amount: number;
   unit: string;
   product?: string;
