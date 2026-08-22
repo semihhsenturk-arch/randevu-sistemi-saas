@@ -82,6 +82,8 @@ export default function PatientListPage() {
   // Stock Editing
   const [editingStockIndex, setEditingStockIndex] = useState<number | null>(null);
   const [editingStockContent, setEditingStockContent] = useState("");
+  const [deleteStockModalOpen, setDeleteStockModalOpen] = useState(false);
+  const [stockToDelete, setStockToDelete] = useState<number | null>(null);
 
   const [isMounted, setIsMounted] = useState(false);
 
@@ -286,20 +288,27 @@ export default function PatientListPage() {
     savePatientProfile(selectedPatientName, updated).catch(err => console.error("Background save err:", err));
   };
 
-  const handleDeleteStock = async (index: number) => {
-    if (!window.confirm("Bu stok geçmişi kaydını silmek istediğinize emin misiniz? (Stok miktarı otomatik geri alınmaz)")) return;
+  const confirmDeleteStock = (index: number) => {
+    setStockToDelete(index);
+    setDeleteStockModalOpen(true);
+  };
+
+  const executeDeleteStock = async () => {
+    if (stockToDelete === null) return;
     
     const current = profiles[selectedPatientName] || { notes_list: [], meds: [], stock_history: [] };
     const hList = [...(current.stock_history || [])];
-    hList.splice(index, 1);
+    hList.splice(stockToDelete, 1);
     
     const updated = { ...current, stock_history: hList };
     setProfiles(prev => ({ ...prev, [selectedPatientName]: updated }));
-    if (editingStockIndex === index) {
+    if (editingStockIndex === stockToDelete) {
       setEditingStockIndex(null);
       setEditingStockContent("");
     }
     
+    setDeleteStockModalOpen(false);
+    setStockToDelete(null);
     savePatientProfile(selectedPatientName, updated).catch(err => console.error("Background save err:", err));
   };
 
@@ -996,7 +1005,7 @@ export default function PatientListPage() {
                                             <Edit2 className="w-4 h-4" />
                                           </button>
                                           <button 
-                                            onClick={() => handleDeleteStock(item.originalIndex)}
+                                            onClick={() => confirmDeleteStock(item.originalIndex)}
                                             className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100"
                                             title="Sil"
                                           >
@@ -1153,6 +1162,21 @@ export default function PatientListPage() {
               </div>
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Stock Confirm Modal */}
+      <Dialog open={deleteStockModalOpen} onOpenChange={setDeleteStockModalOpen}>
+        <DialogContent className="sm:max-w-[400px] text-center p-8 bg-white border-slate-200">
+           <div className="mx-auto w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mb-4 rotate-3 shadow-sm border border-red-100">
+             <Trash2 className="w-8 h-8" />
+           </div>
+           <DialogHeader><DialogTitle className="text-center text-xl font-extrabold text-[#111827]">Kayıt Silinecek</DialogTitle></DialogHeader>
+           <p className="text-sm font-medium text-slate-500 mb-6">Bu stok geçmişi kaydını silmek istediğinize emin misiniz? <br/><span className="text-xs text-red-500 mt-1 inline-block font-bold">(Stok miktarı ana depoya otomatik geri eklenmez)</span></p>
+           <div className="flex gap-3 mt-2">
+              <Button variant="outline" className="flex-1 border-slate-200 font-bold" onClick={() => setDeleteStockModalOpen(false)}>İptal</Button>
+              <Button className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold shadow-md shadow-red-600/20" onClick={executeDeleteStock}>Evet, Sil</Button>
+           </div>
         </DialogContent>
       </Dialog>
     </div>
