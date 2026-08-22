@@ -79,6 +79,10 @@ export default function PatientListPage() {
   const [editingNoteIndex, setEditingNoteIndex] = useState<number | null>(null);
   const [editingNoteContent, setEditingNoteContent] = useState("");
 
+  // Stock Editing
+  const [editingStockIndex, setEditingStockIndex] = useState<number | null>(null);
+  const [editingStockContent, setEditingStockContent] = useState("");
+
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -264,6 +268,39 @@ export default function PatientListPage() {
   const startEditingNote = (realIndex: number, content: string) => {
     setEditingNoteIndex(realIndex);
     setEditingNoteContent(content);
+  };
+
+  const handleUpdateStock = async () => {
+    if (editingStockIndex === null || !editingStockContent) return;
+    const current = profiles[selectedPatientName] || { notes_list: [], meds: [], stock_history: [] };
+    const hList = [...(current.stock_history || [])];
+    if (hList[editingStockIndex]) {
+      hList[editingStockIndex].text = editingStockContent;
+    }
+    
+    const updated = { ...current, stock_history: hList };
+    setProfiles(prev => ({ ...prev, [selectedPatientName]: updated }));
+    setEditingStockIndex(null);
+    setEditingStockContent("");
+
+    savePatientProfile(selectedPatientName, updated).catch(err => console.error("Background save err:", err));
+  };
+
+  const handleDeleteStock = async (index: number) => {
+    if (!window.confirm("Bu stok geçmişi kaydını silmek istediğinize emin misiniz? (Stok miktarı otomatik geri alınmaz)")) return;
+    
+    const current = profiles[selectedPatientName] || { notes_list: [], meds: [], stock_history: [] };
+    const hList = [...(current.stock_history || [])];
+    hList.splice(index, 1);
+    
+    const updated = { ...current, stock_history: hList };
+    setProfiles(prev => ({ ...prev, [selectedPatientName]: updated }));
+    if (editingStockIndex === index) {
+      setEditingStockIndex(null);
+      setEditingStockContent("");
+    }
+    
+    savePatientProfile(selectedPatientName, updated).catch(err => console.error("Background save err:", err));
   };
 
   const addToCart = () => {
@@ -908,20 +945,74 @@ export default function PatientListPage() {
                       </p>
                    </div>
                  ) : (
-                   <div className="space-y-3">
-                      {(selProfile.stock_history || []).slice().reverse().map((h: any, i: number) => (
-                        <div key={i} className="flex gap-4 items-center bg-white p-4 border border-slate-100 rounded-2xl shadow-sm hover:border-slate-200 transition-colors">
-                           <div className="w-11 h-11 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 shrink-0 border border-amber-100">
-                              <Box className="w-5 h-5" />
+                   <div className="space-y-4">
+                      {Object.entries((selProfile.stock_history || []).reduce((acc: any, h: any, i: number) => {
+                         const dateKey = (h.date || "").split(" ")[0];
+                         if (!acc[dateKey]) acc[dateKey] = [];
+                         acc[dateKey].push({ ...h, originalIndex: i });
+                         return acc;
+                      }, {})).sort(([dateA], [dateB]) => {
+                         const partsA = dateA.split(".");
+                         const partsB = dateB.split(".");
+                         if (partsA.length === 3 && partsB.length === 3) {
+                           return new Date(`${partsB[2]}-${partsB[1]}-${partsB[0]}`).getTime() - new Date(`${partsA[2]}-${partsA[1]}-${partsA[0]}`).getTime();
+                         }
+                         return 0;
+                      }).map(([dateStr, items]: any, boxIndex: number) => (
+                        <div key={boxIndex} className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                           <div className="bg-slate-50 px-5 py-3 border-b border-slate-100 flex items-center justify-between">
+                             <div className="font-bold text-slate-700 text-sm flex items-center gap-2">
+                               <Clock className="w-4 h-4 text-amber-500" /> {dateStr}
+                             </div>
                            </div>
-                           <div className="flex flex-col flex-1">
-                              <span className="text-[0.65rem] font-bold text-slate-400 uppercase tracking-wide mb-1 flex items-center gap-1"><Clock className="w-3 h-3"/> {h.date}</span>
-                              <span className="text-[0.85rem] font-bold text-slate-700 leading-tight">{h.text}</span>
+                           <div className="p-0">
+                             {items.slice().reverse().map((item: any, itemIndex: number) => {
+                                const isEditing = editingStockIndex === item.originalIndex;
+                                return (
+                                 <div key={itemIndex} className="p-5 border-b border-slate-50 last:border-0 relative group hover:bg-slate-50/50 transition-colors">
+                                   <div className="flex justify-between items-start">
+                                     <div className="flex-1">
+                                       <div className="text-[0.65rem] font-bold text-slate-400 mb-1">{item.date.split(" ")[1] || ""}</div>
+                                       {isEditing ? (
+                                          <div className="mt-2 space-y-3 pr-4">
+                                            <Textarea value={editingStockContent} onChange={e => setEditingStockContent(e.target.value)} className="min-h-[80px] text-sm bg-white border-slate-200 focus-visible:ring-[#0a3d34]" />
+                                            <div className="flex justify-end gap-2">
+                                              <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setEditingStockIndex(null)}>İptal</Button>
+                                              <Button size="sm" className="bg-[#0a3d34] hover:bg-[#072b25] h-8 text-xs" onClick={handleUpdateStock}>Kaydet</Button>
+                                            </div>
+                                          </div>
+                                       ) : (
+                                          <div className="text-[0.85rem] font-bold text-slate-700 whitespace-pre-wrap leading-relaxed">{item.text}</div>
+                                       )}
+                                     </div>
+                                     
+                                     {!isEditing && (
+                                       <div className="flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                                          <button 
+                                            onClick={() => { setEditingStockIndex(item.originalIndex); setEditingStockContent(item.text); }}
+                                            className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-100"
+                                            title="Düzenle"
+                                          >
+                                            <Edit2 className="w-4 h-4" />
+                                          </button>
+                                          <button 
+                                            onClick={() => handleDeleteStock(item.originalIndex)}
+                                            className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100"
+                                            title="Sil"
+                                          >
+                                            <Trash2 className="w-4 h-4" />
+                                          </button>
+                                       </div>
+                                     )}
+                                   </div>
+                                 </div>
+                               )
+                             })}
                            </div>
                         </div>
                       ))}
                       {(!selProfile.stock_history || selProfile.stock_history.length === 0) && (
-                        <div className="text-center py-10 bg-white border border-slate-100 rounded-2xl flex flex-col items-center justify-center gap-3">
+                        <div className="text-center py-10 bg-white border border-slate-100 rounded-2xl flex flex-col items-center justify-center gap-3 shadow-sm">
                            <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-300">
                              <Box className="w-6 h-6"/>
                            </div>
