@@ -266,7 +266,7 @@ export default function StockManagementPage() {
       </div>
 
       <div className="hidden md:block bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden relative min-h-[400px]">
-        <div className="overflow-x-auto w-full">
+        <div className="overflow-x-auto w-full custom-scrollbar-auto">
         <Table className="min-w-[600px] w-full">
           <TableHeader className="bg-gradient-to-r from-slate-700 to-slate-800 hover:bg-transparent">
             <TableRow className="hover:bg-transparent border-none">

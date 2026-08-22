@@ -565,7 +565,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
         {/* Normal Mode (Not Fullscreen) Right Panel */}
         {!isFullscreen && (
           <div className="flex-1 min-w-0 space-y-4 flex flex-col">
-            <div className="space-y-4 overflow-y-auto pr-2 no-scrollbar" style={{ maxHeight: 440 }}>
+            <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar-inner" style={{ maxHeight: 440 }}>
               {/* Treatment Form */}
               {showForm && clickPos && !readonly && (
                 <div className="bg-white border-2 border-emerald-100 rounded-2xl p-4 shadow-lg shadow-emerald-500/5 relative">

@@ -82,7 +82,7 @@ export function WhatsAppSimulator() {
         <button onClick={() => setIsOpen(false)} className="text-white/80 hover:text-white"><X className="w-5 h-5" /></button>
       </div>
       
-      <div className="p-4 bg-slate-50 flex flex-col gap-3 max-h-[400px] overflow-y-auto">
+      <div className="p-4 bg-slate-50 flex flex-col gap-3 max-h-[400px] overflow-y-auto custom-scrollbar-inner">
         <Button onClick={triggerCron} disabled={isLoading} variant="outline" className="w-full font-bold border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100">
           <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
           Cron Job Çalıştır (Tümüne Gönder)

@@ -510,7 +510,7 @@ export default function PatientListPage() {
       </div>
 
       <div className="hidden md:block bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden relative">
-        <div className="overflow-x-auto w-full">
+        <div className="overflow-x-auto w-full custom-scrollbar-auto">
         <Table className="min-w-[600px] w-full">
           <TableHeader className="bg-gradient-to-r from-slate-700 to-slate-800 hover:bg-transparent">
             <TableRow className="hover:bg-transparent border-none">
@@ -591,7 +591,7 @@ export default function PatientListPage() {
              </div>
 
              {/* Navigation */}
-             <div className="flex flex-row md:flex-col gap-2 w-full overflow-x-auto md:overflow-visible pb-2 md:pb-0 no-scrollbar">
+             <div className="flex flex-row md:flex-col gap-2 w-full overflow-x-auto md:overflow-visible pb-2 md:pb-0 custom-scrollbar-auto">
                 {[
                   { id: 'info', label: 'Hasta Bilgileri', icon: Users, color: 'emerald' },
                   { id: 'consent', label: 'Onam Formları', icon: Shield, color: 'indigo' },
@@ -659,7 +659,7 @@ export default function PatientListPage() {
                </h3>
              </div>
 
-             <div className="flex-1 p-8 overflow-y-auto no-scrollbar bg-slate-50/30">
+             <div className="flex-1 p-8 overflow-y-auto custom-scrollbar-dialog bg-slate-50/30">
                {activeTab === 'info' && (
                  <div className="space-y-6">
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
@@ -1119,7 +1119,7 @@ export default function PatientListPage() {
 
       {/* Consent Detail Dialog */}
       <Dialog open={consentDetailOpen} onOpenChange={setConsentDetailOpen}>
-        <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto bg-white border-slate-200">
+        <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto custom-scrollbar-dialog bg-white border-slate-200">
           <DialogHeader>
             <DialogTitle className="text-lg font-extrabold text-[#1e293b] flex items-center gap-2">
               <Shield className="w-5 h-5 text-indigo-600" />
@@ -1133,7 +1133,7 @@ export default function PatientListPage() {
           </DialogHeader>
           <div className="space-y-4 pt-4">
             {/* Consent Text */}
-            <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 max-h-[300px] overflow-y-auto no-scrollbar">
+            <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 max-h-[300px] overflow-y-auto custom-scrollbar-inner">
               <p className="text-[0.8rem] text-slate-600 whitespace-pre-wrap leading-relaxed font-medium">
                 {selectedConsent?.consent_text}
               </p>

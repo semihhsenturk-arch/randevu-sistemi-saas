@@ -187,7 +187,7 @@ export default function AdminUsersPage() {
             Sisteme yeni kayıt olan klinikleri buradan onaylayarak erişim verebilirsiniz.
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-0 relative min-h-[200px] overflow-x-auto">
+        <CardContent className="p-0 relative min-h-[200px] overflow-x-auto custom-scrollbar-auto">
           <div className="min-w-[600px] w-full">
           <Table>
               <TableHeader className="bg-gradient-to-r from-slate-600 to-slate-700">

@@ -749,7 +749,7 @@ export default function CalendarPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4">
-                 <div className="flex flex-col gap-3 max-h-[600px] overflow-y-auto no-scrollbar">
+                 <div className="flex flex-col gap-3 max-h-[600px] overflow-y-auto custom-scrollbar-auto">
                    {waitingApps.length === 0 ? <div className="text-center p-8 text-xs italic text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">Bekleyen randevu yok</div> : waitingApps.map(a => (
                      <div key={a.id} className="bg-white border border-slate-200 rounded-xl p-3 flex flex-col gap-1 shadow-sm hover:border-amber-400 group cursor-pointer transition-all hover:translate-x-1" onClick={() => openEditApt(a)}>
                         <div className="text-[0.65rem] font-bold text-amber-600 uppercase tracking-wider">{format(parseISO(a.tarih), "d MMM", { locale: tr })} · {a.saat}</div>

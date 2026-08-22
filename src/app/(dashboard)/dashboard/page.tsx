@@ -419,7 +419,7 @@ export default function DashboardAnalyticsPage() {
           <div className="text-[0.95rem] font-extrabold mb-1 text-slate-900">Hizmet Performans Tablosu</div>
           <p className="text-[0.75rem] text-slate-400 font-medium mb-4">Hizmet bazlı detaylı analiz</p>
           {analytics.perfTable.length === 0 ? <div className="flex items-center justify-center h-[200px] text-slate-400 italic text-sm">Veri Yok</div> : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto custom-scrollbar-auto">
               <div className="min-w-[500px] w-full">
               <table className="w-full text-left">
                 <thead>
