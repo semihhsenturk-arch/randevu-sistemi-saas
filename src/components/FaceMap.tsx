@@ -346,9 +346,9 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
       {isFullscreen && (
         <div className="absolute top-3 left-2 right-2 z-[100] flex justify-between items-start pointer-events-none">
           {/* Left Side: Legend & Dates */}
-          <div className="flex flex-col gap-2 pointer-events-none w-64 max-w-[calc(100vw-100px)]">
+          <div className="flex flex-col gap-2 pointer-events-none items-start max-w-[calc(100vw-100px)]">
             {/* Legend */}
-            <div className="flex flex-col gap-1 bg-white/80 backdrop-blur-sm px-3 py-2 rounded-lg border border-slate-200/70 shadow-md pointer-events-auto self-start">
+            <div className="flex flex-col gap-1 bg-white/80 backdrop-blur-sm px-3 py-2 rounded-lg border border-slate-200/70 shadow-md pointer-events-auto">
               <div className="flex items-center gap-1.5">
                 <div className="w-2.5 h-2.5 rounded-full" style={{ background: "rgba(59,130,246,0.85)" }} />
                 <span className="text-xs font-semibold text-slate-600">Botoks</span>
@@ -373,12 +373,11 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                 <div className="flex flex-col gap-1 max-h-[40vh] overflow-y-auto custom-scrollbar-inner pr-1">
                   {dateGroups.map(([date, items]) => {
                     const totalUnits = items.reduce((sum, t) => sum + (t.amount || 0), 0);
-                    const txNo = items[0]?.transactionNo;
                     return (
-                      <div key={date} className="w-full flex items-stretch gap-1">
+                      <div key={date} className="flex items-stretch gap-1">
                         <button
                           onClick={() => setSelectedDate(selectedDate === date ? null : date)}
-                          className={`flex-1 px-2.5 py-1.5 rounded-lg text-[0.6rem] font-bold transition-all border flex items-center justify-between gap-1 shadow-sm text-left ${selectedDate === date ? "bg-emerald-50/90 text-emerald-700 border-emerald-200" : "bg-white/80 backdrop-blur-sm text-slate-600 border-slate-200/70 hover:border-slate-300"}`}
+                          className={`px-2.5 py-1.5 rounded-lg text-[0.6rem] font-bold transition-all border flex items-center justify-between gap-3 shadow-sm text-left ${selectedDate === date ? "bg-emerald-50/90 text-emerald-700 border-emerald-200" : "bg-white/80 backdrop-blur-sm text-slate-600 border-slate-200/70 hover:border-slate-300"}`}
                         >
                           <span className="truncate">{date} · {items.length} işl.</span>
                           <span className="font-extrabold shrink-0">{totalUnits} ünite</span>
