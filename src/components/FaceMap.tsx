@@ -19,9 +19,10 @@ interface FaceMapProps {
   onGenderChange?: (g: "female" | "male") => void;
   readonly?: boolean;
   patientName?: string;
+  stockHistory?: any[];
 }
 
-export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreatment, onDeleteTreatment, onGenderChange, readonly = false, patientName }: FaceMapProps) {
+export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreatment, onDeleteTreatment, onGenderChange, readonly = false, patientName, stockHistory = [] }: FaceMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -796,31 +797,34 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
               {/* Dotted Divider */}
               <div className="border-t-2 border-dashed border-slate-200" />
 
-              {/* Mini FaceMap */}
+              {/* Stock / Materials Used */}
               <div>
                 <div className="flex items-center gap-1.5 mb-2">
-                  <MapPin className="w-3 h-3 text-slate-400" />
-                  <span className="text-[0.6rem] font-bold text-slate-400 uppercase tracking-wider">İşlem Bölgeleri</span>
+                  <Syringe className="w-3 h-3 text-slate-400" />
+                  <span className="text-[0.6rem] font-bold text-slate-400 uppercase tracking-wider">Kullanılan Malzemeler</span>
                 </div>
-                <div className="relative w-full aspect-square max-w-[180px] mx-auto bg-slate-50 rounded-xl border border-slate-100 overflow-hidden">
-                  <img
-                    src={isFemale ? "/images/face-female.png" : "/images/face-male.png"}
-                    alt="Yüz Haritası"
-                    className="w-full h-full object-contain opacity-50"
-                    draggable={false}
-                  />
-                  {receiptDateGroup.treatments.map((t, idx) => {
-                    const pos = parsePos(t.zone);
-                    const colors = getMarkerColor(t.type);
-                    return (
-                      <div key={t.id} style={{ position: "absolute", left: `${pos.x}%`, top: `${pos.y}%`, transform: "translate(-50%, -50%)", zIndex: 10 }}>
-                        <div className="absolute inset-0 rounded-full" style={{ background: colors.light, width: 24, height: 24, margin: "-4px", opacity: 0.5 }} />
-                        <div className="relative rounded-full border-2 border-white shadow flex items-center justify-center" style={{ background: colors.bg, width: 16, height: 16 }}>
-                          <span style={{ fontSize: 7, fontWeight: 800, color: "#fff", lineHeight: 1 }}>{idx + 1}</span>
+                <div className="space-y-2">
+                  {(() => {
+                    const dateStocks = stockHistory.filter(h => {
+                      const hDate = h.date.split(' ')[0];
+                      return hDate === receiptDateGroup.date;
+                    });
+                    
+                    if (dateStocks.length === 0) {
+                      return (
+                        <div className="text-[0.65rem] font-medium text-slate-400 italic text-center py-2 bg-slate-50 rounded-lg border border-slate-100">
+                          Bu işlem için malzeme düşümü bulunmuyor.
                         </div>
+                      );
+                    }
+                    
+                    return dateStocks.map((stock, i) => (
+                      <div key={i} className="flex items-center justify-between bg-slate-50 border border-slate-100 p-2 rounded-lg">
+                        <span className="text-[0.65rem] font-bold text-slate-700">{stock.itemName}</span>
+                        <span className="text-[0.65rem] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">{stock.amount} {stock.unit}</span>
                       </div>
-                    );
-                  })}
+                    ));
+                  })()}
                 </div>
               </div>
 

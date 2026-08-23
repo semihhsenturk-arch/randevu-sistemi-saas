@@ -893,6 +893,7 @@ export default function PatientListPage() {
                    gender={selProfile.face_gender || 'female'}
                    treatments={selProfile.face_treatments || []}
                    patientName={selectedPatientName}
+                    stockHistory={selProfile.stock_history || []}
                    onGenderChange={async (g) => {
                      const current = profiles[selectedPatientName] || { notes_list: [], meds: [], stock_history: [] };
                      const updated = { ...current, face_gender: g };
@@ -1214,6 +1215,7 @@ export default function PatientListPage() {
         open={consentModalOpen}
         onOpenChange={setConsentModalOpen}
         patientName={selectedPatientName}
+                    stockHistory={selProfile.stock_history || []}
         patientTC={profiles[selectedPatientName]?.tc_no || pTC}
         patientPhone={selectedPatientPhone || pPhone}
         appointmentId={consentAppointment?.id}
