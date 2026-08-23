@@ -819,9 +819,21 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                     }
                     
                     return dateStocks.map((stock, i) => (
-                      <div key={i} className="flex items-center justify-between bg-slate-50 border border-slate-100 p-2 rounded-lg">
-                        <span className="text-[0.65rem] font-bold text-slate-700">{stock.itemName}</span>
-                        <span className="text-[0.65rem] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">{stock.amount} {stock.unit}</span>
+                      <div key={i} className="flex flex-col gap-1 bg-slate-50 border border-slate-100 p-2.5 rounded-lg">
+                        <div className="text-[0.55rem] font-bold text-slate-400 mb-0.5">{stock.date.split(" ")[1] || ""}</div>
+                        {stock.text.split(", ").map((itemStr: string, j: number) => {
+                          const parts = itemStr.trim().split(" ");
+                          const amountAndUnit = parts.slice(0, 2).join(" ");
+                          const itemName = parts.slice(2).join(" ");
+                          return (
+                            <div key={j} className="flex items-center justify-between">
+                              <span className="text-[0.65rem] font-bold text-slate-700">{itemName || itemStr}</span>
+                              <span className="text-[0.65rem] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
+                                {itemName ? amountAndUnit : ""}
+                              </span>
+                            </div>
+                          );
+                        })}
                       </div>
                     ));
                   })()}
