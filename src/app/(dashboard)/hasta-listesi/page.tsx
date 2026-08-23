@@ -480,17 +480,6 @@ export default function PatientListPage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
-        <TransactionReceiptModal
-
-          receiptDateGroup={globalReceiptGroup}
-
-          onClose={() => setGlobalReceiptGroup(null)}
-
-          patientName={selectedPatientName || undefined}
-
-          stockHistory={selProfile?.stock_history || []}
-
-        />
 
       </div>
   );
@@ -1178,6 +1167,18 @@ export default function PatientListPage() {
                )}
              </div>
           </div>
+          <TransactionReceiptModal
+
+            receiptDateGroup={globalReceiptGroup}
+
+            onClose={() => setGlobalReceiptGroup(null)}
+
+            patientName={selectedPatientName || undefined}
+
+            stockHistory={selProfile?.stock_history || []}
+
+          />
+
         </DialogContent>
       </Dialog>
 
@@ -1341,17 +1342,6 @@ export default function PatientListPage() {
            </div>
         </DialogContent>
       </Dialog>
-      <TransactionReceiptModal
-
-        receiptDateGroup={globalReceiptGroup}
-
-        onClose={() => setGlobalReceiptGroup(null)}
-
-        patientName={selectedPatientName || undefined}
-
-        stockHistory={selProfile?.stock_history || []}
-
-      />
 
     </div>
   );
