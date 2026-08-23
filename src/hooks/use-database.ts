@@ -276,6 +276,72 @@ export function useDatabase() {
     return treatments.map(t => t.unit === "cc" ? { ...t, unit: "ünite" } : t);
   };
 
+  const assignGlobalTransactionNumbers = (profiles: Record<string, Omit<PatientProfile, "patient_name">>) => {
+    const groups: { patientName: string; dayStr: string; timestamp: number }[] = [];
+    
+    // Her hastanın gün bazında ilk işleminin saatini bul
+    for (const [patientName, profile] of Object.entries(profiles)) {
+      if (!profile.face_treatments || profile.face_treatments.length === 0) continue;
+      
+      const dayMap = new Map<string, string>(); // day -> earliest date string
+      for (const t of profile.face_treatments) {
+        const day = t.date.split(" ")[0];
+        if (!dayMap.has(day)) {
+          dayMap.set(day, t.date);
+        } else {
+          // compare times safely (dd.MM.yyyy HH:mm format)
+          const parseD = (dStr: string) => {
+            const [d, tStr] = dStr.split(" ");
+            if (!tStr) return 0;
+            const [DD, MM, YYYY] = d.split(".");
+            const [HH, mm] = tStr.split(":");
+            return new Date(Number(YYYY), Number(MM) - 1, Number(DD), Number(HH), Number(mm)).getTime();
+          };
+          if (parseD(t.date) < parseD(dayMap.get(day)!)) {
+            dayMap.set(day, t.date);
+          }
+        }
+      }
+      
+      for (const [day, earliestDate] of dayMap.entries()) {
+        const parseD = (dStr: string) => {
+          const [d, tStr] = dStr.split(" ");
+          if (!tStr) return 0;
+          const [DD, MM, YYYY] = d.split(".");
+          const [HH, mm] = tStr.split(":");
+          return new Date(Number(YYYY), Number(MM) - 1, Number(DD), Number(HH), Number(mm)).getTime();
+        };
+        groups.push({
+          patientName,
+          dayStr: day,
+          timestamp: parseD(earliestDate)
+        });
+      }
+    }
+    
+    // Tüm grupları zamana göre kronolojik sırala
+    groups.sort((a, b) => a.timestamp - b.timestamp);
+    
+    // Sırayla ISL numarası ata
+    const dayToTxNo = new Map<string, string>();
+    groups.forEach((g, index) => {
+      const txNo = `#ISL-${(index + 1).toString().padStart(4, '0')}`;
+      dayToTxNo.set(`${g.patientName}|${g.dayStr}`, txNo);
+    });
+    
+    // Profillere ISL numaralarını yaz
+    for (const [patientName, profile] of Object.entries(profiles)) {
+      if (profile.face_treatments) {
+        profile.face_treatments = profile.face_treatments.map(t => {
+          const day = t.date.split(" ")[0];
+          const txNo = dayToTxNo.get(`${patientName}|${day}`);
+          return { ...t, transactionNo: txNo || t.transactionNo };
+        });
+      }
+    }
+    return profiles;
+  };
+
   const getPatientProfiles = useCallback(async () => {
     try {
       if (!userId || userId === "demo-user") {
@@ -286,7 +352,7 @@ export function useDatabase() {
             cached[key].face_treatments = normalizeFaceTreatments(cached[key].face_treatments!);
           }
         }
-        return cached;
+        return assignGlobalTransactionNumbers(cached);
       }
 
       const { data, error } = await supabase
@@ -310,8 +376,9 @@ export function useDatabase() {
             before_after_photos: p.before_after_photos || [],
           };
         });
-        setCache(CACHE_KEYS.PROFILES, profiles);
-        return profiles;
+        const finalProfiles = assignGlobalTransactionNumbers(profiles);
+        setCache(CACHE_KEYS.PROFILES, finalProfiles);
+        return finalProfiles;
       }
     } catch (e) {
       console.warn("fetchFreshProfiles failed, falling back to cache", e);
@@ -323,7 +390,7 @@ export function useDatabase() {
         fallback[key].face_treatments = normalizeFaceTreatments(fallback[key].face_treatments!);
       }
     }
-    return fallback;
+    return assignGlobalTransactionNumbers(fallback);
   }, [userId]);
 
   const savePatientProfile = useCallback(async (rawName: string, profile: Omit<PatientProfile, "patient_name">) => {
@@ -364,7 +431,8 @@ export function useDatabase() {
     
     const cached = getCache<Record<string, Omit<PatientProfile, "patient_name">>>(CACHE_KEYS.PROFILES) || {};
     cached[name] = profile;
-    setCache(CACHE_KEYS.PROFILES, cached);
+    const finalCached = assignGlobalTransactionNumbers(cached);
+    setCache(CACHE_KEYS.PROFILES, finalCached);
   }, [userId]);
 
   // ─── Inventory ─────────────────────────────────────────────────

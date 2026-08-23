@@ -383,16 +383,6 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                           <span className="truncate">{date} · {items.length} işl.</span>
                           <span className="font-extrabold shrink-0">{totalUnits} ünite</span>
                         </button>
-                        {txNo && (
-                          <button
-                            onClick={() => setReceiptDateGroup({ date, txNo, treatments: items })}
-                            className="px-2.5 rounded-lg bg-slate-800/90 backdrop-blur-sm text-white font-mono font-bold text-[0.55rem] hover:bg-slate-900 transition-colors flex items-center justify-center shrink-0 shadow-sm cursor-pointer"
-                            title="İşlem Fişini Gör"
-                          >
-                            <Receipt className="w-3 h-3 mr-1" />
-                            {txNo}
-                          </button>
-                        )}
                       </div>
                     );
                   })}
