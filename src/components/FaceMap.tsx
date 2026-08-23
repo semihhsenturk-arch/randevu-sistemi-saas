@@ -67,6 +67,15 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
     return treatments;
   }, [treatments, selectedDate]);
 
+  // Build a map from treatment id to its sequential number (1-based)
+  const treatmentNumberMap = useMemo(() => {
+    const map = new Map<string, number>();
+    activeTreatments.forEach((t, i) => {
+      map.set(t.id, i + 1);
+    });
+    return map;
+  }, [activeTreatments]);
+
   const dragStartRef = useRef<{ x: number; y: number } | null>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -450,11 +459,11 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                 return (
                   <div key={t.id} style={{ position: "absolute", left: `${pos.x}%`, top: `${pos.y}%`, transform: "translate(-50%, -50%)", zIndex: isHovered || isDragging ? 30 : 10 }}>
                     {/* Pulse ring */}
-                    <div className={`absolute inset-0 rounded-full ${isDragging ? "" : "animate-ping"}`} style={{ background: colors.light, width: 28, height: 28, margin: "-6px" }} />
-                    {/* Marker dot */}
+                    <div className={`absolute inset-0 rounded-full ${isDragging ? "" : "animate-ping"}`} style={{ background: colors.light, width: 32, height: 32, margin: "-6px" }} />
+                    {/* Marker dot with number */}
                     <div
-                      className={`relative w-4 h-4 rounded-full border-2 border-white shadow-lg flex items-center justify-center transition-transform hover:scale-150 ${isDragging ? "scale-150 cursor-grabbing" : "cursor-grab"}`}
-                      style={{ background: colors.bg }}
+                      className={`relative rounded-full border-2 border-white shadow-lg flex items-center justify-center transition-transform hover:scale-125 ${isDragging ? "scale-125 cursor-grabbing" : "cursor-grab"}`}
+                      style={{ background: colors.bg, width: 20, height: 20 }}
                       onMouseEnter={(e) => { e.stopPropagation(); setHoveredMarker(t.id); }}
                       onMouseLeave={() => setHoveredMarker(null)}
                       onMouseDown={(e) => {
@@ -471,7 +480,11 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                         setHoveredMarker(null);
                         setDragPos(parsePos(t.zone));
                       }}
-                    />
+                    >
+                      <span style={{ fontSize: 9, fontWeight: 800, color: "#fff", lineHeight: 1, userSelect: "none", pointerEvents: "none" }}>
+                        {treatmentNumberMap.get(t.id) ?? ""}
+                      </span>
+                    </div>
                     {/* Tooltip */}
                     {isHovered && (
                       <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 bg-white border border-slate-200/80 rounded-xl px-3 py-2 shadow-xl pointer-events-none z-50 text-slate-900 flex flex-col items-center gap-0.5 whitespace-nowrap" onClick={e => e.stopPropagation()}>
@@ -647,8 +660,8 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                         onMouseEnter={() => setHoveredMarker(t.id)}
                         onMouseLeave={() => setHoveredMarker(null)}
                       >
-                        <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border" style={{ background: colors.light, borderColor: colors.ring + "30" }}>
-                          <Syringe className="w-3.5 h-3.5" style={{ color: colors.ring }} />
+                        <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 border-2 border-white shadow" style={{ background: colors.bg }}>
+                          <span style={{ fontSize: 11, fontWeight: 800, color: "#fff", lineHeight: 1 }}>{treatmentNumberMap.get(t.id) ?? ""}</span>
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5 mb-0.5">
