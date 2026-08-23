@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { SignatureCanvas, SignatureCanvasHandle } from "@/components/SignatureCanvas";
@@ -106,7 +106,6 @@ export function ConsentFormModal({
   const [isScrolledToBottom, setIsScrolledToBottom] = useState(false);
 
   // Initialize from initialData when modal opens
-  import { useEffect } from "react";
   useEffect(() => {
     if (open) {
       if (initialData) {
