@@ -22,7 +22,27 @@ export type FaceTreatment = {
   unit: string;
   product?: string;
   note?: string;
+  transactionNo?: string;
 };
+
+/**
+ * Generates a unique transaction number for a face treatment.
+ * Format: #ISL-XXXXX (5-digit, incremented based on existing treatments)
+ */
+export function generateTransactionNo(existingTreatments: FaceTreatment[]): string {
+  let maxNum = 0;
+  for (const t of existingTreatments) {
+    if (t.transactionNo) {
+      const match = t.transactionNo.match(/#ISL-(\d+)/);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (num > maxNum) maxNum = num;
+      }
+    }
+  }
+  const nextNum = maxNum + 1;
+  return `#ISL-${nextNum.toString().padStart(5, '0')}`;
+}
 
 export type BeforeAfterPhoto = {
   id: string;

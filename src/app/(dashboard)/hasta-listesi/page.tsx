@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { useDatabase, Appointment, PatientProfile, FaceTreatment, InventoryItem, Service, ConsentRecord, getCacheSync, CACHE_KEYS } from "@/hooks/use-database";
+import { useDatabase, Appointment, PatientProfile, FaceTreatment, InventoryItem, Service, ConsentRecord, getCacheSync, CACHE_KEYS, generateTransactionNo } from "@/hooks/use-database";
 import { FaceMap } from "@/components/FaceMap";
 import { BeforeAfterCompare } from "@/components/BeforeAfterCompare";
 import { Button } from "@/components/ui/button";
@@ -501,7 +501,10 @@ export default function PatientListPage() {
                   <span className="font-extrabold text-[#0a3d34] text-lg line-clamp-2 break-words" onClick={() => openProfile(p.musteriAdi, p.telefon || "")}>{p.musteriAdi}</span>
                   <span className="text-sm font-medium text-slate-500">{p.telefon || "Telefon Yok"}</span>
                 </div>
-                <span className="bg-slate-100 text-[#1e293b] px-3 py-1 rounded-lg text-[0.8rem] font-black shrink-0 h-fit mt-1">{p.saat}</span>
+                <div className="flex flex-col items-end gap-1 shrink-0 mt-1">
+                  <span className="text-[0.65rem] font-bold text-slate-500 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100">{p.tarih && isValid(parseISO(p.tarih)) ? format(parseISO(p.tarih), "d MMM yyyy", { locale: tr }) : p.tarih || "-"}</span>
+                  <span className="bg-slate-100 text-[#1e293b] px-3 py-1 rounded-lg text-[0.8rem] font-black">{p.saat}</span>
+                </div>
               </div>
               <div className="flex items-center justify-between pt-2 border-t border-slate-100">
                 <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-3 py-1 rounded-full text-[0.7rem] font-bold">{h?.ad}</span>
@@ -536,7 +539,7 @@ export default function PatientListPage() {
               <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">Hasta Adı Soyadı</TableHead>
               <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">İletişim Numarası</TableHead>
               <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">Hizmet Türü</TableHead>
-              <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">Saat</TableHead>
+              <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">Tarih / Saat</TableHead>
               <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">İşlem</TableHead>
             </TableRow>
           </TableHeader>
@@ -569,7 +572,12 @@ export default function PatientListPage() {
                        )}
                      </div>
                   </TableCell>
-                  <TableCell className="text-center py-4 font-extrabold text-[#111827]">{p.saat}</TableCell>
+                  <TableCell className="text-center py-4">
+                     <div className="flex flex-col items-center justify-center gap-1">
+                       <span className="text-[0.7rem] font-bold text-slate-500 bg-slate-50 px-2.5 py-0.5 rounded-md border border-slate-100">{p.tarih && isValid(parseISO(p.tarih)) ? format(parseISO(p.tarih), "d MMM yyyy", { locale: tr }) : p.tarih || "-"}</span>
+                       <span className="font-extrabold text-[#111827] text-[0.9rem]">{p.saat}</span>
+                     </div>
+                  </TableCell>
                   <TableCell className="text-center py-4">
                      <div className="flex items-center justify-center gap-2">
                        <Button variant="outline" size="sm" className="h-8 text-xs bg-indigo-50 border-indigo-200 text-indigo-700 font-bold hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all shadow-none" onClick={() => openConsent(p)}>
@@ -840,6 +848,7 @@ export default function PatientListPage() {
                  <FaceMap
                    gender={selProfile.face_gender || 'female'}
                    treatments={selProfile.face_treatments || []}
+                   patientName={selectedPatientName}
                    onGenderChange={async (g) => {
                      const current = profiles[selectedPatientName] || { notes_list: [], meds: [], stock_history: [] };
                      const updated = { ...current, face_gender: g };
@@ -847,8 +856,9 @@ export default function PatientListPage() {
                      savePatientProfile(selectedPatientName, updated).catch(err => console.error('Gender save err:', err));
                    }}
                    onAddTreatment={async (t) => {
+                     const treatment = t.transactionNo ? t : { ...t, transactionNo: generateTransactionNo(selProfile.face_treatments || []) };
                      const current = profiles[selectedPatientName] || { notes_list: [], meds: [], stock_history: [] };
-                     const list = [...(current.face_treatments || []), t];
+                     const list = [...(current.face_treatments || []), treatment];
                      const updated = { ...current, face_treatments: list };
                      setProfiles(prev => ({ ...prev, [selectedPatientName]: updated }));
                      savePatientProfile(selectedPatientName, updated).catch(err => console.error('Face treatment save err:', err));
