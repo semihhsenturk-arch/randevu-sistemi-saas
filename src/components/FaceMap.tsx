@@ -21,17 +21,7 @@ interface FaceMapProps {
   patientName?: string;
 }
 
-export function FaceMap({ gender, treatments: propTreatments = [], onAddTreatment, onUpdateTreatment, onDeleteTreatment, onGenderChange, readonly = false, patientName }: FaceMapProps) {
-  
-  // Backfill missing transaction numbers for older records
-  const treatments = useMemo(() => {
-    return propTreatments.map((t, index) => {
-      if (t.transactionNo) return t;
-      const hash = t.id.replace(/[^0-9]/g, '').slice(-4).padStart(4, '0');
-      return { ...t, transactionNo: `#ISL-${hash}` };
-    });
-  }, [propTreatments]);
-
+export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreatment, onDeleteTreatment, onGenderChange, readonly = false, patientName }: FaceMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });

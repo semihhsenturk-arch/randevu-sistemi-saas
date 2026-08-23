@@ -167,7 +167,25 @@ export default function PatientListPage() {
     const name = rawName.toLocaleUpperCase("tr-TR");
     setSelectedPatientName(name);
     setSelectedPatientPhone(phone);
-    const prof = profiles[name] || { notes_list: [], meds: [], stock_history: [] };
+    const prof = { ...(profiles[name] || { notes_list: [], meds: [], stock_history: [] }) };
+    
+    // MIGRATION: Ensure all existing face treatments have a transactionNo and save them to the database
+    if (prof.face_treatments && prof.face_treatments.length > 0) {
+      let hasChanges = false;
+      const updatedTreatments = [...prof.face_treatments];
+      updatedTreatments.forEach((t, i) => {
+        if (!t.transactionNo) {
+          hasChanges = true;
+          t.transactionNo = generateTransactionNo(updatedTreatments.slice(0, i));
+        }
+      });
+      if (hasChanges) {
+        prof.face_treatments = updatedTreatments;
+        savePatientProfile(name, prof).catch(err => console.error("Migration save err:", err));
+        // Note: we update the state so the current render picks it up immediately
+        setProfiles(prev => ({ ...prev, [name]: prof }));
+      }
+    }
     
     // Load demographic fields
     setPPhone(prof.phone || phone || "");
