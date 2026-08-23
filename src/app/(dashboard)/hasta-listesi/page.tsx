@@ -169,20 +169,45 @@ export default function PatientListPage() {
     setSelectedPatientPhone(phone);
     const prof = { ...(profiles[name] || { notes_list: [], meds: [], stock_history: [] }) };
     
-    // MIGRATION: Ensure all existing face treatments have a transactionNo and save them to the database
+    // MIGRATION: Ensure all existing face treatments have a transactionNo (ONE per date group)
     if (prof.face_treatments && prof.face_treatments.length > 0) {
       let hasChanges = false;
       const updatedTreatments = [...prof.face_treatments];
-      updatedTreatments.forEach((t, i) => {
-        if (!t.transactionNo) {
-          hasChanges = true;
-          t.transactionNo = generateTransactionNo(updatedTreatments.slice(0, i));
+      
+      const groupsByDate: Record<string, FaceTreatment[]> = {};
+      updatedTreatments.forEach(t => {
+        const d = t.date.split(" ")[0];
+        if (!groupsByDate[d]) groupsByDate[d] = [];
+        groupsByDate[d].push(t);
+      });
+      
+      let maxNum = 0;
+      updatedTreatments.forEach(t => {
+        if (t.transactionNo) {
+          const m = t.transactionNo.match(/#ISL-(\d+)/);
+          if (m) {
+            const num = parseInt(m[1], 10);
+            if (num > maxNum) maxNum = num;
+          }
         }
       });
+      
+      Object.keys(groupsByDate).forEach(date => {
+        const group = groupsByDate[date];
+        const existingTx = group.find(t => t.transactionNo)?.transactionNo;
+        const txNo = existingTx || `#ISL-${(++maxNum).toString().padStart(5, '0')}`;
+        
+        group.forEach(t => {
+          if (t.transactionNo !== txNo) {
+            t.transactionNo = txNo;
+            hasChanges = true;
+          }
+        });
+      });
+
       if (hasChanges) {
         prof.face_treatments = updatedTreatments;
         savePatientProfile(name, prof).catch(err => console.error("Migration save err:", err));
-        // Note: we update the state so the current render picks it up immediately
         setProfiles(prev => ({ ...prev, [name]: prof }));
       }
     }
@@ -874,13 +899,17 @@ export default function PatientListPage() {
                      savePatientProfile(selectedPatientName, updated).catch(err => console.error('Gender save err:', err));
                    }}
                    onAddTreatment={async (t) => {
-                     const treatment = t.transactionNo ? t : { ...t, transactionNo: generateTransactionNo(selProfile.face_treatments || []) };
-                     const current = profiles[selectedPatientName] || { notes_list: [], meds: [], stock_history: [] };
-                     const list = [...(current.face_treatments || []), treatment];
-                     const updated = { ...current, face_treatments: list };
-                     setProfiles(prev => ({ ...prev, [selectedPatientName]: updated }));
-                     savePatientProfile(selectedPatientName, updated).catch(err => console.error('Face treatment save err:', err));
-                     toast.success('Tedavi kaydedildi.');
+                      const current = profiles[selectedPatientName] || { notes_list: [], meds: [], stock_history: [] };
+                      const todayDate = t.date.split(" ")[0];
+                      const existingToday = current.face_treatments?.find(ft => ft.date.startsWith(todayDate) && ft.transactionNo);
+                      const txNo = existingToday?.transactionNo || generateTransactionNo(current.face_treatments || []);
+                      const treatment = t.transactionNo ? t : { ...t, transactionNo: txNo };
+                      
+                      const list = [...(current.face_treatments || []), treatment];
+                      const updated = { ...current, face_treatments: list };
+                      setProfiles(prev => ({ ...prev, [selectedPatientName]: updated }));
+                      savePatientProfile(selectedPatientName, updated).catch(err => console.error('Face treatment save err:', err));
+                      toast.success('Tedavi kaydedildi.');
                    }}
                    onUpdateTreatment={async (t) => {
                      const current = profiles[selectedPatientName] || { notes_list: [], meds: [], stock_history: [] };

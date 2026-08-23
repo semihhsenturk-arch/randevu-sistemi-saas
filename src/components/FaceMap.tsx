@@ -36,7 +36,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
   const [draggingMarkerId, setDraggingMarkerId] = useState<string | null>(null);
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [receiptTreatment, setReceiptTreatment] = useState<FaceTreatment | null>(null);
+  const [receiptDateGroup, setReceiptDateGroup] = useState<{ date: string, txNo: string, treatments: FaceTreatment[] } | null>(null);
 
   type DrawingPoint = { percentX: number; percentY: number };
   const [isDrawing, setIsDrawing] = useState(false);
@@ -497,9 +497,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                           <span className="text-slate-900">-</span>
                           <span>{t.amount} {t.unit}</span>
                         </div>
-                        {t.transactionNo && (
-                          <div className="text-[0.6rem] font-mono font-extrabold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">{t.transactionNo}</div>
-                        )}
+                        
                         <div className="text-[0.65rem] font-bold text-slate-500">
                           {t.date.split(" ")[0]}
                         </div>
@@ -680,15 +678,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5 mb-0.5">
-                            {t.transactionNo && (
-                              <button
-                                onClick={(e) => { e.stopPropagation(); setReceiptTreatment(t); }}
-                                className="text-[0.55rem] font-mono font-extrabold px-1.5 py-0.5 rounded-md bg-slate-800 text-white hover:bg-slate-900 transition-colors cursor-pointer"
-                                title="İşlem Özeti"
-                              >
-                                {t.transactionNo}
-                              </button>
-                            )}
+                            
                             <span className={`text-[0.55rem] font-bold px-1.5 py-0.5 rounded-full`} style={{ background: colors.light, color: colors.ring }}>
                               {t.type === "botoks" ? "Botoks" : t.type === "dolgu" ? "Dolgu" : "Mezoterapi"}
                             </span>
@@ -730,28 +720,25 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
       </div>
 
       {/* ═══════ Receipt / İşlem Fişi Modal ═══════ */}
-      {receiptTreatment && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setReceiptTreatment(null)}>
-          <div
-            className="receipt-modal relative bg-white w-[360px] max-w-[92vw] rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 zoom-in-95 duration-300"
-            onClick={(e) => e.stopPropagation()}
-          >
+      {receiptDateGroup && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setReceiptDateGroup(null)}>
+          <div className="receipt-modal bg-white w-full max-w-[320px] max-h-[90vh] overflow-y-auto relative flex flex-col" onClick={e => e.stopPropagation()}>
             {/* Receipt Top Tear */}
             <div className="receipt-tear-top" />
             
-            {/* Header */}
-            <div className="bg-gradient-to-br from-slate-800 to-slate-900 px-6 py-5 text-center relative">
-              <div className="absolute top-3 right-3">
-                <button onClick={() => setReceiptTreatment(null)} className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/80 hover:text-white transition-colors">
+            {/* Receipt Header */}
+            <div className="bg-slate-900 px-6 py-5 flex flex-col items-center justify-center text-center relative overflow-hidden">
+              <div className="absolute top-2 right-2">
+                <button onClick={() => setReceiptDateGroup(null)} className="p-1 rounded-full bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-colors">
                   <X className="w-4 h-4" />
                 </button>
               </div>
               <div className="flex items-center justify-center gap-2 mb-2">
                 <Receipt className="w-5 h-5 text-emerald-400" />
-                <span className="text-[0.65rem] font-bold uppercase tracking-[0.2em] text-emerald-400">İşlem Fişi</span>
+                <span className="text-[0.65rem] font-bold uppercase tracking-[0.2em] text-emerald-400">GÜNLÜK İŞLEM FİŞİ</span>
               </div>
               <div className="text-2xl font-mono font-black text-white tracking-wide">
-                {receiptTreatment.transactionNo}
+                {receiptDateGroup.txNo}
               </div>
               {patientName && (
                 <div className="text-xs font-bold text-white/60 mt-2">{patientName}</div>
@@ -763,41 +750,41 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
               {/* Date & Time */}
               <div className="flex items-center justify-between text-xs">
                 <span className="font-bold text-slate-400 uppercase tracking-wider">Tarih</span>
-                <span className="font-extrabold text-slate-700">{receiptTreatment.date}</span>
+                <span className="font-extrabold text-slate-700">{receiptDateGroup.date}</span>
               </div>
 
               {/* Dotted Divider */}
               <div className="border-t-2 border-dashed border-slate-200" />
 
-              {/* Treatment Type */}
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm" style={{ background: getMarkerColor(receiptTreatment.type).bg }}>
-                  <Syringe className="w-5 h-5 text-white" />
-                </div>
-                <div className="flex-1">
-                  <div className="text-sm font-extrabold text-slate-800">
-                    {receiptTreatment.type === "botoks" ? "Botoks" : receiptTreatment.type === "dolgu" ? "Dolgu" : "Mezoterapi"}
-                  </div>
-                  {receiptTreatment.product && (
-                    <div className="text-xs font-medium text-slate-500">{receiptTreatment.product}</div>
-                  )}
-                </div>
-                <div className="text-right">
-                  <div className="text-lg font-black text-slate-800">{receiptTreatment.amount}</div>
-                  <div className="text-[0.6rem] font-bold text-slate-400 uppercase">{receiptTreatment.unit}</div>
-                </div>
+              {/* Treatment Aggregate */}
+              <div className="space-y-3">
+                {(() => {
+                  const totals = receiptDateGroup.treatments.reduce((acc, t) => {
+                    if (!acc[t.type]) acc[t.type] = { amount: 0, count: 0, unit: t.unit };
+                    acc[t.type].amount += (t.amount || 0);
+                    acc[t.type].count += 1;
+                    return acc;
+                  }, {} as Record<string, { amount: number, count: number, unit: string }>);
+                  
+                  return Object.entries(totals).map(([type, data]) => (
+                    <div key={type} className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm" style={{ background: getMarkerColor(type as any).bg }}>
+                        <Syringe className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-sm font-extrabold text-slate-800 capitalize">
+                          {type === "botoks" ? "Botoks" : type === "dolgu" ? "Dolgu" : "Mezoterapi"}
+                        </div>
+                        <div className="text-xs font-medium text-slate-500">{data.count} Bölge İşlemi</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-black text-slate-800">{data.amount}</div>
+                        <div className="text-[0.6rem] font-bold text-slate-400 uppercase">{data.unit}</div>
+                      </div>
+                    </div>
+                  ));
+                })()}
               </div>
-
-              {/* Note */}
-              {receiptTreatment.note && (
-                <>
-                  <div className="border-t border-slate-100" />
-                  <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
-                    <div className="text-[0.6rem] font-bold text-slate-400 uppercase tracking-wider mb-1">Not</div>
-                    <div className="text-xs text-slate-600 leading-relaxed">{receiptTreatment.note}</div>
-                  </div>
-                </>
-              )}
 
               {/* Dotted Divider */}
               <div className="border-t-2 border-dashed border-slate-200" />
@@ -806,7 +793,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
               <div>
                 <div className="flex items-center gap-1.5 mb-2">
                   <MapPin className="w-3 h-3 text-slate-400" />
-                  <span className="text-[0.6rem] font-bold text-slate-400 uppercase tracking-wider">İşlem Bölgesi</span>
+                  <span className="text-[0.6rem] font-bold text-slate-400 uppercase tracking-wider">İşlem Bölgeleri</span>
                 </div>
                 <div className="relative w-full aspect-square max-w-[180px] mx-auto bg-slate-50 rounded-xl border border-slate-100 overflow-hidden">
                   <img
@@ -815,33 +802,18 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                     className="w-full h-full object-contain opacity-50"
                     draggable={false}
                   />
-                  {/* Show the specific treatment marker */}
-                  {(() => {
-                    const pos = parsePos(receiptTreatment.zone);
-                    const colors = getMarkerColor(receiptTreatment.type);
+                  {receiptDateGroup.treatments.map((t, idx) => {
+                    const pos = parsePos(t.zone);
+                    const colors = getMarkerColor(t.type);
                     return (
-                      <div style={{ position: "absolute", left: `${pos.x}%`, top: `${pos.y}%`, transform: "translate(-50%, -50%)", zIndex: 10 }}>
-                        <div className="animate-ping absolute inset-0 rounded-full" style={{ background: colors.light, width: 28, height: 28, margin: "-4px" }} />
-                        <div className="relative rounded-full border-2 border-white shadow-lg flex items-center justify-center" style={{ background: colors.bg, width: 20, height: 20 }}>
-                          <span style={{ fontSize: 8, fontWeight: 800, color: "#fff", lineHeight: 1 }}>
-                            {treatmentNumberMap.get(receiptTreatment.id) ?? ""}
-                          </span>
+                      <div key={t.id} style={{ position: "absolute", left: `${pos.x}%`, top: `${pos.y}%`, transform: "translate(-50%, -50%)", zIndex: 10 }}>
+                        <div className="absolute inset-0 rounded-full" style={{ background: colors.light, width: 24, height: 24, margin: "-4px", opacity: 0.5 }} />
+                        <div className="relative rounded-full border-2 border-white shadow flex items-center justify-center" style={{ background: colors.bg, width: 16, height: 16 }}>
+                          <span style={{ fontSize: 7, fontWeight: 800, color: "#fff", lineHeight: 1 }}>{idx + 1}</span>
                         </div>
                       </div>
                     );
-                  })()}
-                  {/* Also show sibling treatments from the same date in a lighter way */}
-                  {treatments
-                    .filter(t => t.id !== receiptTreatment.id && t.date.split(" ")[0] === receiptTreatment.date.split(" ")[0])
-                    .map(t => {
-                      const pos = parsePos(t.zone);
-                      const colors = getMarkerColor(t.type);
-                      return (
-                        <div key={t.id} style={{ position: "absolute", left: `${pos.x}%`, top: `${pos.y}%`, transform: "translate(-50%, -50%)", zIndex: 5, opacity: 0.35 }}>
-                          <div className="rounded-full border border-white/80 shadow" style={{ background: colors.bg, width: 12, height: 12 }} />
-                        </div>
-                      );
-                    })}
+                  })}
                 </div>
               </div>
 
@@ -857,10 +829,10 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                   ))}
                 </div>
                 <div className="text-sm font-mono font-black text-slate-800 tracking-[0.15em]">
-                  {receiptTreatment.transactionNo}
+                  {receiptDateGroup.txNo}
                 </div>
                 <div className="text-[0.55rem] text-slate-400 font-medium mt-1">
-                  Bu fiş hasta tedavi kayıtlarına aittir.
+                  Bu fiş hastanın o günkü toplam işlemlerini gösterir.
                 </div>
               </div>
             </div>
