@@ -652,7 +652,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                     </span>
                   </div>
                 ) : (
-                  activeTreatments.slice().reverse().map(t => {
+                  activeTreatments.map(t => {
                     const colors = getMarkerColor(t.type);
                     return (
                       <div key={t.id}
