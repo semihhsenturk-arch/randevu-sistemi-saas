@@ -192,6 +192,7 @@ export default function PatientListPage() {
         }
       });
       
+      const newTreatments: FaceTreatment[] = [];
       Object.keys(groupsByDate).forEach(date => {
         const group = groupsByDate[date];
         const existingTx = group.find(t => t.transactionNo)?.transactionNo;
@@ -199,14 +200,14 @@ export default function PatientListPage() {
         
         group.forEach(t => {
           if (t.transactionNo !== txNo) {
-            t.transactionNo = txNo;
             hasChanges = true;
           }
+          newTreatments.push({ ...t, transactionNo: txNo });
         });
       });
 
       if (hasChanges) {
-        prof.face_treatments = updatedTreatments;
+        prof.face_treatments = newTreatments;
         savePatientProfile(name, prof).catch(err => console.error("Migration save err:", err));
         setProfiles(prev => ({ ...prev, [name]: prof }));
       }

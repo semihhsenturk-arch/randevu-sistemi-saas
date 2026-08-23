@@ -636,19 +636,26 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                   <div className="flex flex-wrap gap-1">
                     {dateGroups.map(([date, items]) => {
                       const totalUnits = items.reduce((sum, t) => sum + (t.amount || 0), 0);
-                      const txNos = items.filter(t => t.transactionNo).map(t => t.transactionNo!);
+                      const txNo = items[0]?.transactionNo;
                       return (
-                        <button key={date} onClick={() => setSelectedDate(selectedDate === date ? null : date)}
-                          className={`px-2.5 py-1.5 rounded-lg text-[0.6rem] font-bold transition-all border flex flex-col items-start gap-0.5 ${selectedDate === date ? "bg-emerald-50 text-emerald-700 border-emerald-200 shadow-sm" : "bg-white text-slate-500 border-slate-100 hover:border-slate-200"}`}>
-                          <span>{date} · {items.length} işlem · <span className="font-extrabold">{totalUnits} ünite</span></span>
-                          {txNos.length > 0 && (
-                            <span className="flex flex-wrap gap-0.5">
-                              {txNos.map((no, i) => (
-                                <span key={i} className="text-[0.5rem] font-mono font-bold bg-slate-100 text-slate-500 px-1 py-0.5 rounded">{no}</span>
-                              ))}
-                            </span>
+                        <div key={date} className="w-full flex items-stretch gap-1">
+                          <button
+                            onClick={() => setSelectedDate(selectedDate === date ? null : date)}
+                            className={`flex-1 px-2.5 py-1.5 rounded-lg text-[0.6rem] font-bold transition-all border flex items-center justify-between gap-1 ${selectedDate === date ? "bg-emerald-50 text-emerald-700 border-emerald-200 shadow-sm" : "bg-white text-slate-500 border-slate-100 hover:border-slate-200"}`}
+                          >
+                            <span>{date} · {items.length} işlem · <span className="font-extrabold">{totalUnits} ünite</span></span>
+                          </button>
+                          {txNo && (
+                            <button
+                              onClick={() => setReceiptDateGroup({ date, txNo, treatments: items })}
+                              className="px-2.5 rounded-lg bg-slate-800 text-white font-mono font-bold text-[0.55rem] hover:bg-slate-900 transition-colors flex items-center justify-center shrink-0 shadow-sm cursor-pointer"
+                              title="İşlem Fişini Gör"
+                            >
+                              <Receipt className="w-3 h-3 mr-1" />
+                              {txNo}
+                            </button>
                           )}
-                        </button>
+                        </div>
                       );
                     })}
                   </div>
