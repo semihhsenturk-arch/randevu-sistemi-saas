@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useDatabase, Appointment, PatientProfile, FaceTreatment, InventoryItem, Service, ConsentRecord, getCacheSync, CACHE_KEYS, generateTransactionNo } from "@/hooks/use-database";
 import { FaceMap } from "@/components/FaceMap";
+import { TransactionReceiptModal } from "@/components/TransactionReceiptModal";
 import { BeforeAfterCompare } from "@/components/BeforeAfterCompare";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,6 +46,7 @@ export default function PatientListPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"info" | "timeline" | "meds" | "notes" | "stock" | "consent" | "facemap" | "before-after">("info");
   const [selectedPatientName, setSelectedPatientName] = useState("");
+  const [globalReceiptGroup, setGlobalReceiptGroup] = useState<{ date: string; txNo: string; treatments: any[] } | null>(null);
   const [selectedPatientPhone, setSelectedPatientPhone] = useState("");
 
   // Consent
@@ -478,9 +480,21 @@ export default function PatientListPage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+        <TransactionReceiptModal
+
+          receiptDateGroup={globalReceiptGroup}
+
+          onClose={() => setGlobalReceiptGroup(null)}
+
+          patientName={selectedPatientName || undefined}
+
+          stockHistory={selProfile?.stock_history || []}
+
+        />
+
       </div>
-    );
-  }
+  );
+}
 
   if (isLocked) {
     return (
@@ -569,10 +583,10 @@ export default function PatientListPage() {
                     <Package className="w-3.5 h-3.5 mr-1" /> Malzeme
                   </Button>
                 </div>
-              </div>
             </div>
-          );
-        })}
+    </div>
+  );
+})}
       </div>
 
       <div className="hidden md:block bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden relative">
@@ -860,9 +874,13 @@ export default function PatientListPage() {
                                       <div className="text-[0.7rem] font-bold text-slate-400 tracking-wide uppercase flex items-center gap-1.5">
                                         <Clock className="w-3 h-3 text-blue-500"/> {a.tarih} · {a.saat}
                                         {dateFaceTreatments.length > 0 && dateFaceTreatments[0].transactionNo && (
-                                          <span className="ml-2 px-2 py-0.5 rounded-md bg-slate-800 text-white font-mono font-extrabold text-[0.6rem] shadow-sm">
+                                          <button 
+                                            onClick={() => setGlobalReceiptGroup({ date: format(new Date(a.tarih), 'dd.MM.yyyy'), txNo: dateFaceTreatments[0].transactionNo!, treatments: dateFaceTreatments })}
+                                            className="ml-2 px-2 py-0.5 rounded-md bg-slate-800 text-white font-mono font-extrabold text-[0.6rem] shadow-sm hover:bg-slate-700 transition-colors cursor-pointer"
+                                            title="İşlem Fişini Gör"
+                                          >
                                             {dateFaceTreatments[0].transactionNo}
-                                          </span>
+                                          </button>
                                         )}
                                       </div>
                                       <span className={`text-[0.65rem] font-bold px-2 py-0.5 rounded-full ${isStatusDone ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>
@@ -1090,9 +1108,13 @@ export default function PatientListPage() {
                                {(() => {
                                  const txNo = (selProfile.face_treatments || []).find(ft => ft.date.startsWith(dateStr))?.transactionNo;
                                  return txNo ? (
-                                   <span className="ml-2 px-2 py-0.5 rounded-md bg-slate-800 text-white font-mono font-extrabold text-[0.65rem] shadow-sm">
+                                   <button 
+                                     onClick={() => setGlobalReceiptGroup({ date: dateStr, txNo: txNo!, treatments: (selProfile.face_treatments || []).filter(ft => ft.date.startsWith(dateStr)) })}
+                                     className="ml-2 px-2 py-0.5 rounded-md bg-slate-800 text-white font-mono font-extrabold text-[0.65rem] shadow-sm hover:bg-slate-700 transition-colors cursor-pointer"
+                                     title="İşlem Fişini Gör"
+                                   >
                                      {txNo}
-                                   </span>
+                                   </button>
                                  ) : null;
                                })()}
                              </div>
@@ -1319,6 +1341,18 @@ export default function PatientListPage() {
            </div>
         </DialogContent>
       </Dialog>
+      <TransactionReceiptModal
+
+        receiptDateGroup={globalReceiptGroup}
+
+        onClose={() => setGlobalReceiptGroup(null)}
+
+        patientName={selectedPatientName || undefined}
+
+        stockHistory={selProfile?.stock_history || []}
+
+      />
+
     </div>
   );
 }
