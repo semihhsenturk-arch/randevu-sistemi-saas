@@ -859,6 +859,11 @@ export default function PatientListPage() {
                                    <div className="flex items-center justify-between mb-2">
                                       <div className="text-[0.7rem] font-bold text-slate-400 tracking-wide uppercase flex items-center gap-1.5">
                                         <Clock className="w-3 h-3 text-blue-500"/> {a.tarih} · {a.saat}
+                                        {dateFaceTreatments.length > 0 && dateFaceTreatments[0].transactionNo && (
+                                          <span className="ml-2 px-2 py-0.5 rounded-md bg-slate-800 text-white font-mono font-extrabold text-[0.6rem] shadow-sm">
+                                            {dateFaceTreatments[0].transactionNo}
+                                          </span>
+                                        )}
                                       </div>
                                       <span className={`text-[0.65rem] font-bold px-2 py-0.5 rounded-full ${isStatusDone ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>
                                         {isStatusDone ? 'Tamamlandı' : 'Beklemede'}
@@ -1082,6 +1087,14 @@ export default function PatientListPage() {
                            <div className="bg-slate-50 px-5 py-3 border-b border-slate-100 flex items-center justify-between">
                              <div className="font-bold text-slate-700 text-sm flex items-center gap-2">
                                <Clock className="w-4 h-4 text-amber-500" /> {dateStr}
+                               {(() => {
+                                 const txNo = (selProfile.face_treatments || []).find(ft => ft.date.startsWith(dateStr))?.transactionNo;
+                                 return txNo ? (
+                                   <span className="ml-2 px-2 py-0.5 rounded-md bg-slate-800 text-white font-mono font-extrabold text-[0.65rem] shadow-sm">
+                                     {txNo}
+                                   </span>
+                                 ) : null;
+                               })()}
                              </div>
                            </div>
                            <div className="p-0">
