@@ -112,7 +112,8 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
 
                 const stockBlocks = relevantStocks.map((stock, i) => {
                   const itemRows = stock.text.split(", ").map((itemStr: string, j: number) => {
-                    const parts = itemStr.trim().split(" ");
+                    const cleanItemStr = itemStr.replace(/\s*\(Toplam Maliyet:.*?\)/, "").replace(/\s*\(Maliyet:.*?\)/, "").trim();
+                    const parts = cleanItemStr.split(" ");
                     const amountStr = parts[0];
                     const amount = parseFloat(amountStr) || 0;
                     const amountAndUnit = parts.slice(0, 2).join(" ");

@@ -493,8 +493,8 @@ export function useDatabase() {
             kritik_stok: parseFloat(d.kritik_stok),
             kod: d.kod || cachedItem?.kod || undefined,
             fiyat: cachedItem?.fiyat !== undefined ? cachedItem.fiyat : (d.fiyat ? parseFloat(d.fiyat) : undefined),
-            toplam_deger: cachedItem?.toplam_deger,
-            hareketler: cachedItem?.hareketler || [],
+            toplam_deger: cachedItem?.toplam_deger !== undefined ? cachedItem.toplam_deger : (d.toplam_deger ? parseFloat(d.toplam_deger) : undefined),
+            hareketler: cachedItem?.hareketler && cachedItem.hareketler.length > 0 ? cachedItem.hareketler : (d.hareketler || []),
           };
         });
 
@@ -543,6 +543,11 @@ export function useDatabase() {
         };
 
         if (existing) payload.id = existing.id;
+        
+        if (item.kod !== undefined) payload.kod = item.kod;
+        if (item.fiyat !== undefined) payload.fiyat = item.fiyat;
+        if (item.toplam_deger !== undefined) payload.toplam_deger = item.toplam_deger;
+        if (item.hareketler !== undefined) payload.hareketler = item.hareketler;
 
         await supabase.from("inventory").upsert(payload, { onConflict: "id" });
       } catch (e) {

@@ -475,8 +475,8 @@ export default function PatientListPage() {
         itemsToUpdate.push({ item: updatedItem, newQty });
       }
 
-      const costText = totalCost > 0 ? ` [Maliyet: ${totalCost.toLocaleString("tr-TR", {minimumFractionDigits:2})} ₺]` : "";
-      return `${c.amount} ${c.unit} ${c.name}${costText}`;
+      const costText = totalCost > 0 ? ` (Maliyet: ${totalCost.toLocaleString("tr-TR", {minimumFractionDigits:2})} ₺)` : "";
+      return `${c.amount} ${c.unit} ${c.name}`;
     }).join(", ");
 
     const finalDetailStr = grandTotal > 0 ? `${detailStr} (Toplam Maliyet: ${grandTotal.toLocaleString("tr-TR", {minimumFractionDigits:2})} ₺)` : detailStr;
