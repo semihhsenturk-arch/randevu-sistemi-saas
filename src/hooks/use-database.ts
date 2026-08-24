@@ -511,6 +511,42 @@ export function useDatabase() {
 
         const result = { stock, items };
         setCache(CACHE_KEYS.INVENTORY, result);
+
+        // Auto-sync cached data to Supabase if Supabase is missing fields
+        if (existingCache && userId !== "demo-user") {
+          const updatesToPush: any[] = [];
+          items.forEach(item => {
+            const dbData = data.find((d: any) => d.item_id === item.id);
+            if (dbData) {
+              let needsUpdate = false;
+              if (item.fiyat !== undefined && dbData.fiyat == null) needsUpdate = true;
+              if (item.kod !== undefined && dbData.kod == null) needsUpdate = true;
+              if (item.toplam_deger !== undefined && dbData.toplam_deger == null) needsUpdate = true;
+              if (item.hareketler && item.hareketler.length > 0 && (!dbData.hareketler || dbData.hareketler.length === 0)) needsUpdate = true;
+              
+              if (needsUpdate) {
+                updatesToPush.push({
+                  id: dbData.id,
+                  user_id: userId,
+                  item_id: item.id,
+                  name: item.ad,
+                  unit: item.birim,
+                  quantity: stock[item.id] || 0,
+                  kritik_stok: item.kritik_stok || 10,
+                  fiyat: item.fiyat,
+                  kod: item.kod,
+                  toplam_deger: item.toplam_deger,
+                  hareketler: item.hareketler
+                });
+              }
+            }
+          });
+          
+          if (updatesToPush.length > 0) {
+            supabase.from("inventory").upsert(updatesToPush, { onConflict: "id" }).catch(e => console.warn("Auto-sync failed", e));
+          }
+        }
+
         return result;
       }
     } catch (e) {
