@@ -73,6 +73,8 @@ export type InventoryItem = {
   ad: string;
   birim: string;
   kritik_stok: number;
+  kod?: string;
+  fiyat?: number;
 };
 
 export type Service = {
@@ -464,6 +466,8 @@ export function useDatabase() {
             ad: d.name,
             birim: birim,
             kritik_stok: parseFloat(d.kritik_stok),
+            kod: d.kod || undefined,
+            fiyat: d.fiyat ? parseFloat(d.fiyat) : undefined,
           };
         });
         const result = { stock, items };
@@ -496,6 +500,8 @@ export function useDatabase() {
         unit: item.birim,
         quantity: quantity,
         kritik_stok: item.kritik_stok || 10,
+        kod: item.kod || null,
+        fiyat: item.fiyat || null,
       };
 
       if (existing) payload.id = existing.id;

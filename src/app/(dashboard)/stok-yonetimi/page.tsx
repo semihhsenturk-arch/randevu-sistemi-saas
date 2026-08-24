@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Warehouse, Search, Plus, Minus, Package, CheckCircle, AlertTriangle, Trash2, ArrowUpRight, SearchIcon } from "lucide-react";
+import { Warehouse, Search, Plus, Minus, Package, CheckCircle, AlertTriangle, Trash2, ArrowUpRight, SearchIcon, ChevronDown, Sparkles, Hash, Tag, DollarSign, ShieldAlert, Layers } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
@@ -23,7 +23,11 @@ export default function StockManagementPage() {
   const [loading, setLoading] = useState(false);
   
   const [modalOpen, setModalOpen] = useState(false);
-  const [newItem, setNewItem] = useState<{ ad: string, birim: string, kritik: number | string, baslangic: number | string }>({ ad: "", birim: "Adet", kritik: "", baslangic: "" });
+  // New stock entry form state
+  const [entryMode, setEntryMode] = useState<"new" | "existing">("new");
+  const [selectedExistingId, setSelectedExistingId] = useState<string>("");
+  const [entryForm, setEntryForm] = useState<{ kod: string; ad: string; adet: number | string; fiyat: number | string; kritik: number | string }>({ kod: "", ad: "", adet: "", fiyat: "", kritik: "" });
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [selectedItemToDelete, setSelectedItemToDelete] = useState<InventoryItem | null>(null);
@@ -32,7 +36,6 @@ export default function StockManagementPage() {
   const isLocked = !checkAccess("advanced");
 
   useEffect(() => {
-    // Load from cache first
     const cached = getCacheSync<{ stock: Record<string, number>; items: InventoryItem[] }>(CACHE_KEYS.INVENTORY);
     if (cached) setInventory(cached);
     
@@ -74,21 +77,71 @@ export default function StockManagementPage() {
     }
   };
 
-  const handleCreateNew = async (e: React.FormEvent) => {
+  const resetEntryForm = () => {
+    setEntryMode("new");
+    setSelectedExistingId("");
+    setEntryForm({ kod: "", ad: "", adet: "", fiyat: "", kritik: "" });
+    setDropdownOpen(false);
+  };
+
+  const handleSelectExisting = (item: InventoryItem) => {
+    setEntryMode("existing");
+    setSelectedExistingId(item.id);
+    setEntryForm({
+      kod: item.kod || "",
+      ad: item.ad,
+      adet: "",
+      fiyat: item.fiyat ?? "",
+      kritik: item.kritik_stok || "",
+    });
+    setDropdownOpen(false);
+  };
+
+  const handleSelectNew = () => {
+    setEntryMode("new");
+    setSelectedExistingId("");
+    setEntryForm({ kod: "", ad: "", adet: "", fiyat: "", kritik: "" });
+    setDropdownOpen(false);
+  };
+
+  const handleStockEntry = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newItem.ad) return;
-    const id = "item_" + Math.random().toString(36).substr(2, 9);
-    const baslangicValue = Number(newItem.baslangic) || 0;
-    const kritikValue = Number(newItem.kritik) || 0;
-    const itemObj: InventoryItem = { id, ad: newItem.ad, birim: newItem.birim, kritik_stok: kritikValue };
-    await saveInventoryItem(itemObj, baslangicValue);
-    setInventory(prev => ({
-      items: [...prev.items, itemObj],
-      stock: { ...prev.stock, [id]: baslangicValue }
-    }));
-    toast.success(`${newItem.ad} stoka eklendi.`);
+    const adetValue = Number(entryForm.adet) || 0;
+    const fiyatValue = Number(entryForm.fiyat) || 0;
+    const kritikValue = Number(entryForm.kritik) || 0;
+
+    if (entryMode === "existing" && selectedExistingId) {
+      // Add stock to existing item
+      const existingItem = inventory.items.find(i => i.id === selectedExistingId);
+      if (!existingItem) return;
+      const currentQty = inventory.stock[selectedExistingId] || 0;
+      const newQty = currentQty + adetValue;
+      const updatedItem: InventoryItem = {
+        ...existingItem,
+        kod: entryForm.kod || existingItem.kod,
+        fiyat: fiyatValue || existingItem.fiyat,
+        kritik_stok: kritikValue || existingItem.kritik_stok,
+      };
+      await saveInventoryItem(updatedItem, newQty);
+      setInventory(prev => ({
+        items: prev.items.map(i => i.id === selectedExistingId ? updatedItem : i),
+        stock: { ...prev.stock, [selectedExistingId]: newQty }
+      }));
+      toast.success(`${updatedItem.ad} stoku güncellendi.`, { description: `Yeni Stok: ${newQty} ${updatedItem.birim}` });
+    } else {
+      // Create new item
+      if (!entryForm.ad) return;
+      const id = "item_" + Math.random().toString(36).substr(2, 9);
+      const itemObj: InventoryItem = { id, ad: entryForm.ad, birim: "Adet", kritik_stok: kritikValue, kod: entryForm.kod || undefined, fiyat: fiyatValue || undefined };
+      await saveInventoryItem(itemObj, adetValue);
+      setInventory(prev => ({
+        items: [...prev.items, itemObj],
+        stock: { ...prev.stock, [id]: adetValue }
+      }));
+      toast.success(`${entryForm.ad} stoka eklendi.`);
+    }
     setModalOpen(false);
-    setNewItem({ ad: "", birim: "Adet", kritik: "", baslangic: "" });
+    resetEntryForm();
   };
 
   const executeDelete = async () => {
@@ -157,8 +210,8 @@ export default function StockManagementPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
              />
            </div>
-           <Button onClick={() => setModalOpen(true)} className="bg-[#0a3d34] hover:bg-[#072b25] h-11 px-6 rounded-xl font-bold w-full sm:w-auto">
-             <Plus className="w-4 h-4 mr-2" /> Yeni Kalem
+           <Button onClick={() => { resetEntryForm(); setModalOpen(true); }} className="bg-[#0a3d34] hover:bg-[#072b25] h-11 px-6 rounded-xl font-bold w-full sm:w-auto">
+             <Plus className="w-4 h-4 mr-2" /> Stok Girişi
            </Button>
         </div>
       </header>
@@ -353,19 +406,199 @@ export default function StockManagementPage() {
         </div>
       </div>
 
-      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="sm:max-w-[450px]">
-          <DialogHeader><DialogTitle className="text-xl font-extrabold text-[#111827]">Yeni Kalem Ekle</DialogTitle></DialogHeader>
-          <form className="space-y-4 pt-4" onSubmit={handleCreateNew}>
-            <div className="space-y-2"><Label>Malzeme Adı</Label><Input required value={newItem.ad} onChange={e => setNewItem(prev => ({...prev, ad: e.target.value}))} /></div>
-            <div className="space-y-2"><Label>Birimi (Adet, Ünite, Kutu vs.)</Label><Input required value={newItem.birim} onChange={e => setNewItem(prev => ({...prev, birim: e.target.value}))} /></div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label>Başlangıç Miktarı</Label><Input type="number" required value={newItem.baslangic} onChange={e => setNewItem(prev => ({...prev, baslangic: e.target.value === "" ? "" : Number(e.target.value)}))} /></div>
-              <div className="space-y-2"><Label>Kritik Limit</Label><Input type="number" required value={newItem.kritik} onChange={e => setNewItem(prev => ({...prev, kritik: e.target.value === "" ? "" : Number(e.target.value)}))} /></div>
+      <Dialog open={modalOpen} onOpenChange={(open) => { setModalOpen(open); if (!open) resetEntryForm(); }}>
+        <DialogContent className="sm:max-w-[520px] p-0 overflow-hidden rounded-2xl border-0 shadow-2xl">
+          {/* Premium Header */}
+          <div className="bg-gradient-to-br from-[#0a3d34] via-[#0d4f43] to-[#0a3d34] p-6 pb-5">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center">
+                <Layers className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <DialogHeader><DialogTitle className="text-[1.15rem] font-extrabold text-white tracking-tight">Stok Girişi</DialogTitle></DialogHeader>
+                <p className="text-emerald-200/80 text-[0.75rem] font-medium mt-0.5">Yeni malzeme ekleyin veya mevcut stoku güncelleyin</p>
+              </div>
             </div>
-            <div className="flex gap-2 pt-4">
-              <Button type="button" variant="outline" className="flex-1" onClick={() => setModalOpen(false)}>Vazgeç</Button>
-              <Button type="submit" className="flex-1 bg-[#0a3d34] hover:bg-[#072b25]">Kaydet</Button>
+          </div>
+
+          <form className="p-6 space-y-5" onSubmit={handleStockEntry}>
+            {/* Item Selector — New or Existing */}
+            <div className="space-y-2">
+              <Label className="text-[0.72rem] font-bold text-slate-500 uppercase tracking-wider">Malzeme Seçimi</Label>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="w-full h-12 px-4 bg-slate-50 border border-slate-200 rounded-xl text-left flex items-center justify-between hover:border-[#0a3d34]/40 transition-colors focus:outline-none focus:ring-2 focus:ring-[#0a3d34]/20"
+                >
+                  <span className={`text-sm font-semibold ${entryMode === "new" && !selectedExistingId ? "text-emerald-600" : "text-slate-800"}`}>
+                    {entryMode === "new" ? (
+                      <span className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-emerald-500" />
+                        Yeni Malzeme
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-2">
+                        <Package className="w-4 h-4 text-[#0a3d34]" />
+                        {inventory.items.find(i => i.id === selectedExistingId)?.ad || "Seçin..."}
+                      </span>
+                    )}
+                  </span>
+                  <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`} />
+                </button>
+                
+                {dropdownOpen && (
+                  <div className="absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-xl max-h-[240px] overflow-y-auto custom-scrollbar-inner animate-in fade-in-0 zoom-in-95 duration-150">
+                    {/* New option */}
+                    <button
+                      type="button"
+                      onClick={handleSelectNew}
+                      className="w-full px-4 py-3 flex items-center gap-3 hover:bg-emerald-50 transition-colors border-b border-slate-100"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shrink-0">
+                        <Plus className="w-4 h-4 text-white" />
+                      </div>
+                      <div className="text-left">
+                        <div className="text-sm font-bold text-emerald-700">Yeni Malzeme</div>
+                        <div className="text-[0.65rem] text-slate-400">Yeni bir stok kalemi oluştur</div>
+                      </div>
+                    </button>
+                    {/* Existing items */}
+                    {inventory.items.length > 0 && (
+                      <div className="px-3 py-1.5">
+                        <span className="text-[0.6rem] font-bold text-slate-400 uppercase tracking-widest">Mevcut Kalemler</span>
+                      </div>
+                    )}
+                    {inventory.items.sort((a, b) => a.ad.localeCompare(b.ad, "tr")).map(item => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => handleSelectExisting(item)}
+                        className={`w-full px-4 py-2.5 flex items-center gap-3 hover:bg-slate-50 transition-colors ${selectedExistingId === item.id ? "bg-emerald-50/60" : ""}`}
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
+                          <Package className="w-3.5 h-3.5 text-slate-500" />
+                        </div>
+                        <div className="text-left flex-1 min-w-0">
+                          <div className="text-sm font-semibold text-slate-800 truncate">{item.ad}</div>
+                          <div className="text-[0.65rem] text-slate-400">
+                            {item.kod ? `${item.kod} · ` : ""}Stok: {inventory.stock[item.id] || 0} {item.birim}
+                          </div>
+                        </div>
+                        {selectedExistingId === item.id && (
+                          <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Form Fields */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Kod */}
+              <div className="space-y-1.5">
+                <Label className="text-[0.72rem] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                  <Hash className="w-3 h-3" /> Kod
+                </Label>
+                <Input
+                  placeholder="STK-001"
+                  value={entryForm.kod}
+                  onChange={e => setEntryForm(prev => ({ ...prev, kod: e.target.value }))}
+                  className="h-11 bg-slate-50 border-slate-200 rounded-xl focus-visible:ring-[#0a3d34] font-semibold placeholder:text-slate-300"
+                />
+              </div>
+              {/* Malzeme Adı */}
+              <div className="space-y-1.5">
+                <Label className="text-[0.72rem] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                  <Tag className="w-3 h-3" /> Malzeme Adı
+                </Label>
+                <Input
+                  required
+                  placeholder="Malzeme adı"
+                  value={entryForm.ad}
+                  onChange={e => setEntryForm(prev => ({ ...prev, ad: e.target.value }))}
+                  disabled={entryMode === "existing"}
+                  className="h-11 bg-slate-50 border-slate-200 rounded-xl focus-visible:ring-[#0a3d34] font-semibold placeholder:text-slate-300 disabled:opacity-70 disabled:bg-slate-100"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              {/* Adet */}
+              <div className="space-y-1.5">
+                <Label className="text-[0.72rem] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                  <Layers className="w-3 h-3" /> Adet
+                </Label>
+                <Input
+                  type="number"
+                  required
+                  min={0}
+                  placeholder="0"
+                  value={entryForm.adet}
+                  onChange={e => setEntryForm(prev => ({ ...prev, adet: e.target.value === "" ? "" : Number(e.target.value) }))}
+                  className="h-11 bg-slate-50 border-slate-200 rounded-xl focus-visible:ring-[#0a3d34] font-bold text-center placeholder:text-slate-300"
+                />
+              </div>
+              {/* Fiyat */}
+              <div className="space-y-1.5">
+                <Label className="text-[0.72rem] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                  <DollarSign className="w-3 h-3" /> Fiyat (₺)
+                </Label>
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  placeholder="0.00"
+                  value={entryForm.fiyat}
+                  onChange={e => setEntryForm(prev => ({ ...prev, fiyat: e.target.value === "" ? "" : Number(e.target.value) }))}
+                  className="h-11 bg-slate-50 border-slate-200 rounded-xl focus-visible:ring-[#0a3d34] font-bold text-center placeholder:text-slate-300"
+                />
+              </div>
+              {/* Kritik Limit */}
+              <div className="space-y-1.5">
+                <Label className="text-[0.72rem] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                  <ShieldAlert className="w-3 h-3" /> Kritik Limit
+                </Label>
+                <Input
+                  type="number"
+                  required
+                  min={0}
+                  placeholder="10"
+                  value={entryForm.kritik}
+                  onChange={e => setEntryForm(prev => ({ ...prev, kritik: e.target.value === "" ? "" : Number(e.target.value) }))}
+                  className="h-11 bg-slate-50 border-slate-200 rounded-xl focus-visible:ring-[#0a3d34] font-bold text-center placeholder:text-slate-300"
+                />
+              </div>
+            </div>
+
+            {/* Info banner for existing mode */}
+            {entryMode === "existing" && selectedExistingId && (
+              <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 flex items-start gap-2.5">
+                <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center shrink-0 mt-0.5">
+                  <Plus className="w-3 h-3 text-blue-600" />
+                </div>
+                <div>
+                  <div className="text-[0.75rem] font-bold text-blue-800">Mevcut stok üzerine ekleme yapılacak</div>
+                  <div className="text-[0.68rem] text-blue-600 mt-0.5">
+                    Mevcut: {inventory.stock[selectedExistingId] || 0} {inventory.items.find(i => i.id === selectedExistingId)?.birim || "Adet"}
+                    {Number(entryForm.adet) > 0 && (
+                      <span className="font-bold"> → {(inventory.stock[selectedExistingId] || 0) + Number(entryForm.adet)} {inventory.items.find(i => i.id === selectedExistingId)?.birim || "Adet"}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 pt-2">
+              <Button type="button" variant="outline" className="flex-1 h-11 rounded-xl font-bold border-slate-200 hover:bg-slate-50" onClick={() => setModalOpen(false)}>
+                Vazgeç
+              </Button>
+              <Button type="submit" className="flex-1 h-11 rounded-xl font-bold bg-gradient-to-r from-[#0a3d34] to-[#0d4f43] hover:from-[#072b25] hover:to-[#0a3d34] shadow-lg shadow-[#0a3d34]/20 transition-all duration-200">
+                {entryMode === "existing" ? "Stok Ekle" : "Kaydet"}
+              </Button>
             </div>
           </form>
         </DialogContent>
