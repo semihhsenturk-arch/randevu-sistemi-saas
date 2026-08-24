@@ -436,15 +436,53 @@ export default function PatientListPage() {
     // 1. Optimistic Preparation
     const current = profiles[selectedPatientName] || { notes_list: [], meds: [], stock_history: [] };
     const history = [...(current.stock_history || [])];
-    const detailStr = finalCart.map(c => `${c.amount} ${c.unit} ${c.name}`).join(", ");
-    history.push({ date: format(new Date(), "dd.MM.yyyy HH:mm"), text: detailStr });
+    
+    // Create new StockMap and movements
+    const newStockMap = { ...inventory.stock };
+    const itemsToUpdate: any[] = [];
+    let grandTotal = 0;
+
+    const detailStr = finalCart.map(c => {
+      const item = inventory.items.find(i => i.id === c.id);
+      const oldQty = inventory.stock[c.id] || 0;
+      const newQty = Math.max(0, oldQty - c.amount);
+      const usedQty = oldQty - newQty;
+      const unitCost = item?.fiyat || 0;
+      const totalCost = usedQty * unitCost;
+      
+      newStockMap[c.id] = newQty;
+      grandTotal += totalCost;
+      
+      if (item && usedQty > 0) {
+        const movement = {
+          id: "mov_" + Date.now() + "_" + c.id,
+          date: new Date().toISOString(),
+          type: 'cikis',
+          amount: usedQty,
+          unit_cost: unitCost,
+          total_cost: totalCost,
+          previous_stock: oldQty,
+          new_stock: newQty,
+          previous_avg_cost: unitCost,
+          new_avg_cost: unitCost,
+          note: `Hasta Kullanımı: ${selectedPatientName}`
+        };
+        const updatedItem = {
+          ...item,
+          toplam_deger: newQty * unitCost,
+          hareketler: [...(item.hareketler || []), movement]
+        };
+        itemsToUpdate.push({ item: updatedItem, newQty });
+      }
+
+      const costText = totalCost > 0 ? ` [Maliyet: ${totalCost.toLocaleString("tr-TR", {minimumFractionDigits:2})} ₺]` : "";
+      return `${c.amount} ${c.unit} ${c.name}${costText}`;
+    }).join(", ");
+
+    const finalDetailStr = grandTotal > 0 ? `${detailStr} (Toplam Maliyet: ${grandTotal.toLocaleString("tr-TR", {minimumFractionDigits:2})} ₺)` : detailStr;
+    history.push({ date: format(new Date(), "dd.MM.yyyy HH:mm"), text: finalDetailStr });
 
     const updatedProf = { ...current, stock_history: history };
-    
-    const newStockMap = { ...inventory.stock };
-    for (const c of finalCart) {
-      newStockMap[c.id] = (newStockMap[c.id] || 0) - c.amount;
-    }
 
     // 2. Apply Optimistic Update Immediately
     setInventory(prev => ({ ...prev, stock: newStockMap }));
@@ -458,13 +496,8 @@ export default function PatientListPage() {
       await savePatientProfile(selectedPatientName, updatedProf);
 
       // Deduct from Inventory sequentially to prevent cache or network clobber
-      // BUG-10 FIX: newStockMap'teki doğru değeri kullan (closure'daki eski inventory.stock yerine)
-      for (const c of finalCart) {
-        const item = inventory.items.find(i => i.id === c.id);
-        if (item) {
-          const newQty = Math.max(0, newStockMap[c.id] ?? 0);
-          await saveInventoryItem(item, newQty);
-        }
+      for (const update of itemsToUpdate) {
+        await saveInventoryItem(update.item, update.newQty);
       }
     } catch(err) {
       console.error("Background save error:", err);
@@ -1253,7 +1286,6 @@ export default function PatientListPage() {
         open={consentModalOpen}
         onOpenChange={setConsentModalOpen}
         patientName={selectedPatientName}
-                    stockHistory={selProfile.stock_history || []}
         patientTC={profiles[selectedPatientName]?.tc_no || pTC}
         patientPhone={selectedPatientPhone || pPhone}
         appointmentId={consentAppointment?.id}

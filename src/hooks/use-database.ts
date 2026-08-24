@@ -68,6 +68,20 @@ export type PatientProfile = {
   before_after_photos?: BeforeAfterPhoto[];
 };
 
+export type StockMovement = {
+  id: string;
+  date: string;
+  type: 'giris' | 'cikis' | 'duzeltme';
+  amount: number;
+  unit_cost: number;
+  total_cost: number;
+  previous_stock: number;
+  new_stock: number;
+  previous_avg_cost: number;
+  new_avg_cost: number;
+  note?: string;
+};
+
 export type InventoryItem = {
   id: string;
   ad: string;
@@ -75,6 +89,8 @@ export type InventoryItem = {
   kritik_stok: number;
   kod?: string;
   fiyat?: number;
+  toplam_deger?: number;
+  hareketler?: StockMovement[];
 };
 
 export type Service = {
@@ -476,7 +492,9 @@ export function useDatabase() {
             birim: birim,
             kritik_stok: parseFloat(d.kritik_stok),
             kod: d.kod || cachedItem?.kod || undefined,
-            fiyat: d.fiyat ? parseFloat(d.fiyat) : cachedItem?.fiyat || undefined,
+            fiyat: cachedItem?.fiyat !== undefined ? cachedItem.fiyat : (d.fiyat ? parseFloat(d.fiyat) : undefined),
+            toplam_deger: cachedItem?.toplam_deger,
+            hareketler: cachedItem?.hareketler || [],
           };
         });
 

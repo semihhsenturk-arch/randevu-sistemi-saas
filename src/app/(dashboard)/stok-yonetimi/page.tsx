@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Warehouse, Search, Plus, Minus, Package, CheckCircle, AlertTriangle, Trash2, ArrowUpRight, SearchIcon, ChevronDown, Sparkles, Hash, Tag, DollarSign, ShieldAlert, Layers } from "lucide-react";
+import { Warehouse, Search, Plus, Minus, Package, CheckCircle, AlertTriangle, Trash2, ArrowUpRight, SearchIcon, ChevronDown, Sparkles, Hash, Tag, DollarSign, ShieldAlert, Layers, History } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
@@ -32,6 +32,9 @@ export default function StockManagementPage() {
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [selectedItemToDelete, setSelectedItemToDelete] = useState<InventoryItem | null>(null);
   const [adjustAmounts, setAdjustAmounts] = useState<Record<string, string>>({});
+
+  const [historyModalOpen, setHistoryModalOpen] = useState(false);
+  const [selectedHistoryItem, setSelectedHistoryItem] = useState<InventoryItem | null>(null);
 
   const isLocked = !checkAccess("advanced");
 
@@ -63,10 +66,42 @@ export default function StockManagementPage() {
     const newQty = Math.max(0, current + delta);
     if (current === newQty) return;
     
-    await saveInventoryItem(item, newQty);
-    setInventory(prev => ({ ...prev, stock: { ...prev.stock, [item.id]: newQty } }));
+    const actualDelta = newQty - current; // positive for addition (iade/duzeltme), negative for usage (fire/cikis)
+    const unitCost = item.fiyat || 0;
+    const absDelta = Math.abs(actualDelta);
+    const totalCost = absDelta * unitCost;
+    const oldTotalValue = current * unitCost;
+    const newTotalValue = newQty * unitCost;
+
+    const movementType = actualDelta > 0 ? 'duzeltme' : 'cikis';
     
-    if (delta > 0) {
+    const movement: any = {
+      id: "mov_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5),
+      date: new Date().toISOString(),
+      type: movementType,
+      amount: absDelta,
+      unit_cost: unitCost,
+      total_cost: totalCost,
+      previous_stock: current,
+      new_stock: newQty,
+      previous_avg_cost: unitCost,
+      new_avg_cost: unitCost,
+      note: actualDelta > 0 ? 'Stok Düzeltme / İade' : 'Stok Çıkış / Fire'
+    };
+
+    const updatedItem = {
+      ...item,
+      toplam_deger: newTotalValue,
+      hareketler: [...(item.hareketler || []), movement]
+    };
+
+    await saveInventoryItem(updatedItem, newQty);
+    setInventory(prev => ({ 
+      items: prev.items.map(i => i.id === item.id ? updatedItem : i),
+      stock: { ...prev.stock, [item.id]: newQty } 
+    }));
+    
+    if (actualDelta > 0) {
       toast.success(`${item.ad} stoku eklendi.`, {
         description: `Yeni Stok: ${newQty} ${item.birim}`
       });
@@ -115,20 +150,41 @@ export default function StockManagementPage() {
     const adetValue = Number(entryForm.adet) || 0;
     const toplamFiyatValue = Number(entryForm.fiyat) || 0;
     const kritikValue = Number(entryForm.kritik) || 0;
-    // Birim fiyat = Toplam Fiyat / Adet
-    const birimFiyat = adetValue > 0 && toplamFiyatValue > 0 ? Math.round((toplamFiyatValue / adetValue) * 100) / 100 : 0;
+    const purchaseUnitCost = adetValue > 0 && toplamFiyatValue > 0 ? (toplamFiyatValue / adetValue) : 0;
 
     if (entryMode === "existing" && selectedExistingId) {
       const existingItem = inventory.items.find(i => i.id === selectedExistingId);
       if (!existingItem) return;
       const currentQty = inventory.stock[selectedExistingId] || 0;
+      const currentAvgCost = existingItem.fiyat || 0;
+      const oldTotalValue = currentQty * currentAvgCost;
+      
       const newQty = currentQty + adetValue;
+      const newTotalValue = oldTotalValue + toplamFiyatValue;
+      const newAvgCost = newQty > 0 ? (newTotalValue / newQty) : 0;
+      
+      const movement: any = {
+        id: "mov_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5),
+        date: new Date().toISOString(),
+        type: 'giris',
+        amount: adetValue,
+        unit_cost: purchaseUnitCost,
+        total_cost: toplamFiyatValue,
+        previous_stock: currentQty,
+        new_stock: newQty,
+        previous_avg_cost: currentAvgCost,
+        new_avg_cost: newAvgCost,
+        note: 'Yeni Alım (Giriş)'
+      };
+
       const updatedItem: InventoryItem = {
         ...existingItem,
         kod: entryForm.kod || existingItem.kod,
         birim: entryForm.birim || existingItem.birim,
-        fiyat: birimFiyat || existingItem.fiyat,
+        fiyat: newAvgCost,
+        toplam_deger: newTotalValue,
         kritik_stok: kritikValue || existingItem.kritik_stok,
+        hareketler: [...(existingItem.hareketler || []), movement]
       };
       await saveInventoryItem(updatedItem, newQty);
       setInventory(prev => ({
@@ -139,7 +195,31 @@ export default function StockManagementPage() {
     } else {
       if (!entryForm.ad) return;
       const id = "item_" + Math.random().toString(36).substr(2, 9);
-      const itemObj: InventoryItem = { id, ad: entryForm.ad, birim: entryForm.birim || "Adet", kritik_stok: kritikValue, kod: entryForm.kod || undefined, fiyat: birimFiyat || undefined };
+      
+      const movement: any = {
+        id: "mov_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5),
+        date: new Date().toISOString(),
+        type: 'giris',
+        amount: adetValue,
+        unit_cost: purchaseUnitCost,
+        total_cost: toplamFiyatValue,
+        previous_stock: 0,
+        new_stock: adetValue,
+        previous_avg_cost: 0,
+        new_avg_cost: purchaseUnitCost,
+        note: 'İlk Alım'
+      };
+
+      const itemObj: InventoryItem = { 
+        id, 
+        ad: entryForm.ad, 
+        birim: entryForm.birim || "Adet", 
+        kritik_stok: kritikValue, 
+        kod: entryForm.kod || undefined, 
+        fiyat: purchaseUnitCost || undefined,
+        toplam_deger: toplamFiyatValue || undefined,
+        hareketler: [movement]
+      };
       await saveInventoryItem(itemObj, adetValue);
       setInventory(prev => ({
         items: [...prev.items, itemObj],
@@ -235,9 +315,20 @@ export default function StockManagementPage() {
             <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
                <Package className="w-5 h-5" />
             </div>
-            <div>
+             <div>
                <div className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Toplam Kalem</div>
                <div className="text-xl font-extrabold text-slate-900 leading-none">{stats.total}</div>
+             </div>
+        </Card>
+        <Card className="rounded-xl border-slate-200 shadow-sm flex items-center p-4 gap-3">
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+               <DollarSign className="w-5 h-5" />
+            </div>
+            <div>
+               <div className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Toplam Depo Değeri</div>
+               <div className="text-xl font-extrabold text-slate-900 leading-none">
+                 {inventory.items.reduce((sum, item) => sum + ((inventory.stock[item.id] || 0) * (item.fiyat || 0)), 0).toLocaleString("tr-TR", { maximumFractionDigits: 0 })} ₺
+               </div>
             </div>
         </Card>
         <Card className="rounded-xl border-slate-200 shadow-sm flex items-center p-4 gap-3">
@@ -327,15 +418,23 @@ export default function StockManagementPage() {
               </div>
 
               <div className="flex justify-between items-center pt-2">
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col gap-1">
                   <div className="text-[0.7rem] font-bold text-slate-400">Kritik: <span className="text-slate-900">{crit}</span></div>
                   {item.fiyat != null && item.fiyat > 0 && (
-                    <div className="text-[0.7rem] font-bold text-slate-400">Fiyat: <span className="text-slate-900">{item.fiyat.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} ₺</span></div>
+                    <div className="text-[0.7rem] font-bold text-slate-400">Ort. Maliyet: <span className="text-slate-900">{item.fiyat.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 3 })} ₺</span></div>
+                  )}
+                  {qty > 0 && item.fiyat != null && (
+                    <div className="text-[0.7rem] font-bold text-slate-400">Tpl. Değer: <span className="text-slate-900">{(qty * item.fiyat).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₺</span></div>
                   )}
                 </div>
-                 <Button variant="ghost" size="sm" className="h-8 text-red-500 hover:bg-red-50 hover:text-red-600 rounded-lg text-xs font-bold" onClick={() => confirmDelete(item)}>
-                   <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Sil
-                 </Button>
+                <div className="flex gap-2">
+                  <Button variant="ghost" size="sm" className="h-8 text-blue-500 hover:bg-blue-50 hover:text-blue-600 rounded-lg text-xs font-bold" onClick={() => { setSelectedHistoryItem(item); setHistoryModalOpen(true); }}>
+                    <History className="w-3.5 h-3.5 mr-1.5" /> Geçmiş
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-8 text-red-500 hover:bg-red-50 hover:text-red-600 rounded-lg text-xs font-bold" onClick={() => confirmDelete(item)}>
+                    <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Sil
+                  </Button>
+                </div>
               </div>
             </div>
           );
@@ -352,7 +451,8 @@ export default function StockManagementPage() {
               <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">Mevcut Miktar</TableHead>
               <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">Kritik Limit</TableHead>
               <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">Durum</TableHead>
-              <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">Birim Fiyat</TableHead>
+              <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">Ort. Birim Maliyet</TableHead>
+              <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">Toplam Değer</TableHead>
               <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">İşlem</TableHead>
             </TableRow>
           </TableHeader>
@@ -397,14 +497,20 @@ export default function StockManagementPage() {
                   </TableCell>
                   <TableCell className="text-center py-4">
                     {item.fiyat != null && item.fiyat > 0 ? (
-                      <span className="text-sm font-bold text-slate-700">{item.fiyat.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₺</span>
+                      <span className="text-sm font-bold text-slate-700">{item.fiyat.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 3 })} ₺</span>
                     ) : (
                       <span className="text-slate-300 text-sm">—</span>
                     )}
                   </TableCell>
                   <TableCell className="text-center py-4">
-                    <div className="flex items-center justify-center gap-3">
-                      {/* Grouped Stepper Control */}
+                    {item.fiyat != null && item.fiyat > 0 && qty > 0 ? (
+                      <span className="text-sm font-bold text-slate-700">{(qty * item.fiyat).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₺</span>
+                    ) : (
+                      <span className="text-slate-300 text-sm">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-center py-4">
+                    <div className="flex items-center justify-center gap-2">
                       <div className="flex items-center rounded-lg border border-slate-200 bg-white overflow-hidden shadow-sm">
                         <button 
                           className="h-8 w-8 flex items-center justify-center text-slate-500 hover:bg-red-50 hover:text-red-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed" 
@@ -427,6 +533,13 @@ export default function StockManagementPage() {
                           <Plus className="w-3.5 h-3.5" />
                         </button>
                       </div>
+                      <button 
+                        className="h-8 w-8 flex items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm" 
+                        onClick={() => { setSelectedHistoryItem(item); setHistoryModalOpen(true); }}
+                        title="Hareket Geçmişi"
+                      >
+                        <History className="w-3.5 h-3.5" />
+                      </button>
                       {/* Delete Button */}
                       <button 
                         className="h-8 w-8 flex items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all shadow-sm" 
@@ -677,6 +790,85 @@ export default function StockManagementPage() {
               <Button variant="outline" className="flex-1" onClick={() => setConfirmDeleteOpen(false)}>Hayır</Button>
               <Button variant="destructive" className="flex-1" onClick={executeDelete}>Evet, Sil</Button>
            </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* History Modal */}
+      <Dialog open={historyModalOpen} onOpenChange={setHistoryModalOpen}>
+        <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden rounded-2xl border-0 shadow-2xl">
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 pb-5">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center">
+                <History className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <DialogHeader><DialogTitle className="text-[1.15rem] font-extrabold text-white tracking-tight">{selectedHistoryItem?.ad} - Stok Hareketleri</DialogTitle></DialogHeader>
+                <p className="text-slate-300 text-[0.75rem] font-medium mt-0.5">Birim Maliyet değişimleri ve stok giriş/çıkış geçmişi</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="p-0 max-h-[60vh] overflow-y-auto custom-scrollbar-dialog">
+             {!selectedHistoryItem?.hareketler || selectedHistoryItem.hareketler.length === 0 ? (
+                <div className="p-8 text-center text-slate-500 italic">Hiç stok hareketi bulunamadı.</div>
+             ) : (
+                <Table className="w-full">
+                  <TableHeader className="bg-slate-50 sticky top-0 z-10 shadow-sm">
+                    <TableRow>
+                      <TableHead className="text-xs font-bold text-slate-500 py-3">Tarih</TableHead>
+                      <TableHead className="text-xs font-bold text-slate-500 py-3">İşlem Tipi</TableHead>
+                      <TableHead className="text-xs font-bold text-slate-500 py-3 text-center">Miktar</TableHead>
+                      <TableHead className="text-xs font-bold text-slate-500 py-3 text-center">Stok (Eski → Yeni)</TableHead>
+                      <TableHead className="text-xs font-bold text-slate-500 py-3 text-center">İşlem Maliyeti</TableHead>
+                      <TableHead className="text-xs font-bold text-slate-500 py-3 text-center">Ort. Maliyet (Yeni)</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {[...selectedHistoryItem.hareketler].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(mov => (
+                      <TableRow key={mov.id} className="hover:bg-slate-50/50">
+                        <TableCell className="text-xs text-slate-600 font-medium py-3 whitespace-nowrap">
+                          {format(new Date(mov.date), "dd.MM.yyyy HH:mm")}
+                        </TableCell>
+                        <TableCell className="py-3">
+                          <div className="flex flex-col gap-0.5">
+                            {mov.type === 'giris' && <span className="inline-block px-2 py-0.5 rounded text-[0.65rem] font-bold bg-emerald-100 text-emerald-700 self-start">GİRİŞ</span>}
+                            {mov.type === 'cikis' && <span className="inline-block px-2 py-0.5 rounded text-[0.65rem] font-bold bg-rose-100 text-rose-700 self-start">ÇIKIŞ</span>}
+                            {mov.type === 'duzeltme' && <span className="inline-block px-2 py-0.5 rounded text-[0.65rem] font-bold bg-blue-100 text-blue-700 self-start">DÜZELTME</span>}
+                            {mov.note && <span className="text-[0.65rem] text-slate-400">{mov.note}</span>}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-xs font-bold text-center py-3">
+                          {mov.type === 'giris' || mov.type === 'duzeltme' ? (
+                            <span className="text-emerald-600">+{mov.amount}</span>
+                          ) : (
+                            <span className="text-rose-600">-{mov.amount}</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-xs font-medium text-slate-500 text-center py-3">
+                          {mov.previous_stock} <span className="text-slate-300">→</span> <span className="font-bold text-slate-700">{mov.new_stock}</span>
+                        </TableCell>
+                        <TableCell className="text-xs text-slate-600 text-center py-3">
+                           {mov.type === 'giris' ? (
+                             <div className="flex flex-col">
+                               <span className="font-bold text-emerald-700">{mov.total_cost.toLocaleString("tr-TR", { minimumFractionDigits:2, maximumFractionDigits:2 })} ₺</span>
+                               <span className="text-[0.65rem] text-slate-400">({mov.unit_cost.toLocaleString("tr-TR", { maximumFractionDigits: 2 })} ₺/Birim)</span>
+                             </div>
+                           ) : (
+                             <span>-</span>
+                           )}
+                        </TableCell>
+                        <TableCell className="text-xs font-extrabold text-[#0a3d34] text-center py-3">
+                          {mov.new_avg_cost.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 3 })} ₺
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+             )}
+          </div>
+          <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+             <Button variant="outline" onClick={() => setHistoryModalOpen(false)}>Kapat</Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

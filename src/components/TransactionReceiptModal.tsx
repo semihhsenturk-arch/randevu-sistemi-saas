@@ -76,7 +76,9 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
                 return acc;
               }, {} as Record<string, { amount: number, count: number, unit: string }>);
               
-              return Object.entries(totals).map(([type, data]) => (
+              return Object.entries(totals).map(([type, dataVal]) => {
+                const data = dataVal as { amount: number, count: number, unit: string };
+                return (
                 <div key={type} className="flex flex-col items-center text-center">
                   <div className="text-sm font-extrabold text-slate-800 capitalize leading-tight">
                     {type === "botoks" ? "Botoks" : type === "dolgu" ? "Dolgu" : type === "ip_aski" ? "İp Askı" : "Mezoterapi"}
@@ -85,7 +87,8 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
                     {data.count} Bölge İşlemi • <span className="font-bold text-emerald-600">{data.amount} {data.unit.toUpperCase()}</span>
                   </div>
                 </div>
-              ));
+                );
+              });
             })()}
           </div>
 
