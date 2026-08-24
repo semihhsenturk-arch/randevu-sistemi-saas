@@ -23,54 +23,53 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
 
   if (!receiptDateGroup) return null;
 
-  const getMarkerColor = (type: string) => {
-    switch (type) {
-      case "botoks": return { bg: "#ef4444" };
-      case "dolgu": return { bg: "#3b82f6" };
-      case "mezoterapi": return { bg: "#10b981" };
-      case "ip_aski": return { bg: "#8b5cf6" };
-      default: return { bg: "#94a3b8" };
-    }
-  };
+  const targetDateStr = receiptDateGroup.date;
+  let relevantStocks = stockHistory.filter(h => h.date.split(' ')[0] === targetDateStr);
+  if (relevantStocks.length === 0) {
+    const today = new Date();
+    const todayStr = `${today.getDate().toString().padStart(2, '0')}.${(today.getMonth() + 1).toString().padStart(2, '0')}.${today.getFullYear()}`;
+    relevantStocks = stockHistory.filter(h => h.date.includes(todayStr));
+  }
+  const firstTime = relevantStocks.length > 0 ? (relevantStocks[0].date.split(" ")[1] || "") : "";
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={onClose}>
-      <div className="receipt-modal bg-white w-full max-w-[320px] max-h-[90vh] overflow-y-auto relative flex flex-col" onClick={e => e.stopPropagation()}>
+      <div className="receipt-modal bg-white w-full max-w-[280px] max-h-[90vh] overflow-y-auto relative flex flex-col shadow-2xl" onClick={e => e.stopPropagation()}>
         {/* Receipt Top Tear */}
         <div className="receipt-tear-top" />
         
-        {/* Receipt Header */}
-        <div className="bg-slate-900 px-6 py-5 flex flex-col items-center justify-center text-center relative overflow-hidden">
+        {/* Receipt Header (Simplified) */}
+        <div className="bg-slate-900 px-4 py-3 flex flex-col items-center justify-center text-center relative overflow-hidden shrink-0">
           <div className="absolute top-2 right-2">
             <button onClick={onClose} className="p-1 rounded-full bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-colors">
               <X className="w-4 h-4" />
             </button>
           </div>
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <Receipt className="w-5 h-5 text-emerald-400" />
-            <span className="text-[0.65rem] font-bold uppercase tracking-[0.2em] text-emerald-400">GÜNLÜK İŞLEM FİŞİ</span>
+          <div className="flex flex-col items-center justify-center gap-1">
+            <Receipt className="w-4 h-4 text-emerald-400" />
+            <span className="text-[0.55rem] font-bold uppercase tracking-[0.2em] text-emerald-400">GÜNLÜK İŞLEM FİŞİ</span>
           </div>
-          <div className="text-2xl font-mono font-black text-white tracking-wide">
-            {receiptDateGroup.txNo}
-          </div>
-          {patientName && (
-            <div className="text-xs font-bold text-white/60 mt-2">{patientName}</div>
-          )}
         </div>
 
         {/* Receipt Body */}
-        <div className="px-6 py-5 space-y-4">
-          {/* Date & Time */}
-          <div className="flex items-center justify-between text-xs">
-            <span className="font-bold text-slate-400 uppercase tracking-wider">Tarih</span>
-            <span className="font-extrabold text-slate-700">{receiptDateGroup.date}</span>
+        <div className="px-4 py-4 flex flex-col items-center space-y-3">
+          
+          {/* Patient Info & Date */}
+          <div className="flex flex-col items-center justify-center text-center space-y-0.5">
+            {patientName && (
+              <div className="text-base font-black text-slate-800 leading-tight">{patientName}</div>
+            )}
+            <div className="text-[0.7rem] font-bold text-slate-500">
+              {receiptDateGroup.date} {firstTime ? ` - ${firstTime}` : ''}
+            </div>
           </div>
 
           {/* Dotted Divider */}
-          <div className="border-t-2 border-dashed border-slate-200" />
+          <div className="w-full border-t-2 border-dashed border-slate-200" />
 
           {/* Treatment Aggregate */}
-          <div className="space-y-3">
+          <div className="flex flex-col items-center w-full space-y-2">
+            <div className="text-[0.6rem] font-bold text-slate-400 uppercase tracking-wider">İşlem Detayları</div>
             {(() => {
               const totals = receiptDateGroup.treatments.reduce((acc, t) => {
                 if (!acc[t.type]) acc[t.type] = { amount: 0, count: 0, unit: t.unit };
@@ -80,19 +79,12 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
               }, {} as Record<string, { amount: number, count: number, unit: string }>);
               
               return Object.entries(totals).map(([type, data]) => (
-                <div key={type} className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm" style={{ background: getMarkerColor(type as any).bg }}>
-                    <Syringe className="w-5 h-5 text-white" />
+                <div key={type} className="flex flex-col items-center text-center">
+                  <div className="text-sm font-extrabold text-slate-800 capitalize leading-tight">
+                    {type === "botoks" ? "Botoks" : type === "dolgu" ? "Dolgu" : type === "ip_aski" ? "İp Askı" : "Mezoterapi"}
                   </div>
-                  <div className="flex-1">
-                    <div className="text-sm font-extrabold text-slate-800 capitalize">
-                      {type === "botoks" ? "Botoks" : type === "dolgu" ? "Dolgu" : "Mezoterapi"}
-                    </div>
-                    <div className="text-xs font-medium text-slate-500">{data.count} Bölge İşlemi</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-lg font-black text-slate-800">{data.amount}</div>
-                    <div className="text-[0.6rem] font-bold text-slate-400 uppercase">{data.unit}</div>
+                  <div className="text-[0.65rem] font-semibold text-slate-500 mt-0.5">
+                    {data.count} Bölge İşlemi • <span className="font-bold text-emerald-600">{data.amount} {data.unit.toUpperCase()}</span>
                   </div>
                 </div>
               ));
@@ -100,40 +92,24 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
           </div>
 
           {/* Dotted Divider */}
-          <div className="border-t-2 border-dashed border-slate-200" />
+          <div className="w-full border-t-2 border-dashed border-slate-200" />
 
           {/* Stock / Materials Used */}
-          <div>
-            <div className="flex items-center gap-1.5 mb-2">
-              <Syringe className="w-3 h-3 text-slate-400" />
-              <span className="text-[0.6rem] font-bold text-slate-400 uppercase tracking-wider">Kullanılan Malzemeler</span>
-            </div>
-            <div className="space-y-2">
+          <div className="flex flex-col items-center w-full">
+            <div className="text-[0.6rem] font-bold text-slate-400 uppercase tracking-wider mb-2">Kullanılan Malzemeler</div>
+            <div className="flex flex-col items-center w-full">
               {(() => {
-                let dateStocks = stockHistory.filter(h => {
-                  const hDate = h.date.split(' ')[0];
-                  return hDate === receiptDateGroup.date;
-                });
-
-                // Eğer işlem tarihi ile stok geçmişi tarihi tam uyuşmuyorsa,
-                // Stok geçmişinde "bugün" düşümü yapılan kayıtları baz al
-                if (dateStocks.length === 0) {
-                  const today = new Date();
-                  const todayStr = `${today.getDate().toString().padStart(2, '0')}.${(today.getMonth() + 1).toString().padStart(2, '0')}.${today.getFullYear()}`;
-                  dateStocks = stockHistory.filter(h => h.date.includes(todayStr));
-                }
-                
-                if (dateStocks.length === 0) {
+                if (relevantStocks.length === 0) {
                   return (
-                    <div className="text-[0.65rem] font-medium text-slate-400 italic text-center py-2 bg-slate-50 rounded-lg border border-slate-100">
-                      Bu işlem için malzeme düşümü bulunmuyor.
+                    <div className="text-[0.6rem] font-medium text-slate-400 italic text-center">
+                      Malzeme düşümü bulunmuyor.
                     </div>
                   );
                 }
                 
                 let grandTotalCost = 0;
 
-                const stockBlocks = dateStocks.map((stock, i) => {
+                const stockBlocks = relevantStocks.map((stock, i) => {
                   const itemRows = stock.text.split(", ").map((itemStr: string, j: number) => {
                     const parts = itemStr.trim().split(" ");
                     const amountStr = parts[0];
@@ -147,31 +123,27 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
                     grandTotalCost += cost;
 
                     return (
-                      <div key={j} className="flex items-center justify-between mt-1">
-                        <div className="flex flex-col min-w-0 pr-2">
-                           <span className="text-[0.65rem] font-bold text-slate-700 leading-tight">{itemName || itemStr}</span>
-                           {invItem?.kod && <span className="text-[0.55rem] font-bold text-slate-400 mt-0.5">Kod: {invItem.kod}</span>}
-                        </div>
-                        <div className="flex items-center gap-3 shrink-0">
-                          <div className="flex flex-col items-end">
-                             <span className="text-[0.65rem] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
-                               {itemName ? amountAndUnit : ""}
-                             </span>
-                             <span className="text-[0.55rem] font-bold text-slate-400 mt-0.5">
-                               {unitPrice.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺ / {parts[1]}
-                             </span>
+                      <div key={j} className="flex flex-col items-center text-center mt-1.5 w-full">
+                        <span className="text-[0.7rem] font-bold text-slate-700 leading-tight">{itemName || itemStr}</span>
+                        {invItem?.kod && <span className="text-[0.55rem] font-bold text-slate-400 mt-0.5">Kod: {invItem.kod}</span>}
+                        {itemName && cost > 0 && (
+                          <div className="flex flex-col items-center gap-0.5 mt-1">
+                             <div className="flex items-center gap-1.5 text-[0.6rem]">
+                               <span className="font-extrabold text-slate-600">{amountAndUnit}</span>
+                               <span className="text-slate-300">•</span>
+                               <span className="font-bold text-slate-500">{unitPrice.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</span>
+                             </div>
+                             <div className="text-[0.7rem] font-black text-slate-800">
+                               {cost.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+                             </div>
                           </div>
-                          <div className="text-[0.7rem] font-black text-slate-800 w-[60px] text-right">
-                            {cost.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
-                          </div>
-                        </div>
+                        )}
                       </div>
                     );
                   });
 
                   return (
-                    <div key={i} className="flex flex-col gap-1 bg-slate-50 border border-slate-100 p-2.5 rounded-lg">
-                      <div className="text-[0.55rem] font-bold text-slate-400 mb-0.5">{stock.date.split(" ")[1] || ""}</div>
+                    <div key={i} className="flex flex-col items-center w-full">
                       {itemRows}
                     </div>
                   );
@@ -179,13 +151,15 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
 
                 return (
                   <>
-                    {stockBlocks}
-                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-200">
-                      <span className="text-[0.7rem] font-extrabold text-slate-600 uppercase tracking-wider">Toplam Maliyet</span>
-                      <span className="text-[1rem] font-black text-[#0a3d34]">
-                        {grandTotalCost.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
-                      </span>
-                    </div>
+                    <div className="flex flex-col items-center space-y-2 w-full">{stockBlocks}</div>
+                    {grandTotalCost > 0 && (
+                      <div className="flex flex-col items-center mt-3 pt-2 border-t border-slate-100 w-full">
+                        <span className="text-[0.6rem] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Toplam Maliyet</span>
+                        <span className="text-sm font-black text-[#0a3d34]">
+                          {grandTotalCost.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+                        </span>
+                      </div>
+                    )}
                   </>
                 );
               })()}
@@ -193,21 +167,17 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
           </div>
 
           {/* Dotted Divider */}
-          <div className="border-t-2 border-dashed border-slate-200" />
+          <div className="w-full border-t-2 border-dashed border-slate-200" />
 
           {/* Transaction Barcode Style */}
-          <div className="text-center">
-            <div className="receipt-barcode mx-auto mb-2">
-              {/* CSS barcode lines */}
-              {Array.from({ length: 30 }).map((_, i) => (
-                <div key={i} className="receipt-barcode-line" style={{ height: `${12 + Math.random() * 16}px`, width: i % 3 === 0 ? '2.5px' : '1.5px' }} />
+          <div className="text-center w-full">
+            <div className="receipt-barcode mx-auto mb-1 flex justify-center">
+              {Array.from({ length: 24 }).map((_, i) => (
+                <div key={i} className="receipt-barcode-line" style={{ height: `${10 + Math.random() * 12}px`, width: i % 3 === 0 ? '2px' : '1px', margin: '0 0.5px', backgroundColor: '#334155' }} />
               ))}
             </div>
-            <div className="text-sm font-mono font-black text-slate-800 tracking-[0.15em]">
+            <div className="text-[0.7rem] font-mono font-black text-slate-800 tracking-[0.15em]">
               {receiptDateGroup.txNo}
-            </div>
-            <div className="text-[0.55rem] text-slate-400 font-medium mt-1">
-              Bu fiş hastanın o günkü toplam işlemlerini gösterir.
             </div>
           </div>
         </div>
