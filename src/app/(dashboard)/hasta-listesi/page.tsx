@@ -156,7 +156,7 @@ export default function PatientListPage() {
       }
     } catch(e) {}
 
-  }, [loadData]);
+  }, [getAppointments, getPatientProfiles, getInventory, getServices]);
 
   const [filterType, setFilterType] = useState<"today" | "all">("today");
 
