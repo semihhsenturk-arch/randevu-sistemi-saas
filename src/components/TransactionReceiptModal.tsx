@@ -123,27 +123,34 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
                     grandTotalCost += cost;
 
                     return (
-                      <div key={j} className="flex flex-col items-center text-center mt-1.5 w-full">
-                        <span className="text-[0.7rem] font-bold text-slate-700 leading-tight">{itemName || itemStr}</span>
-                        {invItem?.kod && <span className="text-[0.55rem] font-bold text-slate-400 mt-0.5">Kod: {invItem.kod}</span>}
-                        {itemName && cost > 0 && (
-                          <div className="flex flex-col items-center gap-0.5 mt-1">
-                             <div className="flex items-center gap-1.5 text-[0.6rem]">
-                               <span className="font-extrabold text-slate-600">{amountAndUnit}</span>
-                               <span className="text-slate-300">•</span>
-                               <span className="font-bold text-slate-500">{unitPrice.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</span>
-                             </div>
-                             <div className="text-[0.7rem] font-black text-slate-800">
-                               {cost.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
-                             </div>
+                      <div key={j} className="flex items-center justify-between mt-1.5 w-full text-left bg-slate-50 border border-slate-100 p-2 rounded-lg">
+                        <div className="flex flex-col min-w-0 pr-2">
+                           <span className="text-[0.65rem] font-bold text-slate-700 leading-tight">{itemName || itemStr}</span>
+                           {invItem?.kod && <span className="text-[0.55rem] font-bold text-slate-400 mt-0.5">Kod: {invItem.kod}</span>}
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <div className="flex flex-col items-end">
+                             <span className="text-[0.65rem] font-extrabold text-emerald-600 bg-emerald-100/50 px-1.5 py-0.5 rounded">
+                               {itemName ? amountAndUnit : ""}
+                             </span>
+                             {unitPrice > 0 && (
+                               <span className="text-[0.55rem] font-bold text-slate-400 mt-0.5">
+                                 {unitPrice.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺ / {parts[1] || 'br'}
+                               </span>
+                             )}
                           </div>
-                        )}
+                          {cost > 0 && (
+                            <div className="text-[0.7rem] font-black text-slate-800 w-[50px] text-right">
+                              {cost.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+                            </div>
+                          )}
+                        </div>
                       </div>
                     );
                   });
 
                   return (
-                    <div key={i} className="flex flex-col items-center w-full">
+                    <div key={i} className="flex flex-col items-stretch w-full">
                       {itemRows}
                     </div>
                   );
@@ -151,9 +158,9 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
 
                 return (
                   <>
-                    <div className="flex flex-col items-center space-y-2 w-full">{stockBlocks}</div>
+                    <div className="flex flex-col space-y-1 w-full">{stockBlocks}</div>
                     {grandTotalCost > 0 && (
-                      <div className="flex flex-col items-center mt-3 pt-2 border-t border-slate-100 w-full">
+                      <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-100 w-full">
                         <span className="text-[0.6rem] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Toplam Maliyet</span>
                         <span className="text-sm font-black text-[#0a3d34]">
                           {grandTotalCost.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
