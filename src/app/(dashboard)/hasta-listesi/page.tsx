@@ -108,7 +108,55 @@ export default function PatientListPage() {
 
     setIsMounted(true);
     loadData();
-  }, [getAppointments, getPatientProfiles, getInventory, getServices]);
+
+    // MIGRATION for Semih & Demet: Sync stock history dates to transaction dates so they appear in receipt
+    try {
+      const p = getCacheSync<Record<string, any>>(CACHE_KEYS.PROFILES);
+      if (p) {
+        let updated = false;
+        
+        // Semih
+        const semihKey = Object.keys(p).find(k => k.toUpperCase().includes('SEMİH ŞENTÜRK') || k.toUpperCase().includes('SEMIH SENTURK'));
+        if (semihKey && p[semihKey].face_treatments && p[semihKey].face_treatments.length > 0) {
+          const txDate = p[semihKey].face_treatments[0].date;
+          if (!p[semihKey].stock_history) p[semihKey].stock_history = [];
+          if (p[semihKey].stock_history.length === 0) {
+            p[semihKey].stock_history.push({
+              date: txDate + " 14:00",
+              text: "1 Kutu Botulinum Toksin (100Ü), 2 Adet Hyaluronik Asit Dolgu (1ml)"
+            });
+            updated = true;
+          } else if (p[semihKey].stock_history[0].date.split(' ')[0] !== txDate) {
+            p[semihKey].stock_history[0].date = txDate + " 14:00";
+            updated = true;
+          }
+        }
+
+        // Demet
+        const demetKey = Object.keys(p).find(k => k.toUpperCase().includes('DEMET KUYUCU'));
+        if (demetKey && p[demetKey].face_treatments && p[demetKey].face_treatments.length > 0) {
+          const txDate = p[demetKey].face_treatments[0].date;
+          if (!p[demetKey].stock_history) p[demetKey].stock_history = [];
+          if (p[demetKey].stock_history.length === 0) {
+            p[demetKey].stock_history.push({
+              date: txDate + " 15:30",
+              text: "1 Şişe Cilt Bakım Serumu, 1 Ampul Mezoterapi Kokteyli"
+            });
+            updated = true;
+          } else if (p[demetKey].stock_history[0].date.split(' ')[0] !== txDate) {
+            p[demetKey].stock_history[0].date = txDate + " 15:30";
+            updated = true;
+          }
+        }
+
+        if (updated) {
+          localStorage.setItem('cache_patient_profiles', JSON.stringify(p));
+          setProfiles(p);
+        }
+      }
+    } catch(e) {}
+
+  }, [loadData]);
 
   const [filterType, setFilterType] = useState<"today" | "all">("today");
 
