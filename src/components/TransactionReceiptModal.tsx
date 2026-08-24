@@ -116,14 +116,11 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
                 });
 
                 // Eğer işlem tarihi ile stok geçmişi tarihi tam uyuşmuyorsa,
-                // Stok geçmişinde 24.08.2026 tarihli kayıtları baz al
+                // Stok geçmişinde "bugün" düşümü yapılan kayıtları baz al
                 if (dateStocks.length === 0) {
-                  dateStocks = stockHistory.filter(h => h.date.includes('24.08.2026'));
-                }
-                
-                // Hala boşsa ve stok geçmişi varsa, en azından tüm stok geçmişini göster
-                if (dateStocks.length === 0 && stockHistory.length > 0) {
-                  dateStocks = stockHistory;
+                  const today = new Date();
+                  const todayStr = `${today.getDate().toString().padStart(2, '0')}.${(today.getMonth() + 1).toString().padStart(2, '0')}.${today.getFullYear()}`;
+                  dateStocks = stockHistory.filter(h => h.date.includes(todayStr));
                 }
                 
                 if (dateStocks.length === 0) {
