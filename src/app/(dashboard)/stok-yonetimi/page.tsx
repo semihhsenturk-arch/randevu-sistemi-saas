@@ -104,14 +104,20 @@ export default function StockManagementPage() {
     setDropdownOpen(false);
   };
 
+  // Calculate birim fiyat live preview
+  const liveAdet = Number(entryForm.adet) || 0;
+  const liveToplamFiyat = Number(entryForm.fiyat) || 0;
+  const liveBirimFiyat = liveAdet > 0 && liveToplamFiyat > 0 ? liveToplamFiyat / liveAdet : 0;
+
   const handleStockEntry = async (e: React.FormEvent) => {
     e.preventDefault();
     const adetValue = Number(entryForm.adet) || 0;
-    const fiyatValue = Number(entryForm.fiyat) || 0;
+    const toplamFiyatValue = Number(entryForm.fiyat) || 0;
     const kritikValue = Number(entryForm.kritik) || 0;
+    // Birim fiyat = Toplam Fiyat / Adet
+    const birimFiyat = adetValue > 0 && toplamFiyatValue > 0 ? Math.round((toplamFiyatValue / adetValue) * 100) / 100 : 0;
 
     if (entryMode === "existing" && selectedExistingId) {
-      // Add stock to existing item
       const existingItem = inventory.items.find(i => i.id === selectedExistingId);
       if (!existingItem) return;
       const currentQty = inventory.stock[selectedExistingId] || 0;
@@ -119,7 +125,7 @@ export default function StockManagementPage() {
       const updatedItem: InventoryItem = {
         ...existingItem,
         kod: entryForm.kod || existingItem.kod,
-        fiyat: fiyatValue || existingItem.fiyat,
+        fiyat: birimFiyat || existingItem.fiyat,
         kritik_stok: kritikValue || existingItem.kritik_stok,
       };
       await saveInventoryItem(updatedItem, newQty);
@@ -129,10 +135,9 @@ export default function StockManagementPage() {
       }));
       toast.success(`${updatedItem.ad} stoku güncellendi.`, { description: `Yeni Stok: ${newQty} ${updatedItem.birim}` });
     } else {
-      // Create new item
       if (!entryForm.ad) return;
       const id = "item_" + Math.random().toString(36).substr(2, 9);
-      const itemObj: InventoryItem = { id, ad: entryForm.ad, birim: "Adet", kritik_stok: kritikValue, kod: entryForm.kod || undefined, fiyat: fiyatValue || undefined };
+      const itemObj: InventoryItem = { id, ad: entryForm.ad, birim: "Adet", kritik_stok: kritikValue, kod: entryForm.kod || undefined, fiyat: birimFiyat || undefined };
       await saveInventoryItem(itemObj, adetValue);
       setInventory(prev => ({
         items: [...prev.items, itemObj],
@@ -565,10 +570,10 @@ export default function StockManagementPage() {
                   className="h-11 bg-slate-50 border-slate-200 rounded-xl focus-visible:ring-[#0a3d34] font-bold text-center placeholder:text-slate-300"
                 />
               </div>
-              {/* Fiyat */}
+              {/* Toplam Fiyat */}
               <div className="space-y-1.5">
                 <Label className="text-[0.72rem] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                  <DollarSign className="w-3 h-3" /> Fiyat (₺)
+                  <DollarSign className="w-3 h-3" /> Toplam Fiyat (₺)
                 </Label>
                 <Input
                   type="number"
@@ -596,6 +601,19 @@ export default function StockManagementPage() {
                 />
               </div>
             </div>
+
+            {/* Birim Fiyat live preview */}
+            {liveBirimFiyat > 0 && (
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <DollarSign className="w-4 h-4 text-emerald-600" />
+                  <span className="text-[0.78rem] font-bold text-emerald-800">Hesaplanan Birim Fiyat</span>
+                </div>
+                <span className="text-[0.95rem] font-extrabold text-emerald-700">
+                  {liveBirimFiyat.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₺
+                </span>
+              </div>
+            )}
 
             {/* Info banner for existing mode */}
             {entryMode === "existing" && selectedExistingId && (

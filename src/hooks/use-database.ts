@@ -486,38 +486,44 @@ export function useDatabase() {
     if (!userId) return;
 
     if (userId !== "demo-user") {
-      const { data: existing } = await supabase
-        .from("inventory")
-        .select("id")
-        .eq("item_id", item.id)
-        .eq("user_id", userId)
-        .maybeSingle();
+      try {
+        const { data: existing } = await supabase
+          .from("inventory")
+          .select("id")
+          .eq("item_id", item.id)
+          .eq("user_id", userId)
+          .maybeSingle();
 
-      const payload: any = {
-        user_id: userId,
-        item_id: item.id,
-        name: item.ad,
-        unit: item.birim,
-        quantity: quantity,
-        kritik_stok: item.kritik_stok || 10,
-        kod: item.kod || null,
-        fiyat: item.fiyat || null,
-      };
+        const payload: any = {
+          user_id: userId,
+          item_id: item.id,
+          name: item.ad,
+          unit: item.birim,
+          quantity: quantity,
+          kritik_stok: item.kritik_stok || 10,
+        };
 
-      if (existing) payload.id = existing.id;
+        if (existing) payload.id = existing.id;
 
-      const { error } = await supabase.from("inventory").upsert(payload, { onConflict: "id" });
-      if (error) return; // Silent fail handled by cache anyway
-    }
-      const cached = getCache<{ stock: Record<string, number>; items: InventoryItem[] }>(CACHE_KEYS.INVENTORY) || {
-        stock: {},
-        items: [],
-      };
-      cached.stock[item.id] = quantity;
-      if (!cached.items.find((i) => i.id === item.id)) {
-        cached.items.push(item);
+        await supabase.from("inventory").upsert(payload, { onConflict: "id" });
+      } catch (e) {
+        console.warn("saveInventoryItem supabase failed, saving to cache", e);
       }
-      setCache(CACHE_KEYS.INVENTORY, cached);
+    }
+    // Always update cache regardless of supabase result
+    const cached = getCache<{ stock: Record<string, number>; items: InventoryItem[] }>(CACHE_KEYS.INVENTORY) || {
+      stock: {},
+      items: [],
+    };
+    cached.stock[item.id] = quantity;
+    const existingIdx = cached.items.findIndex((i) => i.id === item.id);
+    if (existingIdx > -1) {
+      // Update existing item properties (kod, fiyat, kritik_stok etc.)
+      cached.items[existingIdx] = { ...cached.items[existingIdx], ...item };
+    } else {
+      cached.items.push(item);
+    }
+    setCache(CACHE_KEYS.INVENTORY, cached);
   }, [userId]);
   const deleteInventoryItem = useCallback(async (itemId: string) => {
     if (!userId) return;
