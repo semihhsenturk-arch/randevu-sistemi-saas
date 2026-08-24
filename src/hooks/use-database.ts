@@ -452,6 +452,13 @@ export function useDatabase() {
         .eq("user_id", userId);
 
       if (!error && data) {
+        // Load existing cache to preserve fields not in DB (kod, fiyat)
+        const existingCache = getCache<{ stock: Record<string, number>; items: InventoryItem[] }>(CACHE_KEYS.INVENTORY);
+        const cachedItemMap = new Map<string, InventoryItem>();
+        if (existingCache) {
+          existingCache.items.forEach(ci => cachedItemMap.set(ci.id, ci));
+        }
+
         const stock: Record<string, number> = {};
         const items: InventoryItem[] = data.map((d: any) => {
           stock[d.item_id] = parseFloat(d.quantity);
@@ -461,15 +468,29 @@ export function useDatabase() {
           } else if (d.name.toLowerCase().includes("eldiven") && birim.toLowerCase() === "kutu") {
             birim = "Adet";
           }
+          // Merge with cached item to preserve kod/fiyat
+          const cachedItem = cachedItemMap.get(d.item_id);
           return {
             id: d.item_id,
             ad: d.name,
             birim: birim,
             kritik_stok: parseFloat(d.kritik_stok),
-            kod: d.kod || undefined,
-            fiyat: d.fiyat ? parseFloat(d.fiyat) : undefined,
+            kod: d.kod || cachedItem?.kod || undefined,
+            fiyat: d.fiyat ? parseFloat(d.fiyat) : cachedItem?.fiyat || undefined,
           };
         });
+
+        // Also include items that exist ONLY in cache (not in DB)
+        if (existingCache) {
+          const dbItemIds = new Set(data.map((d: any) => d.item_id));
+          existingCache.items.forEach(ci => {
+            if (!dbItemIds.has(ci.id)) {
+              items.push(ci);
+              stock[ci.id] = existingCache.stock[ci.id] || 0;
+            }
+          });
+        }
+
         const result = { stock, items };
         setCache(CACHE_KEYS.INVENTORY, result);
         return result;
