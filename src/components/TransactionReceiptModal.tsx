@@ -135,13 +135,13 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
                              </span>
                              {unitPrice > 0 && (
                                <span className="text-[0.55rem] font-bold text-slate-400 mt-0.5">
-                                 {unitPrice.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺ / {parts[1] || 'br'}
+                                 {unitPrice.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ₺ / {parts[1] || 'br'}
                                </span>
                              )}
                           </div>
                           {cost > 0 && (
                             <div className="text-[0.7rem] font-black text-slate-800 w-[50px] text-right">
-                              {cost.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+                              {cost.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ₺
                             </div>
                           )}
                         </div>
@@ -163,7 +163,7 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
                       <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-100 w-full">
                         <span className="text-[0.6rem] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Toplam Maliyet</span>
                         <span className="text-sm font-black text-[#0a3d34]">
-                          {grandTotalCost.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+                          {grandTotalCost.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ₺
                         </span>
                       </div>
                     )}
