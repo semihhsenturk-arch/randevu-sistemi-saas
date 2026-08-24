@@ -585,10 +585,10 @@ export default function StockManagementPage() {
                   className="h-11 bg-slate-50 border-slate-200 rounded-xl focus-visible:ring-[#0a3d34] font-bold text-center placeholder:text-slate-300"
                 />
               </div>
-              {/* Toplam Fiyat */}
+              {/* Fiyat */}
               <div className="space-y-1.5">
                 <Label className="text-[0.72rem] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                  <DollarSign className="w-3 h-3" /> Toplam Fiyat (₺)
+                  <DollarSign className="w-3 h-3" /> Fiyat (₺)
                 </Label>
                 <Input
                   type="number"
