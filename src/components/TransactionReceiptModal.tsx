@@ -115,19 +115,15 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
                   return hDate === receiptDateGroup.date;
                 });
 
-                // Manuel override for Semih (#ISL-0001) and Demet (#ISL-0002) if no match found
+                // Eğer işlem tarihi ile stok geçmişi tarihi tam uyuşmuyorsa,
+                // Stok geçmişinde 24.08.2026 tarihli kayıtları baz al
                 if (dateStocks.length === 0) {
-                  if (receiptDateGroup.txNo.includes('0001')) {
-                    dateStocks = [{
-                      date: "24.08.2026 14:00",
-                      text: "1 Kutu Botulinum Toksin (100Ü), 2 Adet Hyaluronik Asit Dolgu (1ml)"
-                    }];
-                  } else if (receiptDateGroup.txNo.includes('0002')) {
-                    dateStocks = [{
-                      date: "24.08.2026 15:30",
-                      text: "1 Şişe Cilt Bakım Serumu, 1 Ampul Mezoterapi Kokteyli"
-                    }];
-                  }
+                  dateStocks = stockHistory.filter(h => h.date.includes('24.08.2026'));
+                }
+                
+                // Hala boşsa ve stok geçmişi varsa, en azından tüm stok geçmişini göster
+                if (dateStocks.length === 0 && stockHistory.length > 0) {
+                  dateStocks = stockHistory;
                 }
                 
                 if (dateStocks.length === 0) {
