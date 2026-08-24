@@ -170,7 +170,14 @@ export default function StockManagementPage() {
 
   const filteredItems = inventory.items
     .filter(i => i.ad.toLowerCase().includes(searchTerm.toLowerCase()))
-    .sort((a, b) => a.ad.localeCompare(b.ad, "tr"));
+    .sort((a, b) => {
+      const kodA = a.kod || "";
+      const kodB = b.kod || "";
+      if (!kodA && !kodB) return a.ad.localeCompare(b.ad, "tr");
+      if (!kodA) return 1;
+      if (!kodB) return -1;
+      return kodB.localeCompare(kodA, "tr", { numeric: true });
+    });
 
   const stats = useMemo(() => {
     let total = inventory.items.length;
