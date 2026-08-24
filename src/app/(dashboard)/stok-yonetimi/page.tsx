@@ -26,7 +26,7 @@ export default function StockManagementPage() {
   // New stock entry form state
   const [entryMode, setEntryMode] = useState<"new" | "existing">("new");
   const [selectedExistingId, setSelectedExistingId] = useState<string>("");
-  const [entryForm, setEntryForm] = useState<{ kod: string; ad: string; adet: number | string; fiyat: number | string; kritik: number | string }>({ kod: "", ad: "", adet: "", fiyat: "", kritik: "" });
+  const [entryForm, setEntryForm] = useState<{ kod: string; ad: string; adet: number | string; birim: string; fiyat: number | string; kritik: number | string }>({ kod: "", ad: "", adet: "", birim: "Adet", fiyat: "", kritik: "" });
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
@@ -80,7 +80,7 @@ export default function StockManagementPage() {
   const resetEntryForm = () => {
     setEntryMode("new");
     setSelectedExistingId("");
-    setEntryForm({ kod: "", ad: "", adet: "", fiyat: "", kritik: "" });
+    setEntryForm({ kod: "", ad: "", adet: "", birim: "Adet", fiyat: "", kritik: "" });
     setDropdownOpen(false);
   };
 
@@ -91,6 +91,7 @@ export default function StockManagementPage() {
       kod: item.kod || "",
       ad: item.ad,
       adet: "",
+      birim: item.birim || "Adet",
       fiyat: item.fiyat ?? "",
       kritik: item.kritik_stok || "",
     });
@@ -100,7 +101,7 @@ export default function StockManagementPage() {
   const handleSelectNew = () => {
     setEntryMode("new");
     setSelectedExistingId("");
-    setEntryForm({ kod: "", ad: "", adet: "", fiyat: "", kritik: "" });
+    setEntryForm({ kod: "", ad: "", adet: "", birim: "Adet", fiyat: "", kritik: "" });
     setDropdownOpen(false);
   };
 
@@ -125,6 +126,7 @@ export default function StockManagementPage() {
       const updatedItem: InventoryItem = {
         ...existingItem,
         kod: entryForm.kod || existingItem.kod,
+        birim: entryForm.birim || existingItem.birim,
         fiyat: birimFiyat || existingItem.fiyat,
         kritik_stok: kritikValue || existingItem.kritik_stok,
       };
@@ -137,7 +139,7 @@ export default function StockManagementPage() {
     } else {
       if (!entryForm.ad) return;
       const id = "item_" + Math.random().toString(36).substr(2, 9);
-      const itemObj: InventoryItem = { id, ad: entryForm.ad, birim: "Adet", kritik_stok: kritikValue, kod: entryForm.kod || undefined, fiyat: birimFiyat || undefined };
+      const itemObj: InventoryItem = { id, ad: entryForm.ad, birim: entryForm.birim || "Adet", kritik_stok: kritikValue, kod: entryForm.kod || undefined, fiyat: birimFiyat || undefined };
       await saveInventoryItem(itemObj, adetValue);
       setInventory(prev => ({
         items: [...prev.items, itemObj],
@@ -554,11 +556,11 @@ export default function StockManagementPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
-              {/* Adet */}
+            <div className="grid grid-cols-4 gap-3">
+              {/* Miktar */}
               <div className="space-y-1.5">
                 <Label className="text-[0.72rem] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                  <Layers className="w-3 h-3" /> Adet
+                  <Layers className="w-3 h-3" /> Miktar
                 </Label>
                 <Input
                   type="number"
@@ -567,6 +569,19 @@ export default function StockManagementPage() {
                   placeholder="0"
                   value={entryForm.adet}
                   onChange={e => setEntryForm(prev => ({ ...prev, adet: e.target.value === "" ? "" : Number(e.target.value) }))}
+                  className="h-11 bg-slate-50 border-slate-200 rounded-xl focus-visible:ring-[#0a3d34] font-bold text-center placeholder:text-slate-300"
+                />
+              </div>
+              {/* Birim */}
+              <div className="space-y-1.5">
+                <Label className="text-[0.72rem] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                  <Package className="w-3 h-3" /> Birim
+                </Label>
+                <Input
+                  required
+                  placeholder="Adet"
+                  value={entryForm.birim}
+                  onChange={e => setEntryForm(prev => ({ ...prev, birim: e.target.value }))}
                   className="h-11 bg-slate-50 border-slate-200 rounded-xl focus-visible:ring-[#0a3d34] font-bold text-center placeholder:text-slate-300"
                 />
               </div>
