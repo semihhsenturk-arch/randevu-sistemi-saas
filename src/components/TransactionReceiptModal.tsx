@@ -149,17 +149,13 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
                              <span className="text-[0.65rem] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
                                {itemName ? amountAndUnit : ""}
                              </span>
-                             {unitPrice > 0 && (
-                               <span className="text-[0.55rem] font-bold text-slate-400 mt-0.5">
-                                 {unitPrice.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺ / {parts[1]}
-                               </span>
-                             )}
+                             <span className="text-[0.55rem] font-bold text-slate-400 mt-0.5">
+                               {unitPrice.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺ / {parts[1]}
+                             </span>
                           </div>
-                          {cost > 0 && (
-                            <div className="text-[0.7rem] font-black text-slate-800 w-[60px] text-right">
-                              {cost.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
-                            </div>
-                          )}
+                          <div className="text-[0.7rem] font-black text-slate-800 w-[60px] text-right">
+                            {cost.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+                          </div>
                         </div>
                       </div>
                     );
@@ -176,14 +172,12 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
                 return (
                   <>
                     {stockBlocks}
-                    {grandTotalCost > 0 && (
-                      <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-200">
-                        <span className="text-[0.7rem] font-extrabold text-slate-600 uppercase tracking-wider">Toplam Maliyet</span>
-                        <span className="text-[1rem] font-black text-[#0a3d34]">
-                          {grandTotalCost.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
-                        </span>
-                      </div>
-                    )}
+                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-200">
+                      <span className="text-[0.7rem] font-extrabold text-slate-600 uppercase tracking-wider">Toplam Maliyet</span>
+                      <span className="text-[1rem] font-black text-[#0a3d34]">
+                        {grandTotalCost.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+                      </span>
+                    </div>
                   </>
                 );
               })()}
