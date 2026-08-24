@@ -1,5 +1,6 @@
-import React from 'react';
-import { X, Receipt, Syringe } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { X, Receipt, Syringe, DollarSign } from 'lucide-react';
+import { useDatabase } from '@/hooks/use-database';
 
 interface TransactionReceiptModalProps {
   receiptDateGroup: { date: string; txNo: string; treatments: any[] } | null;
@@ -9,6 +10,17 @@ interface TransactionReceiptModalProps {
 }
 
 export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName, stockHistory = [] }: TransactionReceiptModalProps) {
+  const { getInventory } = useDatabase();
+  const [inventoryItems, setInventoryItems] = useState<any[]>([]);
+
+  useEffect(() => {
+    getInventory().then(data => {
+      if (data && data.items) {
+        setInventoryItems(data.items);
+      }
+    });
+  }, [getInventory]);
+
   if (!receiptDateGroup) return null;
 
   const getMarkerColor = (type: string) => {
@@ -111,24 +123,69 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
                   );
                 }
                 
-                return dateStocks.map((stock, i) => (
-                  <div key={i} className="flex flex-col gap-1 bg-slate-50 border border-slate-100 p-2.5 rounded-lg">
-                    <div className="text-[0.55rem] font-bold text-slate-400 mb-0.5">{stock.date.split(" ")[1] || ""}</div>
-                    {stock.text.split(", ").map((itemStr: string, j: number) => {
-                      const parts = itemStr.trim().split(" ");
-                      const amountAndUnit = parts.slice(0, 2).join(" ");
-                      const itemName = parts.slice(2).join(" ");
-                      return (
-                        <div key={j} className="flex items-center justify-between">
-                          <span className="text-[0.65rem] font-bold text-slate-700">{itemName || itemStr}</span>
-                          <span className="text-[0.65rem] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
-                            {itemName ? amountAndUnit : ""}
-                          </span>
+                let grandTotalCost = 0;
+
+                const stockBlocks = dateStocks.map((stock, i) => {
+                  const itemRows = stock.text.split(", ").map((itemStr: string, j: number) => {
+                    const parts = itemStr.trim().split(" ");
+                    const amountStr = parts[0];
+                    const amount = parseFloat(amountStr) || 0;
+                    const amountAndUnit = parts.slice(0, 2).join(" ");
+                    const itemName = parts.slice(2).join(" ");
+                    
+                    const invItem = inventoryItems.find(item => item.ad === itemName);
+                    const unitPrice = invItem?.fiyat || 0;
+                    const cost = unitPrice * amount;
+                    grandTotalCost += cost;
+
+                    return (
+                      <div key={j} className="flex items-center justify-between mt-1">
+                        <div className="flex flex-col min-w-0 pr-2">
+                           <span className="text-[0.65rem] font-bold text-slate-700 leading-tight">{itemName || itemStr}</span>
+                           {invItem?.kod && <span className="text-[0.55rem] font-bold text-slate-400 mt-0.5">Kod: {invItem.kod}</span>}
                         </div>
-                      );
-                    })}
-                  </div>
-                ));
+                        <div className="flex items-center gap-3 shrink-0">
+                          <div className="flex flex-col items-end">
+                             <span className="text-[0.65rem] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
+                               {itemName ? amountAndUnit : ""}
+                             </span>
+                             {unitPrice > 0 && (
+                               <span className="text-[0.55rem] font-bold text-slate-400 mt-0.5">
+                                 {unitPrice.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺ / {parts[1]}
+                               </span>
+                             )}
+                          </div>
+                          {cost > 0 && (
+                            <div className="text-[0.7rem] font-black text-slate-800 w-[60px] text-right">
+                              {cost.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  });
+
+                  return (
+                    <div key={i} className="flex flex-col gap-1 bg-slate-50 border border-slate-100 p-2.5 rounded-lg">
+                      <div className="text-[0.55rem] font-bold text-slate-400 mb-0.5">{stock.date.split(" ")[1] || ""}</div>
+                      {itemRows}
+                    </div>
+                  );
+                });
+
+                return (
+                  <>
+                    {stockBlocks}
+                    {grandTotalCost > 0 && (
+                      <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-200">
+                        <span className="text-[0.7rem] font-extrabold text-slate-600 uppercase tracking-wider">Toplam Maliyet</span>
+                        <span className="text-[1rem] font-black text-[#0a3d34]">
+                          {grandTotalCost.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+                        </span>
+                      </div>
+                    )}
+                  </>
+                );
               })()}
             </div>
           </div>

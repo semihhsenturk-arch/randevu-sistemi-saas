@@ -388,22 +388,26 @@ export const seedDemoData = () => {
     items: [
       {
         id: "inv_1",
+        kod: "BOTOX-01",
         ad: "Botulinum Toksin (100Ü)",
         birim: "Kutu",
+        fiyat: 2500,
         kritik_stok: 10,
       },
       {
         id: "inv_2",
+        kod: "FILLER-HA",
         ad: "Hyaluronik Asit Dolgu (1ml)",
         birim: "Adet",
+        fiyat: 1800,
         kritik_stok: 5,
       },
-      { id: "inv_3", ad: "Cilt Bakım Serumu", birim: "Şişe", kritik_stok: 2 },
-      { id: "inv_4", ad: "Mezoterapi Kokteyli", birim: "Ampul", kritik_stok: 5 },
-      { id: "inv_5", ad: "PRP Kiti", birim: "Adet", kritik_stok: 3 },
-      { id: "inv_6", ad: "Karbon Peeling Solüsyonu", birim: "Şişe", kritik_stok: 2 },
-      { id: "inv_7", ad: "PDO İplik (COG)", birim: "Paket", kritik_stok: 2 },
-      { id: "inv_8", ad: "Tek Kullanımlık Eldiven (M)", birim: "Adet", kritik_stok: 20 },
+      { id: "inv_3", kod: "SERUM-01", ad: "Cilt Bakım Serumu", birim: "Şişe", fiyat: 450, kritik_stok: 2 },
+      { id: "inv_4", kod: "MESO-MIX", ad: "Mezoterapi Kokteyli", birim: "Ampul", fiyat: 600, kritik_stok: 5 },
+      { id: "inv_5", kod: "PRP-01", ad: "PRP Kiti", birim: "Adet", fiyat: 1200, kritik_stok: 3 },
+      { id: "inv_6", kod: "PEEL-01", ad: "Karbon Peeling Solüsyonu", birim: "Şişe", fiyat: 800, kritik_stok: 2 },
+      { id: "inv_7", kod: "COG-01", ad: "PDO İplik (COG)", birim: "Paket", fiyat: 3000, kritik_stok: 2 },
+      { id: "inv_8", kod: "GLOVE-M", ad: "Tek Kullanımlık Eldiven (M)", birim: "Adet", fiyat: 2.5, kritik_stok: 20 },
     ],
   };
   localStorage.setItem("cache_inventory", JSON.stringify(demoInventory));
