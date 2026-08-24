@@ -35,8 +35,6 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={onClose}>
       <div className="receipt-modal bg-white w-full max-w-[280px] max-h-[90vh] overflow-y-auto relative flex flex-col shadow-2xl" onClick={e => e.stopPropagation()}>
-        {/* Receipt Top Tear */}
-        <div className="receipt-tear-top" />
         
         {/* Receipt Header (Simplified) */}
         <div className="bg-slate-900 px-4 py-3 flex flex-col items-center justify-center text-center relative overflow-hidden shrink-0">
@@ -189,8 +187,6 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
           </div>
         </div>
 
-        {/* Receipt Bottom Tear */}
-        <div className="receipt-tear-bottom" />
       </div>
     </div>
   );
