@@ -480,7 +480,18 @@ export default function PatientListPage() {
     }).join(", ");
 
     const finalDetailStr = grandTotal > 0 ? `${detailStr} (Toplam Maliyet: ${grandTotal.toLocaleString("tr-TR", {minimumFractionDigits:2})} ₺)` : detailStr;
-    history.push({ date: format(new Date(), "dd.MM.yyyy HH:mm"), text: finalDetailStr });
+    
+    // Find the most recent treatment date for linking stock deduction to correct receipt
+    const faceTreatments = current.face_treatments || [];
+    const latestTreatmentDate = faceTreatments.length > 0 
+      ? faceTreatments.sort((a, b) => b.date.localeCompare(a.date))[0]?.date 
+      : undefined;
+    
+    history.push({ 
+      date: format(new Date(), "dd.MM.yyyy HH:mm"), 
+      text: finalDetailStr,
+      ...(latestTreatmentDate ? { treatment_date: latestTreatmentDate } : {})
+    });
 
     const updatedProf = { ...current, stock_history: history };
 
