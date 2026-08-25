@@ -543,7 +543,16 @@ export function useDatabase() {
           });
           
           if (updatesToPush.length > 0) {
-            supabase.from("inventory").upsert(updatesToPush, { onConflict: "id" }).catch(e => console.warn("Auto-sync failed", e));
+            try {
+              const { error: syncError } = await supabase.from("inventory").upsert(updatesToPush, { onConflict: "id" });
+              if (syncError) {
+                console.error("Auto-sync upsert error:", syncError);
+              } else {
+                console.log(`Auto-sync: ${updatesToPush.length} inventory items synced to Supabase`);
+              }
+            } catch (e) {
+              console.warn("Auto-sync failed:", e);
+            }
           }
         }
 
@@ -585,7 +594,10 @@ export function useDatabase() {
         if (item.toplam_deger !== undefined) payload.toplam_deger = item.toplam_deger;
         if (item.hareketler !== undefined) payload.hareketler = item.hareketler;
 
-        await supabase.from("inventory").upsert(payload, { onConflict: "id" });
+        const { error: upsertError } = await supabase.from("inventory").upsert(payload, { onConflict: "id" });
+        if (upsertError) {
+          console.error("saveInventoryItem upsert error:", upsertError);
+        }
       } catch (e) {
         console.warn("saveInventoryItem supabase failed, saving to cache", e);
       }
