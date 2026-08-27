@@ -26,12 +26,15 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
 
   const targetDateStr = receiptDateGroup.date;
   
-  // 1. Exact date match on stock entry date
-  let relevantStocks = stockHistory.filter(h => h.date.split(' ')[0] === targetDateStr);
-  
-  // 2. Match via treatment_date field (if stock was deducted on a different day but linked to this treatment)
+  // 1. Match explicit transaction_no if present
+  let relevantStocks = stockHistory.filter(h => h.transaction_no === receiptDateGroup.txNo);
+
+  // Fallbacks if no explicit match is found (for backward compatibility)
   if (relevantStocks.length === 0) {
-    relevantStocks = stockHistory.filter(h => h.treatment_date && h.treatment_date.split(' ')[0] === targetDateStr);
+    relevantStocks = stockHistory.filter(h => !h.transaction_no && (
+      h.date.split(' ')[0] === targetDateStr || 
+      (h.treatment_date && h.treatment_date.split(' ')[0] === targetDateStr)
+    ));
   }
   
   const firstTime = relevantStocks.length > 0 ? (relevantStocks[0].date.split(" ")[1] || "") : "";
@@ -205,15 +208,21 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
             const childControls = allTreatments.filter(t => t.isControl && t.parentTransactionNo === receiptDateGroup.txNo);
             if (childControls.length === 0) return null;
 
-            // Find unique dates of child controls
-            const childDates = Array.from(new Set(childControls.map(t => t.date.split(" ")[0])));
+            // Collect unique transaction nos of child controls
+            const childTxNos = Array.from(new Set(childControls.map(t => t.transactionNo).filter(Boolean)));
             
-            // Collect material costs for those dates
+            // Collect material costs for those transactions
             let totalControlCost = 0;
-            const controlCostsByDate: Record<string, number> = {};
+            const controlCostsByTx: Record<string, number> = {};
 
-            childDates.forEach(dateStr => {
-              let relevantStocksForChild = stockHistory.filter(h => h.date.split(' ')[0] === dateStr || (h.treatment_date && h.treatment_date.split(' ')[0] === dateStr));
+            childTxNos.forEach(txNo => {
+              const childTx = childControls.find(t => t.transactionNo === txNo);
+              const dateStr = childTx?.date.split(" ")[0] || "";
+              
+              let relevantStocksForChild = stockHistory.filter(h => 
+                h.transaction_no === txNo || 
+                (!h.transaction_no && (h.date.split(' ')[0] === dateStr || (h.treatment_date && h.treatment_date.split(' ')[0] === dateStr)))
+              );
               let dateCost = 0;
 
               relevantStocksForChild.forEach(stock => {
@@ -237,7 +246,7 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
               });
 
               if (dateCost > 0) {
-                controlCostsByDate[dateStr] = dateCost;
+                controlCostsByTx[txNo as string] = dateCost;
                 totalControlCost += dateCost;
               }
             });
@@ -251,9 +260,9 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
                 </div>
                 
                 <div className="flex flex-col w-full space-y-1 mb-2">
-                  {Object.entries(controlCostsByDate).map(([dStr, cost]) => (
-                    <div key={dStr} className="flex justify-between items-center text-[0.65rem] border-b border-slate-200/50 pb-1 last:border-0 last:pb-0">
-                      <span className="font-semibold text-slate-600">{dStr}</span>
+                  {Object.entries(controlCostsByTx).map(([txNo, cost]) => (
+                    <div key={txNo} className="flex justify-between items-center text-[0.65rem] border-b border-slate-200/50 pb-1 last:border-0 last:pb-0">
+                      <span className="font-semibold text-slate-600">{txNo}</span>
                       <span className="font-bold text-orange-600">{cost.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ₺</span>
                     </div>
                   ))}

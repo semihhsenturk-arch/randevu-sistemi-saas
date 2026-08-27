@@ -62,9 +62,9 @@ export default function PatientListPage() {
   // Material Modal
   const [materialModalOpen, setMaterialModalOpen] = useState(false);
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
-  const [currentCart, setCurrentCart] = useState<{ id: string; name: string; unit: string; amount: number }[]>([]);
   const [selectedStockId, setSelectedStockId] = useState("");
   const [stockAmount, setStockAmount] = useState<number | string>("");
+  const [selectedMaterialTxNo, setSelectedMaterialTxNo] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Forms
@@ -247,11 +247,15 @@ export default function PatientListPage() {
     if (!canUseInventory) {
       setUpgradeModalOpen(true);
       return;
-    }
+    const faceTreatments = profiles[name]?.face_treatments || [];
+    const sortedTreatments = [...faceTreatments].sort((a, b) => b.date.localeCompare(a.date));
+    const latestTx = sortedTreatments.length > 0 ? sortedTreatments[0].transactionNo : "";
+
     setSelectedPatientName(name);
     setCurrentCart([]);
     setSelectedStockId("");
     setStockAmount("");
+    setSelectedMaterialTxNo(latestTx || "");
     setMaterialModalOpen(true);
   };
 
@@ -480,17 +484,22 @@ export default function PatientListPage() {
     }).join(", ");
 
     const finalDetailStr = grandTotal > 0 ? `${detailStr} (Toplam Maliyet: ${grandTotal.toLocaleString("tr-TR", {minimumFractionDigits:2})} ₺)` : detailStr;
-    
+
     // Find the most recent treatment date for linking stock deduction to correct receipt
     const faceTreatments = current.face_treatments || [];
-    const latestTreatmentDate = faceTreatments.length > 0 
-      ? faceTreatments.sort((a, b) => b.date.localeCompare(a.date))[0]?.date 
-      : undefined;
+    const sortedTreatments = [...faceTreatments].sort((a, b) => b.date.localeCompare(a.date));
+    
+    let targetTxDate = sortedTreatments[0]?.date;
+    if (selectedMaterialTxNo) {
+      const specificTx = faceTreatments.find(t => t.transactionNo === selectedMaterialTxNo);
+      if (specificTx) targetTxDate = specificTx.date;
+    }
     
     history.push({ 
       date: format(new Date(), "dd.MM.yyyy HH:mm"), 
       text: finalDetailStr,
-      ...(latestTreatmentDate ? { treatment_date: latestTreatmentDate } : {})
+      ...(selectedMaterialTxNo && selectedMaterialTxNo !== "none" ? { transaction_no: selectedMaterialTxNo } : {}),
+      ...(targetTxDate ? { treatment_date: targetTxDate } : {})
     });
 
     const updatedProf = { ...current, stock_history: history };
@@ -1236,23 +1245,41 @@ export default function PatientListPage() {
             <DialogDescription className="text-xs">Hastaya uygulanan malzeme miktarlarını girerek ana stoktan düşüş yapın.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-4">
-             <div className="bg-[#f8fafc] p-4 rounded-xl border border-slate-200 flex gap-2 items-end">
-                <div className="flex-1 space-y-1">
-                  <Label>Malzeme</Label>
-                  <Select value={selectedStockId} onValueChange={setSelectedStockId}>
-                    <SelectTrigger className="bg-white"><SelectValue placeholder="Seçiniz..." /></SelectTrigger>
+             <div className="bg-[#f8fafc] p-4 rounded-xl border border-slate-200 flex flex-col gap-3">
+                <div className="space-y-1">
+                  <Label>İşlem / Fiş Numarası</Label>
+                  <Select value={selectedMaterialTxNo} onValueChange={setSelectedMaterialTxNo}>
+                    <SelectTrigger className="bg-white"><SelectValue placeholder="İşlem seçiniz..." /></SelectTrigger>
                     <SelectContent>
-                      {inventory.items.map(item => (
-                        <SelectItem key={item.id} value={item.id}>{item.ad} ({inventory.stock[item.id] || 0} {item.birim})</SelectItem>
-                      ))}
+                      {Array.from(new Set((profiles[selectedPatientName]?.face_treatments || []).map(t => t.transactionNo).filter(Boolean))).map(txNo => {
+                        const tDate = (profiles[selectedPatientName]?.face_treatments || []).find(t => t.transactionNo === txNo)?.date.split(" ")[0];
+                        return (
+                          <SelectItem key={txNo} value={txNo}>{txNo} ({tDate})</SelectItem>
+                        );
+                      })}
+                      <SelectItem value="none">Bağımsız İşlem (Fişsiz)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="w-24 space-y-1">
-                  <Label>Miktar</Label>
-                  <Input type="number" min={1} value={stockAmount} onChange={e => setStockAmount(e.target.value)} className="bg-white" />
+
+                <div className="flex gap-2 items-end">
+                  <div className="flex-1 space-y-1">
+                    <Label>Malzeme</Label>
+                    <Select value={selectedStockId} onValueChange={setSelectedStockId}>
+                      <SelectTrigger className="bg-white"><SelectValue placeholder="Seçiniz..." /></SelectTrigger>
+                      <SelectContent>
+                        {inventory.items.map(item => (
+                          <SelectItem key={item.id} value={item.id}>{item.ad} ({inventory.stock[item.id] || 0} {item.birim})</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="w-24 space-y-1">
+                    <Label>Miktar</Label>
+                    <Input type="number" min={1} value={stockAmount} onChange={e => setStockAmount(e.target.value)} className="bg-white" />
+                  </div>
+                  <Button variant="outline" className="h-10 border-[#0a3d34] text-[#0a3d34] hover:bg-[#0a3d34] hover:text-white" onClick={addToCart}><Plus className="w-4 h-4"/></Button>
                 </div>
-                <Button variant="outline" className="h-10 border-[#0a3d34] text-[#0a3d34] hover:bg-[#0a3d34] hover:text-white" onClick={addToCart}><Plus className="w-4 h-4"/></Button>
              </div>
 
              <div className="min-h-[100px] border border-slate-200 rounded-xl p-2 bg-white space-y-1">
@@ -1270,7 +1297,7 @@ export default function PatientListPage() {
 
              <div className="flex gap-2">
                 <Button variant="outline" className="flex-1" onClick={() => setMaterialModalOpen(false)} disabled={isSubmitting}>İptal</Button>
-                <Button className="flex-1 bg-[#0a3d34] hover:bg-[#072b25]" disabled={isSubmitting || (currentCart.length === 0 && !selectedStockId)} onClick={handleMaterialSubmit}>
+                <Button className="flex-1 bg-[#0a3d34] hover:bg-[#072b25]" disabled={isSubmitting || (currentCart.length === 0 && !selectedStockId) || (selectedMaterialTxNo === "")} onClick={handleMaterialSubmit}>
                   {isSubmitting ? "Kaydediliyor..." : "Değişiklikleri Kaydet"}
                 </Button>
              </div>
