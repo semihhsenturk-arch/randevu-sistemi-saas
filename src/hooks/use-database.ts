@@ -238,7 +238,7 @@ export function useDatabase() {
       durum: apt.durum,
       notlar: apt.notlar,
       whatsapp_status: apt.whatsapp_status || null,
-      custom_price: apt.customPrice || null,
+      custom_price: apt.customPrice !== undefined && apt.customPrice !== null && apt.customPrice !== "" as any ? apt.customPrice : null,
     };
 
     if (apt.id && !apt.id.startsWith("gs_") && !apt.id.startsWith("temp_")) {
