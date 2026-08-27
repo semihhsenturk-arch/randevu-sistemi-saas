@@ -838,8 +838,8 @@ export default function CalendarPage() {
                     type="number"
                     placeholder="Standart"
                     className="h-12 border-slate-200 rounded-xl focus-visible:ring-[#0a3d34]"
-                    value={currentApt.customPrice || ""} 
-                    onChange={e => setCurrentApt(prev => ({...prev, customPrice: e.target.value ? parseFloat(e.target.value) : undefined}))} 
+                    value={currentApt.customPrice !== undefined && currentApt.customPrice !== null ? currentApt.customPrice : ""} 
+                    onChange={e => setCurrentApt(prev => ({...prev, customPrice: e.target.value !== "" ? parseFloat(e.target.value) : undefined}))} 
                   />
                 </div>
               </div>
