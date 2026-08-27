@@ -218,28 +218,40 @@ export default function DashboardAnalyticsPage() {
           txNo = "Kayıtlı İşlem"; // Fallback if no specific ISL number yet
         }
 
-        let relevantStocks = profile.stock_history?.filter((h: any) => h.date.split(' ')[0] === targetDateStr) || [];
+        const stockHistory = profile.stock_history || [];
+        let relevantStocks = stockHistory.filter((h: any) => h.date.split(' ')[0] === targetDateStr);
+        
         if (relevantStocks.length === 0) {
-           relevantStocks = profile.stock_history?.filter((h: any) => h.treatment_date && h.treatment_date.split(' ')[0] === targetDateStr) || [];
+           relevantStocks = stockHistory.filter((h: any) => h.treatment_date && h.treatment_date.split(' ')[0] === targetDateStr);
+        }
+        
+        if (relevantStocks.length === 0) {
+           const today = new Date();
+           const todayStr = `${today.getDate().toString().padStart(2, '0')}.${(today.getMonth() + 1).toString().padStart(2, '0')}.${today.getFullYear()}`;
+           relevantStocks = stockHistory.filter((h: any) => h.date.includes(todayStr));
+        }
+        
+        if (relevantStocks.length === 0 && stockHistory.length > 0) {
+           relevantStocks = stockHistory;
         }
         
         relevantStocks.forEach((stock: any) => {
-           const match = stock.text.match(/Toplam Maliyet:\s*([\d.,]+)\s*₺/);
-           if (match) {
-             const costStr = match[1].replace(/\./g, '').replace(/,/g, '.');
-             materialCost += parseFloat(costStr) || 0;
-           } else {
-             stock.text.split(", ").forEach((itemStr: string) => {
-                const cleanItemStr = itemStr.replace(/\s*\(Toplam Maliyet:.*?\)/g, "").replace(/\s*\(Maliyet:.*?\)/g, "").replace(/\s*\[Toplam Maliyet:.*?\]/g, "").replace(/\s*\[Maliyet:.*?\]/g, "").trim();
-                const parts = cleanItemStr.split(" ");
-                const amount = parseFloat(parts[0]) || 0;
-                const itemName = parts.slice(2).join(" ");
-                const invItem = inventory?.items?.find((i: any) => i.ad === itemName);
-                if (invItem && invItem.fiyat) {
-                  materialCost += (invItem.fiyat * amount);
-                }
-             });
-           }
+           stock.text.split(", ").forEach((itemStr: string) => {
+              const cleanItemStr = itemStr
+                .replace(/\s*\(Toplam Maliyet:.*?\)/g, "")
+                .replace(/\s*\(Maliyet:.*?\)/g, "")
+                .replace(/\s*\[Toplam Maliyet:.*?\]/g, "")
+                .replace(/\s*\[Maliyet:.*?\]/g, "")
+                .trim();
+              const parts = cleanItemStr.split(" ");
+              const amountStr = parts[0];
+              const amount = parseFloat(amountStr) || 0;
+              const itemName = parts.slice(2).join(" ");
+              
+              const invItem = inventory?.items?.find((i: any) => i.ad === itemName);
+              const unitPrice = invItem?.fiyat || 0;
+              materialCost += (unitPrice * amount);
+           });
         });
       }
 
