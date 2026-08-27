@@ -547,9 +547,10 @@ export default function CalendarPage() {
     const weekApts = appointments.filter(a => weekLabels.includes(a.tarih) && a.durum !== "iptal");
     const weekConfirmed = weekApts.filter(a => a.durum === "onaylandi");
     
-    const income = weekConfirmed.reduce((sum, a) => {
+    const income = weekConfirmed.reduce((sum, a: any) => {
       const svc = services.find(h => h.id.toString() === a.hizmetId.toString());
-      return sum + (svc?.fiyat || 0);
+      const revenue = a.customPrice !== undefined && a.customPrice !== null ? a.customPrice : (svc?.fiyat || 0);
+      return sum + revenue;
     }, 0);
 
     const occupancy = Math.round((weekConfirmed.length / 96) * 100);
