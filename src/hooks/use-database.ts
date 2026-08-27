@@ -11,6 +11,7 @@ export type Appointment = {
   durum: "onaylandi" | "beklemede" | "iptal";
   notlar: string;
   whatsapp_status?: "sent" | "confirmed" | "declined" | null;
+  customPrice?: number;
 };
 
 export type FaceTreatment = {
@@ -196,6 +197,7 @@ export function useDatabase() {
         durum: d.durum,
         notlar: d.notlar,
         whatsapp_status: d.whatsapp_status,
+        customPrice: d.custom_price,
       }));
       setCache(CACHE_KEYS.APPOINTMENTS, mapped);
       return mapped;
@@ -236,6 +238,7 @@ export function useDatabase() {
       durum: apt.durum,
       notlar: apt.notlar,
       whatsapp_status: apt.whatsapp_status || null,
+      custom_price: apt.customPrice || null,
     };
 
     if (apt.id && !apt.id.startsWith("gs_") && !apt.id.startsWith("temp_")) {
@@ -261,6 +264,7 @@ export function useDatabase() {
       durum: data[0].durum,
       notlar: data[0].notlar,
       whatsapp_status: data[0].whatsapp_status,
+      customPrice: data[0].custom_price,
     };
 
     // Cache'i güncelle: hem yeni ID hem eski (temp_) ID ile eşleşenleri temizle

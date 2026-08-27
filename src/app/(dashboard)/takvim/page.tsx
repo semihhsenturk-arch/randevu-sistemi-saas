@@ -816,18 +816,32 @@ export default function CalendarPage() {
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <Label className="block text-[0.75rem] font-bold text-[#64748b] uppercase tracking-[0.05em]">
-                  Hizmet Tipi
-                </Label>
-                <Select value={currentApt.hizmetId?.toString() || "1"} onValueChange={v => setCurrentApt(prev => ({...prev, hizmetId: v}))}>
-                  <SelectTrigger className="h-12 border-slate-200 rounded-xl focus:ring-[#0a3d34]">
-                    <SelectValue/>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {services.map(h => <SelectItem key={h.id} value={h.id.toString()}>{h.ad} ({h.fiyat} ₺)</SelectItem>)}
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-[1fr_120px] gap-3">
+                <div className="space-y-1.5">
+                  <Label className="block text-[0.75rem] font-bold text-[#64748b] uppercase tracking-[0.05em]">
+                    Hizmet Tipi
+                  </Label>
+                  <Select value={currentApt.hizmetId?.toString() || "1"} onValueChange={v => setCurrentApt(prev => ({...prev, hizmetId: v}))}>
+                    <SelectTrigger className="h-12 border-slate-200 rounded-xl focus:ring-[#0a3d34]">
+                      <SelectValue/>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {services.map(h => <SelectItem key={h.id} value={h.id.toString()}>{h.ad} ({h.fiyat} ₺)</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="block text-[0.75rem] font-bold text-[#64748b] uppercase tracking-[0.05em]">
+                    Özel Fiyat
+                  </Label>
+                  <Input 
+                    type="number"
+                    placeholder="Standart"
+                    className="h-12 border-slate-200 rounded-xl focus-visible:ring-[#0a3d34]"
+                    value={currentApt.customPrice || ""} 
+                    onChange={e => setCurrentApt(prev => ({...prev, customPrice: e.target.value ? parseFloat(e.target.value) : undefined}))} 
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">

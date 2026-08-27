@@ -208,11 +208,11 @@ export default function DashboardAnalyticsPage() {
     // Calculate transactions list
     const transactions: any[] = [];
 
-    filtered.forEach(a => {
+    filtered.forEach((a: any) => {
       const svc = services.find(h => h.id.toString() === a.hizmetId.toString());
-      const revenue = svc ? svc.fiyat : 0;
+      const revenue = a.customPrice !== undefined && a.customPrice !== null ? a.customPrice : (svc ? svc.fiyat : 0);
       
-      if (svc) { totalRevenue += svc.fiyat; counts[svc.ad] = (counts[svc.ad] || 0) + 1; }
+      if (svc) { totalRevenue += revenue; counts[svc.ad] = (counts[svc.ad] || 0) + 1; }
 
       const profile = patientProfiles[a.musteriAdi.toLocaleUpperCase("tr-TR")] || patientProfiles[a.musteriAdi];
       let txNo = "-";
@@ -296,9 +296,9 @@ export default function DashboardAnalyticsPage() {
 
     transactions.sort((a, b) => b.date.localeCompare(a.date) || b.revenue - a.revenue);
 
-    prevFiltered.forEach(a => {
+    prevFiltered.forEach((a: any) => {
       const svc = services.find(h => h.id.toString() === a.hizmetId.toString());
-      if (svc) prevTotalRevenue += svc.fiyat;
+      if (svc) prevTotalRevenue += a.customPrice !== undefined && a.customPrice !== null ? a.customPrice : svc.fiyat;
     });
 
     let topSvc = "-"; let maxCount = 0;
