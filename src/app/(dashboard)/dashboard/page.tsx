@@ -876,7 +876,7 @@ export default function DashboardAnalyticsPage() {
                       <td className="py-3 px-3 text-center text-[0.8rem] font-bold text-slate-700">{row.qty}</td>
                       <td className="py-3 px-3 text-right text-[0.8rem] font-bold text-slate-700">{row.rev.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} ₺</td>
                       <td className="py-3 px-3 text-right text-[0.8rem] font-bold text-red-500">-{row.cost.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} ₺</td>
-                      <td className="py-3 px-3 text-right text-[0.8rem] font-bold text-emerald-600">{row.profit.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} ₺</td>
+                      <td className={`py-3 px-3 text-right text-[0.8rem] font-bold ${row.profit < 0 ? 'text-red-600' : 'text-emerald-600'}`}>{row.profit.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} ₺</td>
                       <td className="py-3 pl-3 text-right">
                         <div className={`inline-flex items-center justify-end min-w-[3rem] text-[0.7rem] font-bold px-1.5 py-0.5 rounded-md ${row.margin >= 70 ? 'bg-emerald-100 text-emerald-700' : row.margin > 0 ? 'bg-amber-100 text-amber-700' : row.margin === 0 ? 'bg-slate-100 text-slate-600' : 'bg-red-100 text-red-700'}`}>
                           %{row.margin}
@@ -937,7 +937,7 @@ export default function DashboardAnalyticsPage() {
                        <td className="py-3 px-3 text-[0.75rem] font-semibold text-slate-600">{tx.serviceName}</td>
                        <td className="py-3 px-3 text-right text-[0.8rem] font-black text-slate-900">{tx.revenue.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} ₺</td>
                        <td className="py-3 px-3 text-right text-[0.8rem] font-black text-red-600">{tx.materialCost > 0 ? `-${tx.materialCost.toLocaleString('tr-TR', { maximumFractionDigits: 1 })} ₺` : '0 ₺'}</td>
-                       <td className="py-3 px-3 text-right text-[0.8rem] font-black text-emerald-600">{tx.profit.toLocaleString('tr-TR', { maximumFractionDigits: 1 })} ₺</td>
+                       <td className={`py-3 px-3 text-right text-[0.8rem] font-black ${tx.profit < 0 ? 'text-red-600' : 'text-emerald-600'}`}>{tx.profit.toLocaleString('tr-TR', { maximumFractionDigits: 1 })} ₺</td>
                        <td className="py-3 pl-3 text-right">
                          <div className={`inline-flex items-center justify-end min-w-[3rem] text-[0.7rem] font-bold px-1.5 py-0.5 rounded-md ${tx.margin >= 50 ? 'bg-emerald-100 text-emerald-700' : tx.margin > 0 ? 'bg-amber-100 text-amber-700' : tx.margin === 0 ? 'bg-slate-100 text-slate-600' : 'bg-red-100 text-red-700'}`}>
                            %{tx.margin}
