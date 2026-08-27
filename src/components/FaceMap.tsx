@@ -50,6 +50,8 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
   const [formUnit, setFormUnit] = useState("ünite");
   const [formProduct, setFormProduct] = useState("");
   const [formNote, setFormNote] = useState("");
+  const [formIsControl, setFormIsControl] = useState(false);
+  const [formParentTxNo, setFormParentTxNo] = useState("");
 
   const isFemale = gender === "female";
   const imgSrc = isFemale ? "/images/face-female.png" : "/images/face-male.png";
@@ -70,6 +72,19 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
     if (selectedDate) return treatments.filter(t => t.date.split(" ")[0] === selectedDate);
     return treatments;
   }, [treatments, selectedDate]);
+
+  const pastTransactions = useMemo(() => {
+    const map = new Map<string, { date: string, txNo: string, type: string }>();
+    treatments.forEach(t => {
+      if (t.transactionNo && !t.isControl) {
+        const dateKey = t.date.split(" ")[0];
+        if (!map.has(t.transactionNo)) {
+          map.set(t.transactionNo, { date: dateKey, txNo: t.transactionNo, type: t.type });
+        }
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => b.txNo.localeCompare(a.txNo));
+  }, [treatments]);
 
   // Build a map from treatment id to its sequential number (1-based)
   const treatmentNumberMap = useMemo(() => {
@@ -156,6 +171,8 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
     setFormUnit("ünite");
     setFormProduct("");
     setFormNote("");
+    setFormIsControl(false);
+    setFormParentTxNo("");
   }, [readonly, zoom]);
 
   const handleCloseForm = () => {
@@ -173,6 +190,8 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
     setFormUnit(t.unit);
     setFormProduct(t.product || "");
     setFormNote(t.note || "");
+    setFormIsControl(t.isControl || false);
+    setFormParentTxNo(t.parentTransactionNo || "");
     setEditingId(t.id);
     setShowForm(true);
   };
@@ -190,6 +209,8 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
           unit: formUnit,
           product: formProduct || undefined,
           note: formNote || undefined,
+          isControl: formIsControl,
+          parentTransactionNo: formIsControl ? formParentTxNo : undefined,
         });
       }
     } else if (clickPos && onAddTreatment) {
@@ -204,6 +225,8 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
         product: formProduct || undefined,
         note: formNote || undefined,
         transactionNo: txNo,
+        isControl: formIsControl,
+        parentTransactionNo: formIsControl ? formParentTxNo : undefined,
       };
       onAddTreatment(t);
     }
@@ -604,8 +627,45 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                 <Label className="text-[0.6rem] font-bold text-slate-500 uppercase">Not</Label>
                 <Textarea placeholder="Ek bilgi..." value={formNote} onChange={e => setFormNote(e.target.value)} className="min-h-[40px] text-xs bg-slate-50 resize-none text-slate-800" />
               </div>
+              
+              <div className="col-span-2 flex items-center gap-2 mt-1">
+                <input 
+                  type="checkbox" 
+                  id="fsIsControlCb" 
+                  checked={formIsControl} 
+                  onChange={e => {
+                    setFormIsControl(e.target.checked);
+                    if (!e.target.checked) setFormParentTxNo("");
+                  }} 
+                  className="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer" 
+                />
+                <label htmlFor="fsIsControlCb" className="text-xs font-bold text-slate-700 cursor-pointer select-none">
+                  Bu bir kontrol seansıdır
+                </label>
+              </div>
+              
+              {formIsControl && (
+                <div className="col-span-2 space-y-1 bg-emerald-50/50 p-2 rounded-lg border border-emerald-100">
+                  <Label className="text-[0.6rem] font-bold text-emerald-700 uppercase">Hangi İşlemin Kontrolü?</Label>
+                  <Select value={formParentTxNo} onValueChange={setFormParentTxNo}>
+                    <SelectTrigger className="h-8 text-xs bg-white text-slate-800 border-emerald-200">
+                      <SelectValue placeholder="İşlem seçin..." />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border-slate-200 z-[99999]">
+                      {pastTransactions.length === 0 && (
+                        <SelectItem value="none" disabled>Önceki işlem bulunamadı</SelectItem>
+                      )}
+                      {pastTransactions.map(tx => (
+                        <SelectItem key={tx.txNo} value={tx.txNo} className="text-slate-800 cursor-pointer">
+                          {tx.date} - {tx.txNo} ({tx.type})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
-            <Button onClick={handleSubmit} disabled={!formAmount} className="w-full mt-2 h-8 bg-emerald-600 hover:bg-emerald-700 text-xs font-bold shadow-md shadow-emerald-500/20 text-white">
+            <Button onClick={handleSubmit} disabled={!formAmount || (formIsControl && !formParentTxNo)} className="w-full mt-3 h-8 bg-emerald-600 hover:bg-emerald-700 text-xs font-bold shadow-md shadow-emerald-500/20 text-white">
               <Plus className="w-3.5 h-3.5 mr-1" /> Kaydet
             </Button>
           </div>
@@ -650,8 +710,45 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                       <Label className="text-[0.6rem] font-bold text-slate-500 uppercase">Not</Label>
                       <Textarea placeholder="Ek bilgi..." value={formNote} onChange={e => setFormNote(e.target.value)} className="min-h-[40px] text-xs bg-slate-50 resize-none" />
                     </div>
+
+                    <div className="col-span-2 flex items-center gap-2 mt-1">
+                      <input 
+                        type="checkbox" 
+                        id="nmIsControlCb" 
+                        checked={formIsControl} 
+                        onChange={e => {
+                          setFormIsControl(e.target.checked);
+                          if (!e.target.checked) setFormParentTxNo("");
+                        }} 
+                        className="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer" 
+                      />
+                      <label htmlFor="nmIsControlCb" className="text-xs font-bold text-slate-700 cursor-pointer select-none">
+                        Bu bir kontrol seansıdır
+                      </label>
+                    </div>
+                    
+                    {formIsControl && (
+                      <div className="col-span-2 space-y-1 bg-emerald-50/50 p-2 rounded-lg border border-emerald-100">
+                        <Label className="text-[0.6rem] font-bold text-emerald-700 uppercase">Hangi İşlemin Kontrolü?</Label>
+                        <Select value={formParentTxNo} onValueChange={setFormParentTxNo}>
+                          <SelectTrigger className="h-8 text-xs bg-white text-slate-800 border-emerald-200">
+                            <SelectValue placeholder="İşlem seçin..." />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white border-slate-200 z-[99999]">
+                            {pastTransactions.length === 0 && (
+                              <SelectItem value="none" disabled>Önceki işlem bulunamadı</SelectItem>
+                            )}
+                            {pastTransactions.map(tx => (
+                              <SelectItem key={tx.txNo} value={tx.txNo} className="text-slate-800 cursor-pointer">
+                                {tx.date} - {tx.txNo} ({tx.type})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                   </div>
-                  <Button onClick={handleSubmit} disabled={!formAmount} className="w-full mt-2 h-8 bg-emerald-600 hover:bg-emerald-700 text-xs font-bold shadow-md shadow-emerald-500/20">
+                  <Button onClick={handleSubmit} disabled={!formAmount || (formIsControl && !formParentTxNo)} className="w-full mt-3 h-8 bg-emerald-600 hover:bg-emerald-700 text-xs font-bold shadow-md shadow-emerald-500/20 text-white">
                     <Plus className="w-3.5 h-3.5 mr-1" /> Kaydet
                   </Button>
                 </div>
@@ -715,11 +812,16 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                           <span style={{ fontSize: 11, fontWeight: 800, color: "#fff", lineHeight: 1 }}>{treatmentNumberMap.get(t.id) ?? ""}</span>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5 mb-0.5">
+                          <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
                             
                             <span className={`text-[0.55rem] font-bold px-1.5 py-0.5 rounded-full`} style={{ background: colors.light, color: colors.ring }}>
                               {t.type === "botoks" ? "Botoks" : t.type === "dolgu" ? "Dolgu" : "Mezoterapi"}
                             </span>
+                            {t.isControl && (
+                              <span className="text-[0.55rem] font-bold px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-600 border border-orange-200">
+                                Kontrol ({t.parentTransactionNo})
+                              </span>
+                            )}
                             <span className="text-[0.7rem] font-bold text-slate-700">{t.amount} {t.unit}</span>
                           </div>
                           {t.product && <div className="text-[0.6rem] text-slate-500 truncate">{t.product}</div>}
@@ -763,6 +865,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
         onClose={() => setReceiptDateGroup(null)}
         patientName={patientName}
         stockHistory={stockHistory}
+        allTreatments={treatments}
       />
     </div>
   );

@@ -7,9 +7,10 @@ interface TransactionReceiptModalProps {
   onClose: () => void;
   patientName?: string;
   stockHistory?: any[];
+  allTreatments?: any[];
 }
 
-export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName, stockHistory = [] }: TransactionReceiptModalProps) {
+export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName, stockHistory = [], allTreatments = [] }: TransactionReceiptModalProps) {
   const { getInventory } = useDatabase();
   const [inventoryItems, setInventoryItems] = useState<any[]>([]);
 
@@ -59,12 +60,22 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
           </div>
           <div className="flex flex-col items-center justify-center gap-1">
             <Receipt className="w-4 h-4 text-emerald-400" />
-            <span className="text-[0.55rem] font-bold uppercase tracking-[0.2em] text-emerald-400">GÜNLÜK İŞLEM FİŞİ</span>
+            <span className="text-[0.55rem] font-bold uppercase tracking-[0.2em] text-emerald-400">
+              GÜNLÜK İŞLEM FİŞİ
+            </span>
           </div>
         </div>
 
         {/* Receipt Body */}
         <div className="px-4 py-4 flex flex-col items-center space-y-3">
+          
+          {/* Is this a control receipt? */}
+          {receiptDateGroup.treatments.some(t => t.isControl) && (
+            <div className="w-full text-center bg-orange-50 border border-orange-100 rounded p-1.5 mb-1 text-[0.6rem] font-bold text-orange-600">
+              Bu bir kontrol seansıdır. 
+              {receiptDateGroup.treatments.find(t => t.isControl)?.parentTransactionNo && ` (${receiptDateGroup.treatments.find(t => t.isControl)?.parentTransactionNo} nolu işlemin kontrolü)`}
+            </div>
+          )}
           
           {/* Patient Info & Date */}
           <div className="flex flex-col items-center justify-center text-center space-y-0.5">
@@ -199,6 +210,80 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
 
           {/* Dotted Divider */}
           <div className="w-full border-t-2 border-dashed border-slate-200" />
+
+          {/* Child Control Sessions Aggregation */}
+          {(() => {
+            const childControls = allTreatments.filter(t => t.isControl && t.parentTransactionNo === receiptDateGroup.txNo);
+            if (childControls.length === 0) return null;
+
+            // Find unique dates of child controls
+            const childDates = Array.from(new Set(childControls.map(t => t.date.split(" ")[0])));
+            
+            // Collect material costs for those dates
+            let totalControlCost = 0;
+            const controlCostsByDate: Record<string, number> = {};
+
+            childDates.forEach(dateStr => {
+              let relevantStocksForChild = stockHistory.filter(h => h.date.split(' ')[0] === dateStr || (h.treatment_date && h.treatment_date.split(' ')[0] === dateStr));
+              let dateCost = 0;
+
+              relevantStocksForChild.forEach(stock => {
+                const itemRows = stock.text.split(", ").forEach((itemStr: string) => {
+                  const costMatch = itemStr.match(/\[Maliyet:\s*([\d.]+)\]/);
+                  const embeddedUnitPrice = costMatch ? parseFloat(costMatch[1]) : null;
+
+                  const cleanItemStr = itemStr
+                    .replace(/\s*\(Toplam Maliyet:.*?\)/g, "")
+                    .replace(/\s*\(Maliyet:.*?\)/g, "")
+                    .replace(/\s*\[Toplam Maliyet:.*?\]/g, "")
+                    .replace(/\s*\[Maliyet:.*?\]/g, "")
+                    .trim();
+                  const parts = cleanItemStr.split(" ");
+                  const amount = parseFloat(parts[0]) || 0;
+                  const itemName = parts.slice(2).join(" ");
+                  const invItem = inventoryItems.find(item => item.ad === itemName);
+                  const unitPrice = embeddedUnitPrice !== null ? embeddedUnitPrice : (invItem?.fiyat || 0);
+                  dateCost += (unitPrice * amount);
+                });
+              });
+
+              if (dateCost > 0) {
+                controlCostsByDate[dateStr] = dateCost;
+                totalControlCost += dateCost;
+              }
+            });
+
+            if (totalControlCost === 0) return null;
+
+            return (
+              <div className="flex flex-col items-center w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                <div className="text-[0.6rem] font-bold text-slate-500 uppercase tracking-wider mb-2 text-center leading-tight">
+                  Kontrol Seansları <br/> Ekstra Maliyeti
+                </div>
+                
+                <div className="flex flex-col w-full space-y-1 mb-2">
+                  {Object.entries(controlCostsByDate).map(([dStr, cost]) => (
+                    <div key={dStr} className="flex justify-between items-center text-[0.65rem] border-b border-slate-200/50 pb-1 last:border-0 last:pb-0">
+                      <span className="font-semibold text-slate-600">{dStr}</span>
+                      <span className="font-bold text-orange-600">{cost.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ₺</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex items-center justify-between pt-1.5 border-t border-slate-200 w-full mt-1">
+                  <span className="text-[0.65rem] font-extrabold text-slate-700">Toplam</span>
+                  <span className="text-xs font-black text-orange-600">
+                    {totalControlCost.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ₺
+                  </span>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Dotted Divider (if child controls exist, we need one before barcode) */}
+          {allTreatments.some(t => t.isControl && t.parentTransactionNo === receiptDateGroup.txNo) && (
+            <div className="w-full border-t-2 border-dashed border-slate-200" />
+          )}
 
           {/* Transaction Barcode Style */}
           <div className="text-center w-full">

@@ -24,6 +24,8 @@ export type FaceTreatment = {
   product?: string;
   note?: string;
   transactionNo?: string;
+  isControl?: boolean;
+  parentTransactionNo?: string;
 };
 
 /**
