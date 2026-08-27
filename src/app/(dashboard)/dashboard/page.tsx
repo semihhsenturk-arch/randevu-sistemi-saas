@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useDatabase, Appointment, Service, getCacheSync, CACHE_KEYS } from "@/hooks/use-database";
-import { CalendarCheck, Banknote, TrendingUp, Loader2, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { CalendarCheck, Banknote, TrendingUp, Loader2, ArrowUpRight, ArrowDownRight, Coins, Percent, Ban, Users, Wallet } from "lucide-react";
 import { format, startOfMonth, subDays, startOfWeek, endOfWeek, getWeek } from "date-fns";
 import { tr } from "date-fns/locale/tr";
 import { useAuth } from "@/hooks/use-auth";
@@ -189,10 +189,21 @@ export default function DashboardAnalyticsPage() {
   }, [appointments, appliedStartDate, appliedEndDate]);
 
   const analytics = useMemo(() => {
+    // Tüm döneme ait randevular (Durumdan bağımsız operasyonel KPI'lar için)
+    const allFiltered = appointments.filter(a => a.tarih >= appliedStartDate && a.tarih <= appliedEndDate);
+    const totalAllApt = allFiltered.length;
+    const cancelCount = allFiltered.filter(a => a.durum === 'iptal').length;
+    const confirmCount = allFiltered.filter(a => a.durum === 'onaylandi').length;
+    
+    const cancelRate = totalAllApt > 0 ? Math.round((cancelCount / totalAllApt) * 100) : 0;
+    const confirmRate = totalAllApt > 0 ? Math.round((confirmCount / totalAllApt) * 100) : 0;
+
     const totalApt = filtered.length;
     const prevTotalApt = prevFiltered.length;
     let totalRevenue = 0, prevTotalRevenue = 0;
+    let totalCost = 0;
     const counts: Record<string, number> = {};
+    const svcStats: Record<string, { qty: number; rev: number; cost: number; profit: number }> = {};
     
     // Calculate transactions list
     const transactions: any[] = [];
@@ -256,7 +267,16 @@ export default function DashboardAnalyticsPage() {
       }
 
       const profit = revenue - materialCost;
+      totalCost += materialCost;
       const margin = revenue > 0 ? Math.round((profit / revenue) * 100) : 0;
+
+      if (svc) {
+        if (!svcStats[svc.ad]) svcStats[svc.ad] = { qty: 0, rev: 0, cost: 0, profit: 0 };
+        svcStats[svc.ad].qty += 1;
+        svcStats[svc.ad].rev += revenue;
+        svcStats[svc.ad].cost += materialCost;
+        svcStats[svc.ad].profit += profit;
+      }
 
       transactions.push({
         id: a.id,
@@ -309,9 +329,13 @@ export default function DashboardAnalyticsPage() {
     }
     const totalCapacity = workingDays * 16;
     const occupancyRate = totalCapacity > 0 ? Math.round((totalApt / totalCapacity) * 100) : 0;
+    const dailyAvg = workingDays > 0 ? (totalApt / workingDays).toFixed(1) : "0";
+
+    const totalNetProfit = totalRevenue - totalCost;
+    const grossMargin = totalRevenue > 0 ? Math.round((totalNetProfit / totalRevenue) * 100) : 0;
 
     /* trend data */
-    let trendData: { date: string; count: number }[] = [];
+    let trendData: { date: string; count: number; revenue: number; cost: number }[] = [];
     try {
       const current = new Date(sd.getTime());
       current.setHours(12, 0, 0, 0);
@@ -320,10 +344,24 @@ export default function DashboardAnalyticsPage() {
       while (current <= end) {
         if (current.getDay() !== 0) { // 0 is Sunday
           const formattedDate = format(current, "yyyy-MM-dd");
-          const cnt = filtered.filter(a => a.tarih === formattedDate).length;
+          const dayApts = filtered.filter(a => a.tarih === formattedDate);
+          const cnt = dayApts.length;
+          
+          let dayRev = 0;
+          let dayCost = 0;
+          dayApts.forEach(a => {
+            const tx = transactions.find(t => t.id === a.id);
+            if (tx) {
+              dayRev += tx.revenue;
+              dayCost += tx.materialCost;
+            }
+          });
+
           trendData.push({
             date: format(current, "d MMM", { locale: tr }),
-            count: cnt
+            count: cnt,
+            revenue: dayRev,
+            cost: dayCost
           });
         }
         current.setDate(current.getDate() + 1);
@@ -332,14 +370,118 @@ export default function DashboardAnalyticsPage() {
 
     /* performance table */
     const perfTable = services.map(h => {
-      const qty = counts[h.ad] || 0;
-      const rev = qty * h.fiyat;
-      const pct = totalApt > 0 ? Math.round((qty / totalApt) * 100) : 0;
-      return { name: h.ad, qty, rev, pct, color: h.renk || '#0a3d34' };
+      const stats = svcStats[h.ad] || { qty: 0, rev: 0, cost: 0, profit: 0 };
+      const pct = totalApt > 0 ? Math.round((stats.qty / totalApt) * 100) : 0;
+      const margin = stats.rev > 0 ? Math.round((stats.profit / stats.rev) * 100) : 0;
+      return { 
+        name: h.ad, 
+        qty: stats.qty, 
+        rev: stats.rev, 
+        cost: stats.cost,
+        profit: stats.profit,
+        margin,
+        pct, 
+        color: h.renk || '#0a3d34' 
+      };
     }).filter(r => r.qty > 0).sort((a, b) => b.rev - a.rev);
 
-    return { totalApt, totalRevenue, topSvc, avgRevenue, barData, pieData, occupancyRate, aptChange, revChange, avgChange, trendData, perfTable, transactions };
-  }, [filtered, prevFiltered, services, patientProfiles, inventory, appliedStartDate, appliedEndDate]);
+    /* --- Hasta Analitiği --- */
+    const uniquePatientsPeriod = Array.from(new Set(filtered.map(a => a.musteriAdi)));
+    let returningCount = 0;
+    
+    const globalPatientAptCounts: Record<string, number> = {};
+    appointments.forEach(a => {
+      if (a.durum === 'onaylandi') {
+        globalPatientAptCounts[a.musteriAdi] = (globalPatientAptCounts[a.musteriAdi] || 0) + 1;
+      }
+    });
+
+    uniquePatientsPeriod.forEach(patientName => {
+      if ((globalPatientAptCounts[patientName] || 0) > 1) {
+        returningCount++;
+      }
+    });
+
+    const retentionRate = uniquePatientsPeriod.length > 0 ? Math.round((returningCount / uniquePatientsPeriod.length) * 100) : 0;
+    const arpu = uniquePatientsPeriod.length > 0 ? Math.round(totalRevenue / uniquePatientsPeriod.length) : 0;
+
+    const patientLastVisit: Record<string, string> = {};
+    appointments.forEach(a => {
+      if (a.durum === 'onaylandi') {
+        if (!patientLastVisit[a.musteriAdi] || a.tarih > patientLastVisit[a.musteriAdi]) {
+          patientLastVisit[a.musteriAdi] = a.tarih;
+        }
+      }
+    });
+
+    const now = new Date();
+    const threeMonthsAgo = new Date(now.setMonth(now.getMonth() - 3));
+    const sixMonthsAgo = new Date(now.setMonth(now.getMonth() - 3));
+    const threeMonthsAgoStr = format(threeMonthsAgo, "yyyy-MM-dd");
+    const sixMonthsAgoStr = format(sixMonthsAgo, "yyyy-MM-dd");
+
+    const visits3m: Record<string, number> = {};
+    const visits6m: Record<string, number> = {};
+    appointments.forEach(a => {
+      if (a.durum === 'onaylandi') {
+        if (a.tarih >= threeMonthsAgoStr) visits3m[a.musteriAdi] = (visits3m[a.musteriAdi] || 0) + 1;
+        if (a.tarih >= sixMonthsAgoStr) visits6m[a.musteriAdi] = (visits6m[a.musteriAdi] || 0) + 1;
+      }
+    });
+
+    let vipCount = 0, sadikCount = 0, riskCount = 0, kayipCount = 0;
+    const allUniquePatients = Object.keys(globalPatientAptCounts);
+    
+    allUniquePatients.forEach(p => {
+      const lastVisit = patientLastVisit[p];
+      if (!lastVisit) return;
+      const isVIP = (visits3m[p] || 0) >= 3;
+      const isSadik = !isVIP && (visits6m[p] || 0) >= 2;
+      const isRisk = !isVIP && !isSadik && (lastVisit < threeMonthsAgoStr && lastVisit >= sixMonthsAgoStr);
+      const isKayip = !isVIP && !isSadik && !isRisk && (lastVisit < sixMonthsAgoStr);
+      
+      if (isVIP) vipCount++;
+      else if (isSadik) sadikCount++;
+      else if (isRisk) riskCount++;
+      else if (isKayip) kayipCount++;
+    });
+
+    const segmentationData = [
+      { name: 'VIP (Son 3 ayda 3+)', value: vipCount, color: '#f59e0b' },
+      { name: 'Sadık (Son 6 ayda 2+)', value: sadikCount, color: '#10b981' },
+      { name: 'Risk (3-6 aydır yok)', value: riskCount, color: '#f97316' },
+      { name: 'Kayıp (6+ aydır yok)', value: kayipCount, color: '#ef4444' }
+    ].filter(d => d.value > 0);
+
+    let newPatientRevenue = 0;
+    let existingPatientRevenue = 0;
+    let newPatientCount = 0;
+    let existingPatientCount = 0;
+    
+    transactions.forEach(tx => {
+       const hasOlderVisit = appointments.some(a => a.musteriAdi === tx.patientName && a.durum === 'onaylandi' && a.tarih < tx.date);
+       if (hasOlderVisit) {
+         existingPatientRevenue += tx.revenue;
+         existingPatientCount++;
+       } else {
+         newPatientRevenue += tx.revenue;
+         newPatientCount++;
+       }
+    });
+
+    const newVsExistingData = [
+      { name: 'Mevcut Hasta', value: existingPatientRevenue, color: '#0ea5e9' },
+      { name: 'Yeni Hasta', value: newPatientRevenue, color: '#8b5cf6' }
+    ].filter(d => d.value > 0);
+
+    return { 
+      totalApt, totalRevenue, totalCost, totalNetProfit, grossMargin, 
+      topSvc, avgRevenue, barData, pieData, occupancyRate, 
+      aptChange, revChange, avgChange, trendData, perfTable, transactions,
+      cancelRate, confirmRate, dailyAvg,
+      retentionRate, arpu, segmentationData, newVsExistingData, newPatientCount, existingPatientCount, returningCount, uniquePatientsPeriod
+    };
+  }, [appointments, filtered, prevFiltered, services, patientProfiles, inventory, appliedStartDate, appliedEndDate]);
 
   const varColor = (v: number) => v > 80 ? '#0d9488' : v > 40 ? '#f59e0b' : '#ef4444';
 
@@ -401,17 +543,6 @@ export default function DashboardAnalyticsPage() {
 
       {/* ── KPI CARDS ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {/* Toplam Randevu */}
-        <div className="group bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
-          <div className="flex items-center justify-between mb-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-50 text-blue-500 group-hover:scale-110 transition-transform"><CalendarCheck className="w-5 h-5" /></div>
-            <ChangeBadge val={analytics.aptChange} />
-          </div>
-          <div className="text-[0.7rem] font-bold text-slate-500 uppercase tracking-wider mb-1">Toplam Randevu</div>
-          <div className="text-[1.75rem] font-extrabold text-slate-900 leading-none">{analytics.totalApt}</div>
-          <div className="text-[0.65rem] text-slate-400 mt-1.5 font-medium">Önceki dönem: {prevFiltered.length}</div>
-        </div>
-
         {/* Toplam Gelir */}
         <div className="group bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center justify-between mb-3">
@@ -422,25 +553,168 @@ export default function DashboardAnalyticsPage() {
           <div className="text-[1.75rem] font-extrabold text-slate-900 leading-none">{analytics.totalRevenue.toLocaleString('tr-TR')} <span className="text-base font-bold text-slate-400">TL</span></div>
         </div>
 
-        {/* Ortalama Gelir */}
+        {/* Toplam Gider */}
         <div className="group bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center justify-between mb-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-violet-50 text-violet-500 group-hover:scale-110 transition-transform"><TrendingUp className="w-5 h-5" /></div>
-            <ChangeBadge val={analytics.avgChange} />
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-red-50 text-red-500 group-hover:scale-110 transition-transform"><Coins className="w-5 h-5" /></div>
           </div>
-          <div className="text-[0.7rem] font-bold text-slate-500 uppercase tracking-wider mb-1">Ortalama Gelir</div>
-          <div className="text-[1.75rem] font-extrabold text-slate-900 leading-none">{analytics.avgRevenue.toLocaleString('tr-TR')} <span className="text-base font-bold text-slate-400">TL</span></div>
+          <div className="text-[0.7rem] font-bold text-slate-500 uppercase tracking-wider mb-1">Toplam Gider</div>
+          <div className="text-[1.75rem] font-extrabold text-slate-900 leading-none">{analytics.totalCost.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} <span className="text-base font-bold text-slate-400">TL</span></div>
+        </div>
+
+        {/* Net Kâr */}
+        <div className="group bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+          <div className="flex items-center justify-between mb-3">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-violet-50 text-violet-500 group-hover:scale-110 transition-transform"><Wallet className="w-5 h-5" /></div>
+          </div>
+          <div className="text-[0.7rem] font-bold text-slate-500 uppercase tracking-wider mb-1">Net Kâr</div>
+          <div className="text-[1.75rem] font-extrabold text-slate-900 leading-none">{analytics.totalNetProfit.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} <span className="text-base font-bold text-slate-400">TL</span></div>
+        </div>
+
+        {/* Brüt Kâr Marjı */}
+        <div className="group bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+          <div className="flex items-center justify-between mb-3">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-amber-50 text-amber-500 group-hover:scale-110 transition-transform"><Percent className="w-5 h-5" /></div>
+            <div className={`px-2 py-0.5 rounded-md text-[0.65rem] font-bold ${analytics.grossMargin >= 70 ? 'bg-emerald-100 text-emerald-700' : analytics.grossMargin >= 50 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
+              Hedef: %70
+            </div>
+          </div>
+          <div className="text-[0.7rem] font-bold text-slate-500 uppercase tracking-wider mb-1">Brüt Kâr Marjı</div>
+          <div className={`text-[1.75rem] font-extrabold leading-none ${analytics.grossMargin >= 70 ? 'text-emerald-600' : analytics.grossMargin >= 50 ? 'text-amber-500' : 'text-red-500'}`}>
+            %{analytics.grossMargin}
+          </div>
+        </div>
+
+        {/* Toplam Randevu */}
+        <div className="group bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+          <div className="flex items-center justify-between mb-3">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-50 text-blue-500 group-hover:scale-110 transition-transform"><CalendarCheck className="w-5 h-5" /></div>
+            <ChangeBadge val={analytics.aptChange} />
+          </div>
+          <div className="text-[0.7rem] font-bold text-slate-500 uppercase tracking-wider mb-1">Toplam Randevu</div>
+          <div className="text-[1.75rem] font-extrabold text-slate-900 leading-none">{analytics.totalApt}</div>
+          <div className="text-[0.65rem] text-slate-400 mt-1.5 font-medium">Önceki dönem: {prevFiltered.length}</div>
+        </div>
+        
+        {/* Günlük Ort. Randevu */}
+        <div className="group bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+          <div className="flex items-center justify-between mb-3">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-indigo-50 text-indigo-500 group-hover:scale-110 transition-transform"><Users className="w-5 h-5" /></div>
+          </div>
+          <div className="text-[0.7rem] font-bold text-slate-500 uppercase tracking-wider mb-1">Günlük Ort. Hasta</div>
+          <div className="text-[1.75rem] font-extrabold text-slate-900 leading-none">{analytics.dailyAvg}</div>
+        </div>
+        
+        {/* İptal Oranı */}
+        <div className="group bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+          <div className="flex items-center justify-between mb-3">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-rose-50 text-rose-500 group-hover:scale-110 transition-transform"><Ban className="w-5 h-5" /></div>
+            <div className="text-[0.65rem] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-500">Tümü içinde</div>
+          </div>
+          <div className="text-[0.7rem] font-bold text-slate-500 uppercase tracking-wider mb-1">İptal Oranı</div>
+          <div className="text-[1.75rem] font-extrabold text-slate-900 leading-none">%{analytics.cancelRate}</div>
         </div>
 
         {/* Doluluk Oranı */}
         <div className="group bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
-          <div className="flex items-center gap-4">
-            <CircularProgress value={analytics.occupancyRate} size={64} stroke={6} color={varColor(analytics.occupancyRate)} />
+          <div className="flex items-center gap-4 h-full pt-1">
+            <CircularProgress value={analytics.occupancyRate} size={58} stroke={6} color={varColor(analytics.occupancyRate)} />
             <div>
               <div className="text-[0.7rem] font-bold text-slate-500 uppercase tracking-wider mb-1">Doluluk Oranı</div>
-              <div className="text-[1.5rem] font-extrabold leading-none" style={{ color: varColor(analytics.occupancyRate) }}>{analytics.occupancyRate}%</div>
+              <div className="text-[1.4rem] font-extrabold leading-none" style={{ color: varColor(analytics.occupancyRate) }}>{analytics.occupancyRate}%</div>
               <div className="text-[0.6rem] text-slate-400 mt-1 font-medium">Kapasite kullanımı</div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── HASTA ANALİTİKLERİ ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
+        {/* Retention & ARPU Cards */}
+        <div className="flex flex-col gap-4">
+          <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex-1 flex flex-col justify-center relative overflow-hidden group">
+            <div className="absolute -right-4 -top-4 w-24 h-24 bg-emerald-50 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-700 ease-out" />
+            <div className="relative z-10">
+              <div className="text-[0.75rem] font-bold text-slate-500 uppercase tracking-wider mb-2">Hasta Tutma Oranı (Retention)</div>
+              <div className="flex items-end gap-3 mb-1">
+                <div className="text-[2.2rem] font-extrabold text-slate-900 leading-none">%{analytics.retentionRate}</div>
+                <div className="text-[0.8rem] font-bold text-emerald-600 mb-1 bg-emerald-50 px-2 py-0.5 rounded-md">Hedef: %80+</div>
+              </div>
+              <div className="text-[0.7rem] font-semibold text-slate-400 mt-2">Dönemdeki {analytics.uniquePatientsPeriod.length} hastanın {analytics.returningCount}'i tekrar gelen hasta.</div>
+            </div>
+          </div>
+          
+          <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex-1 flex flex-col justify-center relative overflow-hidden group">
+            <div className="absolute -right-4 -top-4 w-24 h-24 bg-indigo-50 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-700 ease-out" />
+            <div className="relative z-10">
+              <div className="text-[0.75rem] font-bold text-slate-500 uppercase tracking-wider mb-2">Hasta Başı Ort. Gelir (ARPU)</div>
+              <div className="flex items-end gap-3 mb-1">
+                <div className="text-[2.2rem] font-extrabold text-slate-900 leading-none">{analytics.arpu.toLocaleString('tr-TR')} ₺</div>
+              </div>
+              <div className="text-[0.7rem] font-semibold text-slate-400 mt-2">Seçili dönemde hasta başına düşen ortalama harcama.</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Hasta Segmentasyonu */}
+        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col">
+          <div className="text-[0.95rem] font-extrabold mb-1 text-slate-900">Hasta Segmentasyonu</div>
+          <p className="text-[0.75rem] text-slate-400 font-medium mb-3">Tüm hastaların sadakat dağılımı</p>
+          <div className="flex-1 min-h-[220px] w-full flex flex-col items-center justify-center">
+            {analytics.segmentationData.length === 0 ? <div className="text-slate-400 italic text-sm font-semibold">Veri Yok</div> : (
+              <>
+                <ResponsiveContainer width="100%" height={180}>
+                  <PieChart>
+                    <Pie data={analytics.segmentationData} cx="50%" cy="50%" innerRadius={45} outerRadius={75} paddingAngle={4} dataKey="value" stroke="none">
+                      {analytics.segmentationData.map((entry, i) => (<PieCell key={i} fill={entry.color} />))}
+                    </Pie>
+                    <Tooltip formatter={(v: any) => [String(v) + ' Hasta', 'Kişi Sayısı']} contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="w-full px-2 flex flex-col gap-1.5 mt-3">
+                  {analytics.segmentationData.map((entry, i) => (
+                    <div key={i} className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
+                        <span className="text-[0.65rem] font-bold text-slate-600">{entry.name}</span>
+                      </div>
+                      <span className="text-[0.7rem] font-black text-slate-800">{entry.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Yeni vs Mevcut Hasta Geliri */}
+        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col">
+          <div className="text-[0.95rem] font-extrabold mb-1 text-slate-900">Yeni vs Mevcut Gelir</div>
+          <p className="text-[0.75rem] text-slate-400 font-medium mb-3">Seçili dönemdeki gelir dağılımı</p>
+          <div className="flex-1 min-h-[220px] w-full flex flex-col items-center justify-center">
+            {analytics.newVsExistingData.length === 0 ? <div className="text-slate-400 italic text-sm font-semibold">Veri Yok</div> : (
+              <>
+                <ResponsiveContainer width="100%" height={180}>
+                  <PieChart>
+                    <Pie data={analytics.newVsExistingData} cx="50%" cy="50%" innerRadius={45} outerRadius={75} paddingAngle={4} dataKey="value" stroke="none">
+                      {analytics.newVsExistingData.map((entry, i) => (<PieCell key={i} fill={entry.color} />))}
+                    </Pie>
+                    <Tooltip formatter={(v: any) => [Number(v).toLocaleString('tr-TR') + ' ₺', 'Gelir']} contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="w-full px-2 flex flex-col gap-1.5 mt-3">
+                  {analytics.newVsExistingData.map((entry, i) => (
+                    <div key={i} className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
+                        <span className="text-[0.65rem] font-bold text-slate-600">{entry.name}</span>
+                      </div>
+                      <span className="text-[0.7rem] font-black text-slate-800">{entry.value.toLocaleString('tr-TR')} ₺</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -505,15 +779,26 @@ export default function DashboardAnalyticsPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={analytics.trendData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
                   <defs>
-                    <linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#0d9488" stopOpacity={0.3} />
-                      <stop offset="100%" stopColor="#0d9488" stopOpacity={0.02} />
+                    <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#10b981" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="#10b981" stopOpacity={0.01} />
+                    </linearGradient>
+                    <linearGradient id="costGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#ef4444" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="#ef4444" stopOpacity={0.01} />
                     </linearGradient>
                   </defs>
                   <XAxis dataKey="date" stroke="#94a3b8" fontSize={11} fontWeight={600} axisLine={false} tickLine={false} />
-                  <YAxis stroke="#94a3b8" fontSize={11} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <Tooltip contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', fontSize: 13, fontWeight: 600 }} formatter={(v: any) => [String(v) + ' randevu', 'Sayı']} />
-                  <Area type="monotone" dataKey="count" stroke="#0d9488" strokeWidth={2.5} fill="url(#trendGrad)" dot={{ fill: '#0d9488', r: 4, strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }} />
+                  <YAxis stroke="#94a3b8" fontSize={11} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v/1000)}k`} />
+                  <Tooltip 
+                    contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', fontSize: 13, fontWeight: 600 }} 
+                    formatter={(v: any, name: string) => [
+                      name === 'revenue' || name === 'cost' ? `${Number(v).toLocaleString('tr-TR')} ₺` : `${v} randevu`,
+                      name === 'revenue' ? 'Gelir' : name === 'cost' ? 'Gider' : 'Randevu'
+                    ]} 
+                  />
+                  <Area type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2.5} fill="url(#revenueGrad)" dot={{ fill: '#10b981', r: 4, strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }} />
+                  <Area type="monotone" dataKey="cost" stroke="#ef4444" strokeWidth={2.5} fill="url(#costGrad)" dot={{ fill: '#ef4444', r: 4, strokeWidth: 2, stroke: '#fff' }} />
                 </AreaChart>
               </ResponsiveContainer>
             )}
@@ -533,7 +818,9 @@ export default function DashboardAnalyticsPage() {
                     <th className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-wider py-2.5 pr-3">Hizmet</th>
                     <th className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-wider py-2.5 px-3 text-center">Randevu</th>
                     <th className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-wider py-2.5 px-3 text-right">Gelir</th>
-                    <th className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-wider py-2.5 pl-3 w-[120px]">Oran</th>
+                    <th className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-wider py-2.5 px-3 text-right">Gider</th>
+                    <th className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-wider py-2.5 px-3 text-right">Net Kâr</th>
+                    <th className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-wider py-2.5 pl-3 text-right">Marj</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -546,13 +833,12 @@ export default function DashboardAnalyticsPage() {
                         </div>
                       </td>
                       <td className="py-3 px-3 text-center text-[0.8rem] font-bold text-slate-700">{row.qty}</td>
-                      <td className="py-3 px-3 text-right text-[0.8rem] font-bold text-slate-700">{row.rev.toLocaleString('tr-TR')} TL</td>
-                      <td className="py-3 pl-3">
-                        <div className="flex items-center gap-2">
-                          <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-                            <div className="h-full rounded-full transition-all duration-700" style={{ width: `${row.pct}%`, backgroundColor: row.color }} />
-                          </div>
-                          <span className="text-[0.65rem] font-bold text-slate-500 w-8 text-right">{row.pct}%</span>
+                      <td className="py-3 px-3 text-right text-[0.8rem] font-bold text-slate-700">{row.rev.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} ₺</td>
+                      <td className="py-3 px-3 text-right text-[0.8rem] font-bold text-red-500">-{row.cost.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} ₺</td>
+                      <td className="py-3 px-3 text-right text-[0.8rem] font-bold text-emerald-600">{row.profit.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} ₺</td>
+                      <td className="py-3 pl-3 text-right">
+                        <div className={`inline-flex items-center justify-end min-w-[3rem] text-[0.7rem] font-bold px-1.5 py-0.5 rounded-md ${row.margin >= 70 ? 'bg-emerald-100 text-emerald-700' : row.margin > 0 ? 'bg-amber-100 text-amber-700' : row.margin === 0 ? 'bg-slate-100 text-slate-600' : 'bg-red-100 text-red-700'}`}>
+                          %{row.margin}
                         </div>
                       </td>
                     </tr>
