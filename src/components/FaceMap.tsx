@@ -214,7 +214,30 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
         });
       }
     } else if (clickPos && onAddTreatment) {
-      const txNo = generateTransactionNo(treatments);
+      const todayDate = format(new Date(), "dd.MM.yyyy");
+      let txNo = "";
+
+      if (formIsControl && formParentTxNo) {
+        // Reuse today's control txNo for the same parent if exists
+        const todayControl = treatments.find(t => t.date.startsWith(todayDate) && t.isControl && t.parentTransactionNo === formParentTxNo && t.transactionNo);
+        if (todayControl && todayControl.transactionNo) {
+          txNo = todayControl.transactionNo;
+        } else {
+          // Find next K index
+          const existingControls = treatments.filter(t => t.isControl && t.parentTransactionNo === formParentTxNo);
+          const uniqueTxNos = new Set(existingControls.map(t => t.transactionNo).filter(Boolean));
+          txNo = `${formParentTxNo}-K${uniqueTxNos.size + 1}`;
+        }
+      } else {
+        // Reuse today's non-control txNo if exists
+        const todayTx = treatments.find(t => t.date.startsWith(todayDate) && !t.isControl && t.transactionNo);
+        if (todayTx && todayTx.transactionNo) {
+          txNo = todayTx.transactionNo;
+        } else {
+          txNo = generateTransactionNo(treatments);
+        }
+      }
+
       const t: FaceTreatment = {
         id: `ft_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
         date: format(new Date(), "dd.MM.yyyy HH:mm"),
@@ -773,7 +796,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                           >
                             <span>{date} · {items.length} işlem · <span className="font-extrabold">{totalUnits} ünite</span></span>
                           </button>
-                          {txNo && (
+                          {txNo && !txNo.includes('-K') && (
                             <button
                               onClick={() => setReceiptDateGroup({ date, txNo, treatments: items })}
                               className="px-2.5 rounded-lg bg-slate-800 text-white font-mono font-bold text-[0.55rem] hover:bg-slate-900 transition-colors flex items-center justify-center shrink-0 shadow-sm cursor-pointer"

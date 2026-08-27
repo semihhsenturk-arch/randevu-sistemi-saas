@@ -919,7 +919,7 @@ export default function PatientListPage() {
                                    <div className="flex items-center justify-between mb-2">
                                       <div className="text-[0.7rem] font-bold text-slate-400 tracking-wide uppercase flex items-center gap-1.5">
                                         <Clock className="w-3 h-3 text-blue-500"/> {a.tarih} · {a.saat}
-                                        {dateFaceTreatments.length > 0 && dateFaceTreatments[0].transactionNo && (
+                                        {dateFaceTreatments.length > 0 && dateFaceTreatments[0].transactionNo && !dateFaceTreatments[0].transactionNo.includes('-K') && (
                                           <button 
                                             onClick={() => setGlobalReceiptGroup({ date: format(new Date(a.tarih), 'dd.MM.yyyy'), txNo: dateFaceTreatments[0].transactionNo!, treatments: dateFaceTreatments })}
                                             className="ml-2 px-2 py-0.5 rounded-md bg-slate-800 text-white font-mono font-extrabold text-[0.6rem] shadow-sm hover:bg-slate-700 transition-colors cursor-pointer"
@@ -1153,7 +1153,7 @@ export default function PatientListPage() {
                                <Clock className="w-4 h-4 text-amber-500" /> {dateStr}
                                {(() => {
                                  const txNo = (selProfile.face_treatments || []).find(ft => (ft.date || "").startsWith(dateStr))?.transactionNo;
-                                 return txNo ? (
+                                 return txNo && !txNo.includes('-K') ? (
                                    <button 
                                      onClick={() => setGlobalReceiptGroup({ date: dateStr, txNo: txNo!, treatments: (selProfile.face_treatments || []).filter(ft => (ft.date || "").startsWith(dateStr)) })}
                                      className="ml-2 px-2 py-0.5 rounded-md bg-slate-800 text-white font-mono font-extrabold text-[0.65rem] shadow-sm hover:bg-slate-700 transition-colors cursor-pointer"

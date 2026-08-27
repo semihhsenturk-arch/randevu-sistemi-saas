@@ -188,7 +188,7 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
                     <div className="flex flex-col space-y-1 w-full">{stockBlocks}</div>
                     {grandTotalCost > 0 && (
                       <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-100 w-full">
-                        <span className="text-[0.6rem] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Toplam Maliyet</span>
+                        <span className="text-[0.6rem] font-bold text-slate-400 uppercase tracking-wider mb-0.5">İlk İşlem Maliyeti</span>
                         <span className="text-sm font-black text-[#0a3d34]">
                           {grandTotalCost.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ₺
                         </span>
@@ -205,15 +205,29 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
 
           {/* Child Control Sessions Aggregation */}
           {(() => {
-            const childControls = allTreatments.filter(t => t.isControl && t.parentTransactionNo === receiptDateGroup.txNo);
-            if (childControls.length === 0) return null;
+            let initialGrandTotalCost = 0;
+            relevantStocks.forEach(stock => {
+              stock.text.split(", ").forEach((itemStr: string) => {
+                const costMatch = itemStr.match(/\[Maliyet:\s*([\d.]+)\]/);
+                const embeddedUnitPrice = costMatch ? parseFloat(costMatch[1]) : null;
+                const cleanItemStr = itemStr.replace(/\s*\(Toplam Maliyet:.*?\)/g, "").replace(/\s*\(Maliyet:.*?\)/g, "").replace(/\s*\[Toplam Maliyet:.*?\]/g, "").replace(/\s*\[Maliyet:.*?\]/g, "").trim();
+                const parts = cleanItemStr.split(" ");
+                const amount = parseFloat(parts[0]) || 0;
+                const itemName = parts.slice(2).join(" ");
+                const invItem = inventoryItems.find(item => item.ad === itemName);
+                const unitPrice = embeddedUnitPrice !== null ? embeddedUnitPrice : (invItem?.fiyat || 0);
+                initialGrandTotalCost += (unitPrice * amount);
+              });
+            });
 
+            const childControls = allTreatments.filter(t => t.isControl && t.parentTransactionNo === receiptDateGroup.txNo);
+            
             // Collect unique transaction nos of child controls
             const childTxNos = Array.from(new Set(childControls.map(t => t.transactionNo).filter(Boolean)));
             
             // Collect material costs for those transactions
             let totalControlCost = 0;
-            const controlCostsByTx: Record<string, number> = {};
+            const controlCostsByTx: Record<string, { cost: number, date: string }> = {};
 
             childTxNos.forEach(txNo => {
               const childTx = childControls.find(t => t.transactionNo === txNo);
@@ -226,7 +240,7 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
               let dateCost = 0;
 
               relevantStocksForChild.forEach(stock => {
-                const itemRows = stock.text.split(", ").forEach((itemStr: string) => {
+                stock.text.split(", ").forEach((itemStr: string) => {
                   const costMatch = itemStr.match(/\[Maliyet:\s*([\d.]+)\]/);
                   const embeddedUnitPrice = costMatch ? parseFloat(costMatch[1]) : null;
 
@@ -246,32 +260,44 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
               });
 
               if (dateCost > 0) {
-                controlCostsByTx[txNo as string] = dateCost;
+                controlCostsByTx[txNo as string] = { cost: dateCost, date: dateStr };
                 totalControlCost += dateCost;
               }
             });
 
-            if (totalControlCost === 0) return null;
+            if (totalControlCost === 0 && initialGrandTotalCost === 0) return null;
 
             return (
-              <div className="flex flex-col items-center w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200">
-                <div className="text-[0.6rem] font-bold text-slate-500 uppercase tracking-wider mb-2 text-center leading-tight">
-                  Kontrol Seansları <br/> Ekstra Maliyeti
-                </div>
-                
-                <div className="flex flex-col w-full space-y-1 mb-2">
-                  {Object.entries(controlCostsByTx).map(([txNo, cost]) => (
-                    <div key={txNo} className="flex justify-between items-center text-[0.65rem] border-b border-slate-200/50 pb-1 last:border-0 last:pb-0">
-                      <span className="font-semibold text-slate-600">{txNo}</span>
-                      <span className="font-bold text-orange-600">{cost.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ₺</span>
+              <div className="flex flex-col items-center w-full">
+                {totalControlCost > 0 && (
+                  <div className="flex flex-col items-center w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 mb-4">
+                    <div className="text-[0.6rem] font-bold text-slate-500 uppercase tracking-wider mb-2 text-center leading-tight">
+                      Kontrol Muayenesi <br/> Ekstra Maliyeti
                     </div>
-                  ))}
-                </div>
+                    
+                    <div className="flex flex-col w-full space-y-1 mb-2">
+                      {Object.entries(controlCostsByTx).map(([txNo, data]) => (
+                        <div key={txNo} className="flex justify-between items-center text-[0.65rem] border-b border-slate-200/50 pb-1 last:border-0 last:pb-0">
+                          <span className="font-semibold text-slate-600">{data.date} ({txNo})</span>
+                          <span className="font-bold text-orange-600">{data.cost.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ₺</span>
+                        </div>
+                      ))}
+                    </div>
 
-                <div className="flex items-center justify-between pt-1.5 border-t border-slate-200 w-full mt-1">
-                  <span className="text-[0.65rem] font-extrabold text-slate-700">Toplam</span>
-                  <span className="text-xs font-black text-orange-600">
-                    {totalControlCost.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ₺
+                    <div className="flex items-center justify-between pt-1.5 border-t border-slate-200 w-full mt-1">
+                      <span className="text-[0.65rem] font-extrabold text-slate-700">Kontrol Toplamı</span>
+                      <span className="text-xs font-black text-orange-600">
+                        {totalControlCost.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ₺
+                      </span>
+                    </div>
+                  </div>
+                )}
+                
+                {/* DIP TOPLAM (Grand Total) */}
+                <div className="flex items-center justify-between w-full bg-[#0a3d34] text-white p-3 rounded-xl shadow-md">
+                  <span className="text-[0.75rem] font-extrabold uppercase tracking-wider">Dip Toplam</span>
+                  <span className="text-lg font-black">
+                    {(initialGrandTotalCost + totalControlCost).toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ₺
                   </span>
                 </div>
               </div>
@@ -279,7 +305,7 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
           })()}
 
           {/* Dotted Divider (if child controls exist, we need one before barcode) */}
-          {allTreatments.some(t => t.isControl && t.parentTransactionNo === receiptDateGroup.txNo) && (
+          {(allTreatments.some(t => t.isControl && t.parentTransactionNo === receiptDateGroup.txNo) || stockHistory.filter(h => h.transaction_no === receiptDateGroup.txNo).length > 0) && (
             <div className="w-full border-t-2 border-dashed border-slate-200" />
           )}
 
