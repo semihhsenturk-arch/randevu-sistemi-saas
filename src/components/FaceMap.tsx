@@ -808,10 +808,10 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                       }
 
                       return (
-                        <div key={date} className="w-full flex items-stretch gap-1">
+                        <div key={date} className="w-full flex items-stretch justify-start gap-1">
                           <button
                             onClick={() => setSelectedDate(selectedDate === date ? null : date)}
-                            className={`flex-1 px-2.5 py-1.5 rounded-lg text-[0.6rem] font-bold transition-all border flex items-center justify-between gap-1 ${selectedDate === date ? "bg-emerald-50 text-emerald-700 border-emerald-200 shadow-sm" : "bg-white text-slate-500 border-slate-100 hover:border-slate-200"}`}
+                            className={`px-2.5 py-1.5 rounded-lg text-[0.6rem] font-bold transition-all border flex items-center gap-1 ${selectedDate === date ? "bg-emerald-50 text-emerald-700 border-emerald-200 shadow-sm" : "bg-white text-slate-500 border-slate-100 hover:border-slate-200"}`}
                           >
                             <span>{date} · {items.length} işlem · <span className="font-extrabold">{totalUnits} ünite</span></span>
                           </button>
