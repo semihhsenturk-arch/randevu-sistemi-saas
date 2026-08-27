@@ -476,7 +476,7 @@ export default function PatientListPage() {
       }
 
       const costText = totalCost > 0 ? ` (Maliyet: ${totalCost.toLocaleString("tr-TR", {minimumFractionDigits:2})} ₺)` : "";
-      return `${c.amount} ${c.unit} ${c.name}`;
+      return `${c.amount} ${c.unit} ${c.name} [Maliyet: ${unitCost}]`;
     }).join(", ");
 
     const finalDetailStr = grandTotal > 0 ? `${detailStr} (Toplam Maliyet: ${grandTotal.toLocaleString("tr-TR", {minimumFractionDigits:2})} ₺)` : detailStr;
@@ -1171,7 +1171,7 @@ export default function PatientListPage() {
                                             </div>
                                           </div>
                                        ) : (
-                                          <div className="text-[0.85rem] font-bold text-slate-700 whitespace-pre-wrap leading-relaxed">{item.text}</div>
+                                          <div className="text-[0.85rem] font-bold text-slate-700 whitespace-pre-wrap leading-relaxed">{item.text.replace(/\[Maliyet:.*?\]/g, "").trim()}</div>
                                        )}
                                      </div>
                                      

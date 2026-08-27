@@ -248,6 +248,9 @@ export default function DashboardAnalyticsPage() {
         
         relevantStocks.forEach((stock: any) => {
            stock.text.split(", ").forEach((itemStr: string) => {
+              const costMatch = itemStr.match(/\[Maliyet:\s*([\d.]+)\]/);
+              const embeddedUnitPrice = costMatch ? parseFloat(costMatch[1]) : null;
+
               const cleanItemStr = itemStr
                 .replace(/\s*\(Toplam Maliyet:.*?\)/g, "")
                 .replace(/\s*\(Maliyet:.*?\)/g, "")
@@ -260,7 +263,7 @@ export default function DashboardAnalyticsPage() {
               const itemName = parts.slice(2).join(" ");
               
               const invItem = inventory?.items?.find((i: any) => i.ad === itemName);
-              const unitPrice = invItem?.fiyat || 0;
+              const unitPrice = embeddedUnitPrice !== null ? embeddedUnitPrice : (invItem?.fiyat || 0);
               materialCost += (unitPrice * amount);
            });
         });

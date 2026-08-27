@@ -126,6 +126,9 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
 
                 const stockBlocks = relevantStocks.map((stock, i) => {
                   const itemRows = stock.text.split(", ").map((itemStr: string, j: number) => {
+                    const costMatch = itemStr.match(/\[Maliyet:\s*([\d.]+)\]/);
+                    const embeddedUnitPrice = costMatch ? parseFloat(costMatch[1]) : null;
+
                     const cleanItemStr = itemStr
                       .replace(/\s*\(Toplam Maliyet:.*?\)/g, "")
                       .replace(/\s*\(Maliyet:.*?\)/g, "")
@@ -139,7 +142,7 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
                     const itemName = parts.slice(2).join(" ");
                     
                     const invItem = inventoryItems.find(item => item.ad === itemName);
-                    const unitPrice = invItem?.fiyat || 0;
+                    const unitPrice = embeddedUnitPrice !== null ? embeddedUnitPrice : (invItem?.fiyat || 0);
                     const cost = unitPrice * amount;
                     grandTotalCost += cost;
 
