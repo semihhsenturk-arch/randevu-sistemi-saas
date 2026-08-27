@@ -310,43 +310,43 @@ export default function StockManagementPage() {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="rounded-xl border-slate-200 shadow-sm flex items-center p-4 gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
-               <Package className="w-5 h-5" />
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 md:gap-4">
+        <Card className="rounded-xl border-slate-200 shadow-sm flex items-center p-3 md:p-4 gap-2 md:gap-3">
+            <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
+               <Package className="w-4 h-4 md:w-5 md:h-5" />
             </div>
              <div>
-               <div className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Toplam Kalem</div>
-               <div className="text-xl font-extrabold text-slate-900 leading-none">{stats.total}</div>
+               <div className="text-[0.55rem] md:text-[0.65rem] font-bold text-slate-500 uppercase tracking-wider md:tracking-widest mb-0.5">Toplam Kalem</div>
+               <div className="text-lg md:text-xl font-extrabold text-slate-900 leading-none">{stats.total}</div>
              </div>
         </Card>
-        <Card className="rounded-xl border-slate-200 shadow-sm flex items-center p-4 gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-               <DollarSign className="w-5 h-5" />
+        <Card className="rounded-xl border-slate-200 shadow-sm flex items-center p-3 md:p-4 gap-2 md:gap-3">
+            <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+               <DollarSign className="w-4 h-4 md:w-5 md:h-5" />
             </div>
             <div>
-               <div className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Toplam Depo Değeri</div>
-               <div className="text-xl font-extrabold text-slate-900 leading-none">
+               <div className="text-[0.55rem] md:text-[0.65rem] font-bold text-slate-500 uppercase tracking-wider md:tracking-widest mb-0.5 whitespace-nowrap overflow-hidden text-ellipsis max-w-[100px] md:max-w-none">Depo Değeri</div>
+               <div className="text-lg md:text-xl font-extrabold text-slate-900 leading-none">
                  {inventory.items.reduce((sum, item) => sum + ((inventory.stock[item.id] || 0) * (item.fiyat || 0)), 0).toLocaleString("tr-TR", { maximumFractionDigits: 0 })} ₺
                </div>
             </div>
         </Card>
-        <Card className="rounded-xl border-slate-200 shadow-sm flex items-center p-4 gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-               <CheckCircle className="w-5 h-5" />
+        <Card className="rounded-xl border-slate-200 shadow-sm flex items-center p-3 md:p-4 gap-2 md:gap-3">
+            <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+               <CheckCircle className="w-4 h-4 md:w-5 md:h-5" />
             </div>
             <div>
-               <div className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Yeterli Stok</div>
-               <div className="text-xl font-extrabold text-slate-900 leading-none">{stats.ok}</div>
+               <div className="text-[0.55rem] md:text-[0.65rem] font-bold text-slate-500 uppercase tracking-wider md:tracking-widest mb-0.5">Yeterli Stok</div>
+               <div className="text-lg md:text-xl font-extrabold text-slate-900 leading-none">{stats.ok}</div>
             </div>
         </Card>
-        <Card className="rounded-xl border-slate-200 shadow-sm flex items-center p-4 gap-3">
-            <div className="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center shrink-0">
-               <AlertTriangle className="w-5 h-5" />
+        <Card className="rounded-xl border-slate-200 shadow-sm flex items-center p-3 md:p-4 gap-2 md:gap-3">
+            <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center shrink-0">
+               <AlertTriangle className="w-4 h-4 md:w-5 md:h-5" />
             </div>
             <div>
-               <div className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Kritik Stok</div>
-               <div className="text-xl font-extrabold text-slate-900 leading-none">{stats.critical}</div>
+               <div className="text-[0.55rem] md:text-[0.65rem] font-bold text-slate-500 uppercase tracking-wider md:tracking-widest mb-0.5">Kritik Stok</div>
+               <div className="text-lg md:text-xl font-extrabold text-slate-900 leading-none">{stats.critical}</div>
             </div>
         </Card>
       </div>
