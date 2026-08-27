@@ -10,6 +10,7 @@ import { FlatPicker } from "@/components/ui/flat-picker";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Cell as PieCell, AreaChart, Area } from "recharts";
 import { UpgradeScreen } from "@/components/UpgradeScreen";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { TransactionReceiptModal } from "@/components/TransactionReceiptModal";
 
 /* ── Circular Progress Ring ── */
 function CircularProgress({ value, size = 56, stroke = 5, color }: { value: number; size?: number; stroke?: number; color: string }) {
@@ -78,6 +79,24 @@ export default function DashboardAnalyticsPage() {
   const [appliedStartDate, setAppliedStartDate] = useState(format(startOfMonth(new Date()), "yyyy-MM-dd"));
   const [appliedEndDate, setAppliedEndDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [isMounted, setIsMounted] = useState(false);
+
+  const [selectedReceipt, setSelectedReceipt] = useState<{ date: string; txNo: string; treatments: any[] } | null>(null);
+  const [selectedPatientName, setSelectedPatientName] = useState<string>("");
+  const [selectedStockHistory, setSelectedStockHistory] = useState<any[]>([]);
+
+  const handleOpenReceipt = (tx: any, profile: any) => {
+    if (!tx || !profile) return;
+    const [yyyy, mm, dd] = tx.date.split('-');
+    const targetDateStr = `${dd}.${mm}.${yyyy}`;
+    const treatments = profile.face_treatments?.filter((t: any) => t.date.split(' ')[0] === targetDateStr) || [];
+    setSelectedReceipt({
+      date: targetDateStr,
+      txNo: tx.txNo,
+      treatments
+    });
+    setSelectedPatientName(tx.patientName);
+    setSelectedStockHistory(profile.stock_history || []);
+  };
 
   const weekOptions = useMemo(() => {
     const options = [];
@@ -205,16 +224,22 @@ export default function DashboardAnalyticsPage() {
         }
         
         relevantStocks.forEach((stock: any) => {
-           stock.text.split(", ").forEach((itemStr: string) => {
-              const cleanItemStr = itemStr.replace(/\s*\(Toplam Maliyet:.*?\)/g, "").replace(/\s*\(Maliyet:.*?\)/g, "").replace(/\s*\[Toplam Maliyet:.*?\]/g, "").replace(/\s*\[Maliyet:.*?\]/g, "").trim();
-              const parts = cleanItemStr.split(" ");
-              const amount = parseFloat(parts[0]) || 0;
-              const itemName = parts.slice(2).join(" ");
-              const invItem = inventory?.items?.find((i: any) => i.ad === itemName);
-              if (invItem && invItem.fiyat) {
-                materialCost += (invItem.fiyat * amount);
-              }
-           });
+           const match = stock.text.match(/Toplam Maliyet:\s*([\d.,]+)\s*₺/);
+           if (match) {
+             const costStr = match[1].replace(/\./g, '').replace(/,/g, '.');
+             materialCost += parseFloat(costStr) || 0;
+           } else {
+             stock.text.split(", ").forEach((itemStr: string) => {
+                const cleanItemStr = itemStr.replace(/\s*\(Toplam Maliyet:.*?\)/g, "").replace(/\s*\(Maliyet:.*?\)/g, "").replace(/\s*\[Toplam Maliyet:.*?\]/g, "").replace(/\s*\[Maliyet:.*?\]/g, "").trim();
+                const parts = cleanItemStr.split(" ");
+                const amount = parseFloat(parts[0]) || 0;
+                const itemName = parts.slice(2).join(" ");
+                const invItem = inventory?.items?.find((i: any) => i.ad === itemName);
+                if (invItem && invItem.fiyat) {
+                  materialCost += (invItem.fiyat * amount);
+                }
+             });
+           }
         });
       }
 
@@ -559,7 +584,12 @@ export default function DashboardAnalyticsPage() {
                        </td>
                        <td className="py-3 px-3">
                          {tx.txNo !== "-" ? (
-                           <span className="text-[0.7rem] font-mono font-black text-[#0a3d34] bg-emerald-50 border border-emerald-100 px-2 py-1 rounded-md">{tx.txNo}</span>
+                           <button 
+                             onClick={() => handleOpenReceipt(tx, patientProfiles[tx.patientName.toLocaleUpperCase("tr-TR")] || patientProfiles[tx.patientName])}
+                             className="text-[0.7rem] font-mono font-black text-[#0a3d34] bg-emerald-50 border border-emerald-100 px-2 py-1 rounded-md hover:bg-emerald-100 hover:text-emerald-700 transition-colors"
+                           >
+                             {tx.txNo}
+                           </button>
                          ) : (
                            <span className="text-[0.7rem] font-bold text-slate-400">—</span>
                          )}
@@ -582,6 +612,15 @@ export default function DashboardAnalyticsPage() {
            </div>
         )}
       </div>
+
+      {selectedReceipt && (
+        <TransactionReceiptModal 
+          receiptDateGroup={selectedReceipt} 
+          patientName={selectedPatientName} 
+          stockHistory={selectedStockHistory}
+          onClose={() => setSelectedReceipt(null)} 
+        />
+      )}
     </div>
   );
 }
