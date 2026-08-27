@@ -247,6 +247,7 @@ export default function PatientListPage() {
     if (!canUseInventory) {
       setUpgradeModalOpen(true);
       return;
+    }
     const faceTreatments = profiles[name]?.face_treatments || [];
     const sortedTreatments = [...faceTreatments].sort((a, b) => b.date.localeCompare(a.date));
     const latestTx = sortedTreatments.length > 0 ? sortedTreatments[0].transactionNo : "";
