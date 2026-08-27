@@ -83,6 +83,7 @@ export default function DashboardAnalyticsPage() {
   const [selectedReceipt, setSelectedReceipt] = useState<{ date: string; txNo: string; treatments: any[] } | null>(null);
   const [selectedPatientName, setSelectedPatientName] = useState<string>("");
   const [selectedStockHistory, setSelectedStockHistory] = useState<any[]>([]);
+  const [selectedAllTreatments, setSelectedAllTreatments] = useState<any[]>([]);
 
   const handleOpenReceipt = (tx: any, profile: any) => {
     if (!tx || !profile) return;
@@ -96,6 +97,7 @@ export default function DashboardAnalyticsPage() {
     });
     setSelectedPatientName(tx.patientName);
     setSelectedStockHistory(profile.stock_history || []);
+    setSelectedAllTreatments(profile.face_treatments || []);
   };
 
   const weekOptions = useMemo(() => {
@@ -267,6 +269,42 @@ export default function DashboardAnalyticsPage() {
               materialCost += (unitPrice * amount);
            });
         });
+
+        // If this is a control session, zero out its material cost because it will be aggregated into the parent
+        if (txNo.includes("-K")) {
+           materialCost = 0;
+        } 
+        // If this is a primary session, add the costs of any child control sessions
+        else if (txNo !== "-") {
+           const allTreatments = profile.face_treatments || [];
+           const childControls = allTreatments.filter((t: any) => t.isControl && t.parentTransactionNo === txNo);
+           const childTxNos = Array.from(new Set(childControls.map((t: any) => t.transactionNo).filter(Boolean)));
+           
+           childTxNos.forEach((childTxNo: string) => {
+              const childTx = childControls.find((t: any) => t.transactionNo === childTxNo);
+              const dateStr = childTx?.date.split(" ")[0] || "";
+              
+              let relevantStocksForChild = stockHistory.filter((h: any) => 
+                h.transaction_no === childTxNo || 
+                (!h.transaction_no && (h.date.split(' ')[0] === dateStr || (h.treatment_date && h.treatment_date.split(' ')[0] === dateStr)))
+              );
+              
+              relevantStocksForChild.forEach((stock: any) => {
+                stock.text.split(", ").forEach((itemStr: string) => {
+                  const costMatch = itemStr.match(/\[Maliyet:\s*([\d.]+)\]/);
+                  const embeddedUnitPrice = costMatch ? parseFloat(costMatch[1]) : null;
+                  const cleanItemStr = itemStr.replace(/\s*\(Toplam Maliyet:.*?\)/g, "").replace(/\s*\(Maliyet:.*?\)/g, "").replace(/\s*\[Toplam Maliyet:.*?\]/g, "").replace(/\s*\[Maliyet:.*?\]/g, "").trim();
+                  const parts = cleanItemStr.split(" ");
+                  const amount = parseFloat(parts[0]) || 0;
+                  const itemName = parts.slice(2).join(" ");
+                  
+                  const invItem = inventory?.items?.find((i: any) => i.ad === itemName);
+                  const unitPrice = embeddedUnitPrice !== null ? embeddedUnitPrice : (invItem?.fiyat || 0);
+                  materialCost += (unitPrice * amount);
+                });
+              });
+           });
+        }
       }
 
       const profit = revenue - materialCost;
@@ -919,6 +957,7 @@ export default function DashboardAnalyticsPage() {
           receiptDateGroup={selectedReceipt} 
           patientName={selectedPatientName} 
           stockHistory={selectedStockHistory}
+          allTreatments={selectedAllTreatments}
           onClose={() => setSelectedReceipt(null)} 
         />
       )}
