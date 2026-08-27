@@ -1017,8 +1017,21 @@ export default function PatientListPage() {
                    }}
                    onDeleteTreatment={async (id) => {
                      const current = profiles[selectedPatientName] || { notes_list: [], meds: [], stock_history: [] };
+                     
+                     const treatmentToDelete = (current.face_treatments || []).find(ft => ft.id === id);
                      const list = (current.face_treatments || []).filter(ft => ft.id !== id);
-                     const updated = { ...current, face_treatments: list };
+                     
+                     let updatedStockHistory = current.stock_history || [];
+                     if (treatmentToDelete?.transactionNo) {
+                        const txNo = treatmentToDelete.transactionNo;
+                        const remainingWithTx = list.filter(ft => ft.transactionNo === txNo);
+                        
+                        if (remainingWithTx.length === 0) {
+                           updatedStockHistory = updatedStockHistory.filter(s => s.transactionNo !== txNo);
+                        }
+                     }
+
+                     const updated = { ...current, face_treatments: list, stock_history: updatedStockHistory };
                      setProfiles(prev => ({ ...prev, [selectedPatientName]: updated }));
                      savePatientProfile(selectedPatientName, updated).catch(err => console.error('Face treatment delete err:', err));
                      toast.success('Tedavi silindi.');
