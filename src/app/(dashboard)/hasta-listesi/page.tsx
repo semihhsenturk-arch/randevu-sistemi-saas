@@ -249,7 +249,7 @@ export default function PatientListPage() {
       return;
     }
     const faceTreatments = profiles[name]?.face_treatments || [];
-    const sortedTreatments = [...faceTreatments].sort((a, b) => b.date.localeCompare(a.date));
+    const sortedTreatments = [...faceTreatments].sort((a, b) => (b.date || "").localeCompare(a.date || ""));
     const latestTx = sortedTreatments.length > 0 ? sortedTreatments[0].transactionNo : "";
 
     setSelectedPatientName(name);
@@ -488,7 +488,7 @@ export default function PatientListPage() {
 
     // Find the most recent treatment date for linking stock deduction to correct receipt
     const faceTreatments = current.face_treatments || [];
-    const sortedTreatments = [...faceTreatments].sort((a, b) => b.date.localeCompare(a.date));
+    const sortedTreatments = [...faceTreatments].sort((a, b) => (b.date || "").localeCompare(a.date || ""));
     
     let targetTxDate = sortedTreatments[0]?.date;
     if (selectedMaterialTxNo) {
@@ -1253,9 +1253,9 @@ export default function PatientListPage() {
                     <SelectTrigger className="bg-white"><SelectValue placeholder="İşlem seçiniz..." /></SelectTrigger>
                     <SelectContent>
                       {Array.from(new Set((profiles[selectedPatientName]?.face_treatments || []).map(t => t.transactionNo).filter(Boolean))).map(txNo => {
-                        const tDate = (profiles[selectedPatientName]?.face_treatments || []).find(t => t.transactionNo === txNo)?.date.split(" ")[0];
+                        const tDate = (profiles[selectedPatientName]?.face_treatments || []).find(t => t.transactionNo === txNo)?.date?.split(" ")[0] || "";
                         return (
-                          <SelectItem key={txNo} value={txNo}>{txNo} ({tDate})</SelectItem>
+                          <SelectItem key={txNo} value={txNo}>{txNo} {tDate ? `(${tDate})` : ''}</SelectItem>
                         );
                       })}
                       <SelectItem value="none">Bağımsız İşlem (Fişsiz)</SelectItem>
