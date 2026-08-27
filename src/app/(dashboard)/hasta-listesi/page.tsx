@@ -180,7 +180,7 @@ export default function PatientListPage() {
       
       const groupsByDate: Record<string, FaceTreatment[]> = {};
       updatedTreatments.forEach(t => {
-        const d = t.date.split(" ")[0];
+        const d = (t.date || "").split(" ")[0];
         if (!groupsByDate[d]) groupsByDate[d] = [];
         groupsByDate[d].push(t);
       });
@@ -909,7 +909,7 @@ export default function PatientListPage() {
                          {hstAppointments.map(a => {
                            const h = a.hizmetId ? services.find(x => x.id.toString() === a.hizmetId.toString()) : null;
                            const isStatusDone = a.durum === 'onaylandi';
-                           const dateFaceTreatments = (selProfile.face_treatments || []).filter(ft => ft.date.split(' ')[0] === (a.tarih ? format(new Date(a.tarih), 'dd.MM.yyyy') : ''));
+                           const dateFaceTreatments = (selProfile.face_treatments || []).filter(ft => (ft.date || "").split(' ')[0] === (a.tarih ? format(new Date(a.tarih), 'dd.MM.yyyy') : ''));
                            return (
                              <div key={a.id} className="relative pl-6">
                                 {/* Timeline Dot */}
@@ -970,8 +970,8 @@ export default function PatientListPage() {
                    }}
                    onAddTreatment={async (t) => {
                       const current = profiles[selectedPatientName] || { notes_list: [], meds: [], stock_history: [] };
-                      const todayDate = t.date.split(" ")[0];
-                      const existingToday = current.face_treatments?.find(ft => ft.date.startsWith(todayDate) && ft.transactionNo);
+                      const todayDate = (t.date || "").split(" ")[0];
+                      const existingToday = current.face_treatments?.find(ft => (ft.date || "").startsWith(todayDate) && ft.transactionNo);
                       const txNo = existingToday?.transactionNo || generateTransactionNo(current.face_treatments || []);
                       const treatment = t.transactionNo ? t : { ...t, transactionNo: txNo };
                       
@@ -1151,10 +1151,10 @@ export default function PatientListPage() {
                              <div className="font-bold text-slate-700 text-sm flex items-center gap-2">
                                <Clock className="w-4 h-4 text-amber-500" /> {dateStr}
                                {(() => {
-                                 const txNo = (selProfile.face_treatments || []).find(ft => ft.date.startsWith(dateStr))?.transactionNo;
+                                 const txNo = (selProfile.face_treatments || []).find(ft => (ft.date || "").startsWith(dateStr))?.transactionNo;
                                  return txNo ? (
                                    <button 
-                                     onClick={() => setGlobalReceiptGroup({ date: dateStr, txNo: txNo!, treatments: (selProfile.face_treatments || []).filter(ft => ft.date.startsWith(dateStr)) })}
+                                     onClick={() => setGlobalReceiptGroup({ date: dateStr, txNo: txNo!, treatments: (selProfile.face_treatments || []).filter(ft => (ft.date || "").startsWith(dateStr)) })}
                                      className="ml-2 px-2 py-0.5 rounded-md bg-slate-800 text-white font-mono font-extrabold text-[0.65rem] shadow-sm hover:bg-slate-700 transition-colors cursor-pointer"
                                      title="İşlem Fişini Gör"
                                    >
@@ -1171,7 +1171,7 @@ export default function PatientListPage() {
                                  <div key={itemIndex} className="p-5 border-b border-slate-50 last:border-0 relative group hover:bg-slate-50/50 transition-colors">
                                    <div className="flex justify-between items-start">
                                      <div className="flex-1">
-                                       <div className="text-[0.65rem] font-bold text-slate-400 mb-1">{item.date.split(" ")[1] || ""}</div>
+                                       <div className="text-[0.65rem] font-bold text-slate-400 mb-1">{(item.date || "").split(" ")[1] || ""}</div>
                                        {isEditing ? (
                                           <div className="mt-2 space-y-3 pr-4">
                                             <Textarea value={editingStockContent} onChange={e => setEditingStockContent(e.target.value)} className="min-h-[80px] text-sm bg-white border-slate-200 focus-visible:ring-[#0a3d34]" />
