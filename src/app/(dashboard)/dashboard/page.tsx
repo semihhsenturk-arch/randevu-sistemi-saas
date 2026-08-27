@@ -64,9 +64,14 @@ const ChangeBadge = ({ val }: ChangeBadgeProps) => {
 
 export default function DashboardAnalyticsPage() {
   const { profile, isLoading, checkAccess } = useAuth();
-  const { getAppointments, getServices } = useDatabase();
+  const { getAppointments, getServices, getPatientProfiles, getInventory } = useDatabase();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [services, setServices] = useState<Service[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [patientProfiles, setPatientProfiles] = useState<Record<string, any>>({});
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [inventory, setInventory] = useState<any>({ stock: {}, items: [] });
+  
   const isLocked = !checkAccess("advanced");
   const [startDate, setStartDate] = useState(format(startOfMonth(new Date()), "yyyy-MM-dd"));
   const [endDate, setEndDate] = useState(format(new Date(), "yyyy-MM-dd"));
@@ -103,9 +108,11 @@ export default function DashboardAnalyticsPage() {
   }, [startDate, endDate, weekOptions]);
 
   const loadData = async () => {
-    const [data, svcs] = await Promise.all([getAppointments(), getServices()]);
+    const [data, svcs, profiles, inv] = await Promise.all([getAppointments(), getServices(), getPatientProfiles(), getInventory()]);
     setAppointments(data);
     if (svcs) setServices(svcs);
+    if (profiles) setPatientProfiles(profiles);
+    if (inv) setInventory(inv);
   };
 
   /* eslint-disable react-hooks/set-state-in-effect */
@@ -119,6 +126,11 @@ export default function DashboardAnalyticsPage() {
     if (cachedApts) setAppointments(cachedApts);
     const cachedSvcs = getCacheSync<Service[]>(CACHE_KEYS.SERVICES);
     if (cachedSvcs) setServices(cachedSvcs);
+    const cachedProfiles = getCacheSync<any>(CACHE_KEYS.PROFILES);
+    if (cachedProfiles) setPatientProfiles(cachedProfiles);
+    const cachedInv = getCacheSync<any>(CACHE_KEYS.INVENTORY);
+    if (cachedInv) setInventory(cachedInv);
+
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -162,11 +174,68 @@ export default function DashboardAnalyticsPage() {
     const prevTotalApt = prevFiltered.length;
     let totalRevenue = 0, prevTotalRevenue = 0;
     const counts: Record<string, number> = {};
+    
+    // Calculate transactions list
+    const transactions: any[] = [];
 
     filtered.forEach(a => {
       const svc = services.find(h => h.id.toString() === a.hizmetId.toString());
+      const revenue = svc ? svc.fiyat : 0;
+      
       if (svc) { totalRevenue += svc.fiyat; counts[svc.ad] = (counts[svc.ad] || 0) + 1; }
+
+      const profile = patientProfiles[a.musteriAdi.toLocaleUpperCase("tr-TR")] || patientProfiles[a.musteriAdi];
+      let txNo = "-";
+      let materialCost = 0;
+
+      if (profile) {
+        const [yyyy, mm, dd] = a.tarih.split('-');
+        const targetDateStr = `${dd}.${mm}.${yyyy}`;
+        
+        const treatments = profile.face_treatments?.filter((t: any) => t.date.split(' ')[0] === targetDateStr) || [];
+        if (treatments.length > 0 && treatments[0].transactionNo) {
+          txNo = treatments[0].transactionNo;
+        } else if (treatments.length > 0) {
+          txNo = "Kayıtlı İşlem"; // Fallback if no specific ISL number yet
+        }
+
+        let relevantStocks = profile.stock_history?.filter((h: any) => h.date.split(' ')[0] === targetDateStr) || [];
+        if (relevantStocks.length === 0) {
+           relevantStocks = profile.stock_history?.filter((h: any) => h.treatment_date && h.treatment_date.split(' ')[0] === targetDateStr) || [];
+        }
+        
+        relevantStocks.forEach((stock: any) => {
+           stock.text.split(", ").forEach((itemStr: string) => {
+              const cleanItemStr = itemStr.replace(/\s*\(Toplam Maliyet:.*?\)/g, "").replace(/\s*\(Maliyet:.*?\)/g, "").replace(/\s*\[Toplam Maliyet:.*?\]/g, "").replace(/\s*\[Maliyet:.*?\]/g, "").trim();
+              const parts = cleanItemStr.split(" ");
+              const amount = parseFloat(parts[0]) || 0;
+              const itemName = parts.slice(2).join(" ");
+              const invItem = inventory?.items?.find((i: any) => i.ad === itemName);
+              if (invItem && invItem.fiyat) {
+                materialCost += (invItem.fiyat * amount);
+              }
+           });
+        });
+      }
+
+      const profit = revenue - materialCost;
+      const margin = revenue > 0 ? Math.round((profit / revenue) * 100) : 0;
+
+      transactions.push({
+        id: a.id,
+        patientName: a.musteriAdi,
+        date: a.tarih,
+        txNo,
+        serviceName: svc?.ad || "Bilinmiyor",
+        revenue,
+        materialCost,
+        profit,
+        margin
+      });
     });
+
+    transactions.sort((a, b) => b.date.localeCompare(a.date) || b.revenue - a.revenue);
+
     prevFiltered.forEach(a => {
       const svc = services.find(h => h.id.toString() === a.hizmetId.toString());
       if (svc) prevTotalRevenue += svc.fiyat;
@@ -232,8 +301,8 @@ export default function DashboardAnalyticsPage() {
       return { name: h.ad, qty, rev, pct, color: h.renk || '#0a3d34' };
     }).filter(r => r.qty > 0).sort((a, b) => b.rev - a.rev);
 
-    return { totalApt, totalRevenue, topSvc, avgRevenue, barData, pieData, occupancyRate, aptChange, revChange, avgChange, trendData, perfTable };
-  }, [filtered, prevFiltered, services, appliedStartDate, appliedEndDate]);
+    return { totalApt, totalRevenue, topSvc, avgRevenue, barData, pieData, occupancyRate, aptChange, revChange, avgChange, trendData, perfTable, transactions };
+  }, [filtered, prevFiltered, services, patientProfiles, inventory, appliedStartDate, appliedEndDate]);
 
   const varColor = (v: number) => v > 80 ? '#0d9488' : v > 40 ? '#f59e0b' : '#ef4444';
 
@@ -457,6 +526,61 @@ export default function DashboardAnalyticsPage() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* ── TRANSACTIONS (İŞLEM FİŞLERİ) ── */}
+      <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm mb-8">
+        <div className="text-[0.95rem] font-extrabold mb-1 text-slate-900">İşlem Fişi & Kârlılık Özeti</div>
+        <p className="text-[0.75rem] text-slate-400 font-medium mb-4">Seçili tarih aralığındaki işlemler, liste fiyatları, stok maliyetleri ve kâr marjı analizi</p>
+        
+        {analytics.transactions.length === 0 ? (
+           <div className="flex items-center justify-center h-[120px] text-slate-400 italic text-sm">Veri Yok</div>
+        ) : (
+           <div className="overflow-x-auto custom-scrollbar-auto">
+             <div className="min-w-[800px] w-full">
+               <table className="w-full text-left">
+                 <thead>
+                   <tr className="border-b border-slate-100">
+                     <th className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-wider py-3 pr-3">Tarih</th>
+                     <th className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-wider py-3 px-3">İşlem No</th>
+                     <th className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-wider py-3 px-3">Hasta Adı</th>
+                     <th className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-wider py-3 px-3">Hizmet</th>
+                     <th className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-wider py-3 px-3 text-right">Liste Fiyatı</th>
+                     <th className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-wider py-3 px-3 text-right">Gider (Maliyet)</th>
+                     <th className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-wider py-3 px-3 text-right">Net Kâr</th>
+                     <th className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-wider py-3 pl-3 text-right">Kâr Marjı</th>
+                   </tr>
+                 </thead>
+                 <tbody>
+                   {analytics.transactions.map((tx: any, i: number) => (
+                     <tr key={i} className={`border-b border-slate-50 ${i % 2 === 1 ? 'bg-slate-50/50' : ''} hover:bg-slate-50 transition-colors`}>
+                       <td className="py-3 pr-3 text-[0.8rem] font-bold text-slate-700 whitespace-nowrap">
+                         {format(new Date(tx.date), "dd.MM.yyyy")}
+                       </td>
+                       <td className="py-3 px-3">
+                         {tx.txNo !== "-" ? (
+                           <span className="text-[0.7rem] font-mono font-black text-[#0a3d34] bg-emerald-50 border border-emerald-100 px-2 py-1 rounded-md">{tx.txNo}</span>
+                         ) : (
+                           <span className="text-[0.7rem] font-bold text-slate-400">—</span>
+                         )}
+                       </td>
+                       <td className="py-3 px-3 text-[0.8rem] font-bold text-slate-800">{tx.patientName}</td>
+                       <td className="py-3 px-3 text-[0.75rem] font-semibold text-slate-600">{tx.serviceName}</td>
+                       <td className="py-3 px-3 text-right text-[0.8rem] font-black text-slate-900">{tx.revenue.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} ₺</td>
+                       <td className="py-3 px-3 text-right text-[0.8rem] font-black text-red-600">{tx.materialCost > 0 ? `-${tx.materialCost.toLocaleString('tr-TR', { maximumFractionDigits: 1 })} ₺` : '0 ₺'}</td>
+                       <td className="py-3 px-3 text-right text-[0.8rem] font-black text-emerald-600">{tx.profit.toLocaleString('tr-TR', { maximumFractionDigits: 1 })} ₺</td>
+                       <td className="py-3 pl-3 text-right">
+                         <div className={`inline-flex items-center justify-end min-w-[3rem] text-[0.7rem] font-bold px-1.5 py-0.5 rounded-md ${tx.margin >= 50 ? 'bg-emerald-100 text-emerald-700' : tx.margin > 0 ? 'bg-amber-100 text-amber-700' : tx.margin === 0 ? 'bg-slate-100 text-slate-600' : 'bg-red-100 text-red-700'}`}>
+                           %{tx.margin}
+                         </div>
+                       </td>
+                     </tr>
+                   ))}
+                 </tbody>
+               </table>
+             </div>
+           </div>
+        )}
       </div>
     </div>
   );
