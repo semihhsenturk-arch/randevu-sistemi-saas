@@ -34,17 +34,6 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
     relevantStocks = stockHistory.filter(h => h.treatment_date && h.treatment_date.split(' ')[0] === targetDateStr);
   }
   
-  // 3. Try today's date as fallback
-  if (relevantStocks.length === 0) {
-    const today = new Date();
-    const todayStr = `${today.getDate().toString().padStart(2, '0')}.${(today.getMonth() + 1).toString().padStart(2, '0')}.${today.getFullYear()}`;
-    relevantStocks = stockHistory.filter(h => h.date.includes(todayStr));
-  }
-  
-  // 4. If still no match, show all stock history (better than showing nothing)
-  if (relevantStocks.length === 0 && stockHistory.length > 0) {
-    relevantStocks = stockHistory;
-  }
   const firstTime = relevantStocks.length > 0 ? (relevantStocks[0].date.split(" ")[1] || "") : "";
 
   return (
