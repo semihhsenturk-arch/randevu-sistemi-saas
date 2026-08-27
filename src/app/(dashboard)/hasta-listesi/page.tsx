@@ -1225,15 +1225,11 @@ export default function PatientListPage() {
              </div>
           </div>
           <TransactionReceiptModal
-
             receiptDateGroup={globalReceiptGroup}
-
             onClose={() => setGlobalReceiptGroup(null)}
-
             patientName={selectedPatientName || undefined}
-
             stockHistory={selProfile?.stock_history || []}
-
+            allTreatments={selProfile?.face_treatments || []}
           />
 
         </DialogContent>
