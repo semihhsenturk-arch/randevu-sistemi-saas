@@ -1027,7 +1027,7 @@ export default function PatientListPage() {
                         const remainingWithTx = list.filter(ft => ft.transactionNo === txNo);
                         
                         if (remainingWithTx.length === 0) {
-                           updatedStockHistory = updatedStockHistory.filter(s => s.transactionNo !== txNo);
+                           updatedStockHistory = updatedStockHistory.filter(s => s.transaction_no !== txNo);
                         }
                      }
 
