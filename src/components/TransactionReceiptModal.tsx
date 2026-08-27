@@ -227,7 +227,7 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
             
             // Collect material costs for those transactions
             let totalControlCost = 0;
-            const controlCostsByTx: Record<string, { cost: number, date: string }> = {};
+            const controlCostsByTx: Record<string, { cost: number, date: string, stocks: any[] }> = {};
 
             childTxNos.forEach(txNo => {
               const childTx = childControls.find(t => t.transactionNo === txNo);
@@ -259,8 +259,8 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
                 });
               });
 
-              if (dateCost > 0) {
-                controlCostsByTx[txNo as string] = { cost: dateCost, date: dateStr };
+              if (dateCost > 0 || relevantStocksForChild.length > 0) {
+                controlCostsByTx[txNo as string] = { cost: dateCost, date: dateStr, stocks: relevantStocksForChild };
                 totalControlCost += dateCost;
               }
             });
@@ -277,9 +277,57 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
                     
                     <div className="flex flex-col w-full space-y-1 mb-2">
                       {Object.entries(controlCostsByTx).map(([txNo, data]) => (
-                        <div key={txNo} className="flex justify-between items-center text-[0.65rem] border-b border-slate-200/50 pb-1 last:border-0 last:pb-0">
-                          <span className="font-semibold text-slate-600">{data.date} ({txNo})</span>
-                          <span className="font-bold text-orange-600">{data.cost.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ₺</span>
+                        <div key={txNo} className="flex flex-col mb-3 last:mb-0">
+                          <div className="flex justify-between items-center text-[0.65rem] border-b border-slate-200/50 pb-1 mb-1">
+                            <span className="font-semibold text-slate-600">{data.date} ({txNo})</span>
+                            <span className="font-bold text-orange-600">{data.cost.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ₺</span>
+                          </div>
+                          
+                          {/* Render control items */}
+                          <div className="flex flex-col space-y-1">
+                            {data.stocks.map((stock, i) => {
+                              const itemRows = stock.text.split(", ").map((itemStr: string, idx: number) => {
+                                const costMatch = itemStr.match(/\[Maliyet:\s*([\d.]+)\]/);
+                                const embeddedUnitPrice = costMatch ? parseFloat(costMatch[1]) : null;
+                                const cleanItemStr = itemStr.replace(/\s*\(Toplam Maliyet:.*?\)/g, "").replace(/\s*\(Maliyet:.*?\)/g, "").replace(/\s*\[Toplam Maliyet:.*?\]/g, "").replace(/\s*\[Maliyet:.*?\]/g, "").trim();
+                                const parts = cleanItemStr.split(" ");
+                                const amount = parseFloat(parts[0]) || 0;
+                                const unit = parts[1] || "";
+                                const itemName = parts.slice(2).join(" ");
+                                
+                                const invItem = inventoryItems.find(item => item.ad === itemName);
+                                const unitPrice = embeddedUnitPrice !== null ? embeddedUnitPrice : (invItem?.fiyat || 0);
+                                const cost = unitPrice * amount;
+
+                                return (
+                                  <div key={idx} className="flex justify-between items-center bg-white p-1.5 rounded-lg border border-slate-100 shadow-sm">
+                                    <div className="flex flex-col flex-1 min-w-0 pr-2">
+                                      <div className="text-[0.65rem] font-bold text-slate-800 truncate leading-tight">
+                                        {itemName}
+                                      </div>
+                                      {unitPrice > 0 && (
+                                        <div className="text-[0.55rem] text-slate-400 font-medium leading-none mt-0.5">
+                                          Birim: {unitPrice.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ₺
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="flex items-center gap-3 shrink-0">
+                                      <div className="flex items-baseline gap-0.5">
+                                        <span className="text-xs font-black text-[#0a3d34]">{amount}</span>
+                                        <span className="text-[0.55rem] font-bold text-slate-400">{unit}</span>
+                                      </div>
+                                      {cost > 0 && (
+                                        <div className="text-[0.65rem] font-black text-slate-800 w-[45px] text-right">
+                                          {cost.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ₺
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              });
+                              return <div key={i} className="flex flex-col items-stretch w-full">{itemRows}</div>;
+                            })}
+                          </div>
                         </div>
                       ))}
                     </div>

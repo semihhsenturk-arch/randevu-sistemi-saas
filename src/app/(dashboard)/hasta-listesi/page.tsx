@@ -919,15 +919,40 @@ export default function PatientListPage() {
                                    <div className="flex items-center justify-between mb-2">
                                       <div className="text-[0.7rem] font-bold text-slate-400 tracking-wide uppercase flex items-center gap-1.5">
                                         <Clock className="w-3 h-3 text-blue-500"/> {a.tarih} · {a.saat}
-                                        {dateFaceTreatments.length > 0 && dateFaceTreatments[0].transactionNo && !dateFaceTreatments[0].transactionNo.includes('-K') && (
-                                          <button 
-                                            onClick={() => setGlobalReceiptGroup({ date: format(new Date(a.tarih), 'dd.MM.yyyy'), txNo: dateFaceTreatments[0].transactionNo!, treatments: dateFaceTreatments })}
-                                            className="ml-2 px-2 py-0.5 rounded-md bg-slate-800 text-white font-mono font-extrabold text-[0.6rem] shadow-sm hover:bg-slate-700 transition-colors cursor-pointer"
-                                            title="İşlem Fişini Gör"
-                                          >
-                                            {dateFaceTreatments[0].transactionNo}
-                                          </button>
-                                        )}
+                                        {(() => {
+                                          if (dateFaceTreatments.length === 0) return null;
+                                          let primaryTxNo = "";
+                                          let displayTxNo = "";
+                                          let targetDate = a.tarih ? format(new Date(a.tarih), 'dd.MM.yyyy') : '';
+                                          
+                                          const normalTx = dateFaceTreatments.find(t => !t.isControl && t.transactionNo);
+                                          if (normalTx) {
+                                            primaryTxNo = normalTx.transactionNo!;
+                                            displayTxNo = primaryTxNo;
+                                          } else {
+                                            const controlTx = dateFaceTreatments.find(t => t.isControl && t.parentTransactionNo);
+                                            if (controlTx) {
+                                              primaryTxNo = controlTx.parentTransactionNo!;
+                                              displayTxNo = primaryTxNo;
+                                              const parentTx = (selProfile.face_treatments || []).find(t => t.transactionNo === primaryTxNo);
+                                              if (parentTx) {
+                                                targetDate = parentTx.date.split(" ")[0];
+                                              }
+                                            }
+                                          }
+
+                                          if (!displayTxNo) return null;
+
+                                          return (
+                                            <button 
+                                              onClick={() => setGlobalReceiptGroup({ date: targetDate, txNo: primaryTxNo, treatments: dateFaceTreatments })}
+                                              className="ml-2 px-2 py-0.5 rounded-md bg-slate-800 text-white font-mono font-extrabold text-[0.6rem] shadow-sm hover:bg-slate-700 transition-colors cursor-pointer"
+                                              title="İşlem Fişini Gör"
+                                            >
+                                              {displayTxNo}
+                                            </button>
+                                          );
+                                        })()}
                                       </div>
                                       <span className={`text-[0.65rem] font-bold px-2 py-0.5 rounded-full ${isStatusDone ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>
                                         {isStatusDone ? 'Tamamlandı' : 'Beklemede'}

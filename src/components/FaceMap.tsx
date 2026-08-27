@@ -787,7 +787,30 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                   <div className="flex flex-wrap gap-1">
                     {dateGroups.map(([date, items]) => {
                       const totalUnits = items.reduce((sum, t) => sum + (t.amount || 0), 0);
-                      const txNo = items[0]?.transactionNo;
+                      
+                      let primaryTxNo = "";
+                      let displayTxNo = "";
+                      let targetDate = date;
+
+                      // Find the first non-control transaction, if any
+                      const normalTx = items.find(t => !t.isControl && t.transactionNo);
+                      if (normalTx) {
+                        primaryTxNo = normalTx.transactionNo!;
+                        displayTxNo = primaryTxNo;
+                      } else {
+                        // If all are control sessions, find the first parent txNo
+                        const controlTx = items.find(t => t.isControl && t.parentTransactionNo);
+                        if (controlTx) {
+                          primaryTxNo = controlTx.parentTransactionNo!;
+                          displayTxNo = primaryTxNo;
+                          // But to open the parent receipt correctly, we need the parent's date!
+                          const parentTx = treatments.find(t => t.transactionNo === primaryTxNo);
+                          if (parentTx) {
+                            targetDate = parentTx.date.split(" ")[0];
+                          }
+                        }
+                      }
+
                       return (
                         <div key={date} className="w-full flex items-stretch gap-1">
                           <button
@@ -796,14 +819,14 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                           >
                             <span>{date} · {items.length} işlem · <span className="font-extrabold">{totalUnits} ünite</span></span>
                           </button>
-                          {txNo && !txNo.includes('-K') && (
+                          {displayTxNo && (
                             <button
-                              onClick={() => setReceiptDateGroup({ date, txNo, treatments: items })}
+                              onClick={() => setReceiptDateGroup({ date: targetDate, txNo: primaryTxNo, treatments: items })}
                               className="px-2.5 rounded-lg bg-slate-800 text-white font-mono font-bold text-[0.55rem] hover:bg-slate-900 transition-colors flex items-center justify-center shrink-0 shadow-sm cursor-pointer"
                               title="İşlem Fişini Gör"
                             >
                               <Receipt className="w-3 h-3 mr-1" />
-                              {txNo}
+                              {displayTxNo}
                             </button>
                           )}
                         </div>
