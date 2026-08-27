@@ -791,6 +791,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                       let primaryTxNo = "";
                       let displayTxNo = "";
                       let targetDate = date;
+                      let isOnlyControl = false;
 
                       // Find the first non-control transaction, if any
                       const normalTx = items.find(t => !t.isControl && t.transactionNo);
@@ -801,13 +802,8 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                         // If all are control sessions, find the first parent txNo
                         const controlTx = items.find(t => t.isControl && t.parentTransactionNo);
                         if (controlTx) {
-                          primaryTxNo = controlTx.parentTransactionNo!;
-                          displayTxNo = primaryTxNo;
-                          // But to open the parent receipt correctly, we need the parent's date!
-                          const parentTx = treatments.find(t => t.transactionNo === primaryTxNo);
-                          if (parentTx) {
-                            targetDate = parentTx.date.split(" ")[0];
-                          }
+                          isOnlyControl = true;
+                          displayTxNo = "Kontrol";
                         }
                       }
 
@@ -821,11 +817,15 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                           </button>
                           {displayTxNo && (
                             <button
-                              onClick={() => setReceiptDateGroup({ date: targetDate, txNo: primaryTxNo, treatments: items })}
-                              className="px-2.5 rounded-lg bg-slate-800 text-white font-mono font-bold text-[0.55rem] hover:bg-slate-900 transition-colors flex items-center justify-center shrink-0 shadow-sm cursor-pointer"
-                              title="İşlem Fişini Gör"
+                              onClick={() => {
+                                if (!isOnlyControl) {
+                                  setReceiptDateGroup({ date: targetDate, txNo: primaryTxNo, treatments: items });
+                                }
+                              }}
+                              className={`px-2.5 rounded-lg font-mono font-bold text-[0.55rem] transition-colors flex items-center justify-center shrink-0 shadow-sm ${isOnlyControl ? 'bg-emerald-100 text-emerald-700 cursor-default' : 'bg-slate-800 text-white hover:bg-slate-900 cursor-pointer'}`}
+                              title={isOnlyControl ? "Kontrol Seansı" : "İşlem Fişini Gör"}
                             >
-                              <Receipt className="w-3 h-3 mr-1" />
+                              {!isOnlyControl && <Receipt className="w-3 h-3 mr-1" />}
                               {displayTxNo}
                             </button>
                           )}

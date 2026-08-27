@@ -924,6 +924,7 @@ export default function PatientListPage() {
                                           let primaryTxNo = "";
                                           let displayTxNo = "";
                                           let targetDate = a.tarih ? format(new Date(a.tarih), 'dd.MM.yyyy') : '';
+                                          let isOnlyControl = false;
                                           
                                           const normalTx = dateFaceTreatments.find(t => !t.isControl && t.transactionNo);
                                           if (normalTx) {
@@ -932,12 +933,8 @@ export default function PatientListPage() {
                                           } else {
                                             const controlTx = dateFaceTreatments.find(t => t.isControl && t.parentTransactionNo);
                                             if (controlTx) {
-                                              primaryTxNo = controlTx.parentTransactionNo!;
-                                              displayTxNo = primaryTxNo;
-                                              const parentTx = (selProfile.face_treatments || []).find(t => t.transactionNo === primaryTxNo);
-                                              if (parentTx) {
-                                                targetDate = parentTx.date.split(" ")[0];
-                                              }
+                                              isOnlyControl = true;
+                                              displayTxNo = "Kontrol";
                                             }
                                           }
 
@@ -945,9 +942,13 @@ export default function PatientListPage() {
 
                                           return (
                                             <button 
-                                              onClick={() => setGlobalReceiptGroup({ date: targetDate, txNo: primaryTxNo, treatments: dateFaceTreatments })}
-                                              className="ml-2 px-2 py-0.5 rounded-md bg-slate-800 text-white font-mono font-extrabold text-[0.6rem] shadow-sm hover:bg-slate-700 transition-colors cursor-pointer"
-                                              title="İşlem Fişini Gör"
+                                              onClick={() => {
+                                                if (!isOnlyControl) {
+                                                  setGlobalReceiptGroup({ date: targetDate, txNo: primaryTxNo, treatments: dateFaceTreatments });
+                                                }
+                                              }}
+                                              className={`ml-2 px-2 py-0.5 rounded-md font-mono font-extrabold text-[0.6rem] shadow-sm transition-colors ${isOnlyControl ? 'bg-emerald-100 text-emerald-700 cursor-default' : 'bg-slate-800 text-white hover:bg-slate-700 cursor-pointer'}`}
+                                              title={isOnlyControl ? "Kontrol Seansı" : "İşlem Fişini Gör"}
                                             >
                                               {displayTxNo}
                                             </button>
