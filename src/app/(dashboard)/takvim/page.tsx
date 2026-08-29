@@ -18,7 +18,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { RefreshCw, Check, X, AlertTriangle, Trash2, Loader2, Settings } from "lucide-react";
+import { RefreshCw, Check, X, AlertTriangle, Trash2, Loader2, Settings, User } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -107,6 +108,7 @@ const normalizeSyncDate = (raw: string) => {
 
 
 export default function CalendarPage() {
+  const router = useRouter();
   const { profile } = useAuth();
   const { getAppointments, saveAppointment, deleteAppointment, getServices } = useDatabase();
   
@@ -831,16 +833,32 @@ export default function CalendarPage() {
                 <Label className="block text-[0.75rem] font-bold text-[#64748b] uppercase tracking-[0.05em]">
                   ADI SOYADI
                 </Label>
-                <Input 
-                  required 
-                  placeholder="Hasta Adı ve Soyadı"
-                  className="h-12 border-slate-200 rounded-xl focus-visible:ring-[#0a3d34] focus-visible:ring-offset-0"
-                  value={currentApt.musteriAdi || ""} 
-                  onChange={e => {
-                    const val = e.target.value.toLocaleUpperCase("tr-TR");
-                    setCurrentApt(prev => ({...prev, musteriAdi: val}));
-                  }} 
-                />
+                <div className="flex items-center gap-2">
+                  <Input 
+                    required 
+                    placeholder="Hasta Adı ve Soyadı"
+                    className="flex-1 h-12 border-slate-200 rounded-xl focus-visible:ring-[#0a3d34] focus-visible:ring-offset-0"
+                    value={currentApt.musteriAdi || ""} 
+                    onChange={e => {
+                      const val = e.target.value.toLocaleUpperCase("tr-TR");
+                      setCurrentApt(prev => ({...prev, musteriAdi: val}));
+                    }} 
+                  />
+                  {currentApt.musteriAdi && (
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => {
+                        const url = `/hasta-listesi?openPatient=${encodeURIComponent(currentApt.musteriAdi)}&phone=${encodeURIComponent(currentApt.telefon || "")}`;
+                        router.push(url);
+                      }}
+                      className="h-12 px-4 shrink-0 rounded-xl font-bold border-slate-200 text-[#0a3d34] hover:bg-slate-50 flex items-center gap-2"
+                    >
+                      <User className="w-4 h-4" />
+                      Hasta Kartı
+                    </Button>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-1.5">

@@ -244,6 +244,27 @@ export default function PatientListPage() {
     getConsentRecords(name).then(records => setPatientConsents(records)).catch(() => {});
   };
 
+  useEffect(() => {
+    if (isMounted) {
+      const params = new URLSearchParams(window.location.search);
+      const openPatient = params.get("openPatient");
+      if (openPatient) {
+        const phone = params.get("phone") || "";
+        // Let the layout settle fully before opening modal
+        const timer = setTimeout(() => {
+          openProfile(openPatient, phone);
+        }, 80);
+        
+        // Clean up parameters without reloading
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, "", newUrl);
+
+        return () => clearTimeout(timer);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMounted]);
+
   const openConsent = (apt: Appointment) => {
     const name = apt.musteriAdi.toLocaleUpperCase("tr-TR");
     setSelectedPatientName(name);
