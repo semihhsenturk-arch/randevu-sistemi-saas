@@ -1061,7 +1061,11 @@ export default function PatientListPage() {
                               
                               const allMappedTxs = Object.values(appointmentTxMapping);
                               const orphanFaceTxs = Array.from(new Set(dateFaceTreatments.map(ft => ft.isControl ? ft.parentTransactionNo : ft.transactionNo).filter(Boolean))).filter(tx => !allMappedTxs.includes(tx as string));
-                              const dateStockHistory = (selProfile.stock_history || []).filter(sh => (sh.treatment_date && sh.treatment_date.split(' ')[0] === dateStr) || (!sh.treatment_date && sh.date.split(' ')[0] === dateStr));
+                              const dateStockHistory = (selProfile.stock_history || []).filter(sh => {
+                                if (sh.treatment_date) return sh.treatment_date.split(' ')[0] === dateStr;
+                                if (sh.date) return sh.date.split(' ')[0] === dateStr;
+                                return false;
+                              });
                               const orphanStockTxs = Array.from(new Set(dateStockHistory.map(sh => sh.transaction_no).filter(Boolean))).filter(tx => !allMappedTxs.includes(tx as string));
                               
                               const txNosToShow = new Set<string>();
