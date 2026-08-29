@@ -1453,9 +1453,19 @@ export default function PatientListPage() {
                     <SelectTrigger className="bg-white"><SelectValue placeholder="İşlem seçiniz..." /></SelectTrigger>
                     <SelectContent>
                       {Array.from(new Set((profiles[selectedPatientName]?.face_treatments || []).map(t => t.transactionNo).filter(Boolean))).map(txNo => {
-                        const tDate = (profiles[selectedPatientName]?.face_treatments || []).find(t => t.transactionNo === txNo)?.date?.split(" ")[0] || "";
+                        const matchedAptId = Object.keys(appointmentTxMapping).find(k => appointmentTxMapping[k] === txNo);
+                        const matchedApt = matchedAptId ? hstAppointments.find(a => a.id === matchedAptId) : null;
+                        let displayString = `${txNo}`;
+                        if (matchedApt) {
+                            const h = matchedApt.hizmetId ? services.find(x => x.id.toString() === matchedApt.hizmetId.toString()) : null;
+                            const dateStr = matchedApt.tarih ? (isValid(parseISO(matchedApt.tarih)) ? format(parseISO(matchedApt.tarih), 'dd.MM.yyyy') : matchedApt.tarih) : '';
+                            displayString = `${txNo} — ${dateStr} ${matchedApt.saat || ''} — ${h?.ad || "Bilinmeyen Hizmet"}`;
+                        } else {
+                            const tDate = (profiles[selectedPatientName]?.face_treatments || []).find(t => t.transactionNo === txNo)?.date?.split(" ")[0] || "";
+                            displayString = `${txNo} ${tDate ? `(${tDate})` : ''} - Ek İşlem`;
+                        }
                         return (
-                          <SelectItem key={txNo as string} value={txNo as string}>{txNo} {tDate ? `(${tDate})` : ''}</SelectItem>
+                          <SelectItem key={txNo as string} value={txNo as string}>{displayString}</SelectItem>
                         );
                       })}
                       <SelectItem value="none">Bağımsız İşlem (Fişsiz)</SelectItem>
