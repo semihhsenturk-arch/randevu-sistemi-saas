@@ -909,8 +909,7 @@ export default function PatientListPage() {
                        const appointmentTxMapping: Record<string, string> = {};
                        const usedTxNos = new Set<string>();
                        
-                       // We reverse hstAppointments to process the oldest first, or just process as is?
-                       // hstAppointments is sorted newest first. Let's process it as is.
+                       // Pass 1: Strict matching by targetType
                        hstAppointments.forEach(a => {
                          const dateStr = a.tarih ? format(new Date(a.tarih), 'dd.MM.yyyy') : '';
                          const dateFaceTreatments = (selProfile.face_treatments || []).filter(ft => (ft.date || "").split(' ')[0] === dateStr);
@@ -925,18 +924,54 @@ export default function PatientListPage() {
                          else if (serviceName.includes("dolgu")) targetType = "dolgu";
                          else if (serviceName.includes("mezo") || serviceName.includes("gençlik") || serviceName.includes("somon")) targetType = "mezoterapi";
                        
-                         const uniqueTxs = Array.from(new Set(dateFaceTreatments.map(t => t.transactionNo).filter(Boolean))) as string[];
-                         
-                         let matchedTxNo = uniqueTxs.find(txNo => {
-                           if (usedTxNos.has(txNo)) return false;
-                           if (!targetType) return true;
-                           return dateFaceTreatments.some(ft => ft.transactionNo === txNo && (ft.type || "").toLowerCase() === targetType);
-                         });
-                       
-                         if (!matchedTxNo) {
-                           matchedTxNo = uniqueTxs.find(txNo => !usedTxNos.has(txNo));
+                         if (targetType) {
+                           const uniqueTxs = Array.from(new Set(dateFaceTreatments.map(t => t.transactionNo).filter(Boolean))) as string[];
+                           const matchedTxNo = uniqueTxs.find(txNo => {
+                             if (usedTxNos.has(txNo)) return false;
+                             return dateFaceTreatments.some(ft => ft.transactionNo === txNo && (ft.type || "").toLowerCase() === targetType);
+                           });
+                           
+                           if (matchedTxNo) {
+                             appointmentTxMapping[a.id] = matchedTxNo;
+                             usedTxNos.add(matchedTxNo);
+                           }
                          }
-                       
+                       });
+
+                       // Pass 2: Appointments with targetType that failed strict matching (e.g. wrong type saved in FaceMap)
+                       hstAppointments.forEach(a => {
+                         if (appointmentTxMapping[a.id]) return;
+                         
+                         const h = a.hizmetId ? services.find(x => x.id.toString() === a.hizmetId.toString()) : null;
+                         const serviceName = (h?.ad || "").toLowerCase();
+                         
+                         let targetType = "";
+                         if (serviceName.includes("botoks") || serviceName.includes("botox") || serviceName.includes("masseter")) targetType = "botoks";
+                         else if (serviceName.includes("dolgu")) targetType = "dolgu";
+                         else if (serviceName.includes("mezo") || serviceName.includes("gençlik") || serviceName.includes("somon")) targetType = "mezoterapi";
+
+                         if (targetType) {
+                           const dateStr = a.tarih ? format(new Date(a.tarih), 'dd.MM.yyyy') : '';
+                           const dateFaceTreatments = (selProfile.face_treatments || []).filter(ft => (ft.date || "").split(' ')[0] === dateStr);
+                           const uniqueTxs = Array.from(new Set(dateFaceTreatments.map(t => t.transactionNo).filter(Boolean))) as string[];
+                           const matchedTxNo = uniqueTxs.find(txNo => !usedTxNos.has(txNo));
+                           
+                           if (matchedTxNo) {
+                             appointmentTxMapping[a.id] = matchedTxNo;
+                             usedTxNos.add(matchedTxNo);
+                           }
+                         }
+                       });
+
+                       // Pass 3: Generic appointments (no targetType) get whatever is left
+                       hstAppointments.forEach(a => {
+                         if (appointmentTxMapping[a.id]) return;
+                         
+                         const dateStr = a.tarih ? format(new Date(a.tarih), 'dd.MM.yyyy') : '';
+                         const dateFaceTreatments = (selProfile.face_treatments || []).filter(ft => (ft.date || "").split(' ')[0] === dateStr);
+                         const uniqueTxs = Array.from(new Set(dateFaceTreatments.map(t => t.transactionNo).filter(Boolean))) as string[];
+                         const matchedTxNo = uniqueTxs.find(txNo => !usedTxNos.has(txNo));
+                         
                          if (matchedTxNo) {
                            appointmentTxMapping[a.id] = matchedTxNo;
                            usedTxNos.add(matchedTxNo);
