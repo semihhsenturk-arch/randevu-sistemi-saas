@@ -650,6 +650,27 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
               <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600"><Syringe className="w-3.5 h-3.5" /></div>
               <div className="text-sm font-extrabold text-slate-800">{editingId ? "Tedaviyi Düzenle" : "Yeni Tedavi Noktası"}</div>
             </div>
+            <div className="grid grid-cols-2 gap-2 mb-2">
+              <div className="col-span-2 space-y-1 bg-emerald-50/50 p-2 rounded-lg border border-emerald-100">
+                <Label className="text-[0.65rem] font-bold text-emerald-700 uppercase tracking-wider">İşlem Fişi Seçimi</Label>
+                <Select value={formTransactionNo} onValueChange={setFormTransactionNo}>
+                  <SelectTrigger className="h-9 text-xs bg-white text-slate-800 border-emerald-200">
+                    <SelectValue placeholder="İşlem Fişi Seçin..." />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white border-slate-200 z-[99999]">
+                    {patientTransactions.length === 0 && (
+                      <SelectItem value="none" disabled>Randevu bulunamadı</SelectItem>
+                    )}
+                    {patientTransactions.map(tx => (
+                      <SelectItem key={tx.txNo} value={tx.txNo} className="text-slate-800 cursor-pointer">
+                        <span className="font-mono font-bold mr-2">{tx.txNo}</span>
+                        {tx.date} {tx.time} - {tx.service}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
                 <Label className="text-[0.6rem] font-bold text-slate-500 uppercase">Tür</Label>
