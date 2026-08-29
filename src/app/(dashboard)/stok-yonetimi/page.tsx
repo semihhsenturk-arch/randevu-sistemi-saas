@@ -57,8 +57,9 @@ export default function StockManagementPage() {
   const getAdjustAmount = (itemId: string) => {
     const val = adjustAmounts[itemId];
     if (val === undefined || val === "") return 1;
-    const num = parseInt(val, 10);
-    return isNaN(num) || num < 1 ? 1 : num;
+    const normalized = val.replace(',', '.');
+    const num = parseFloat(normalized);
+    return isNaN(num) || num <= 0 ? 1 : num;
   };
 
   const handleStockAdjust = async (item: InventoryItem, delta: number) => {
@@ -406,9 +407,9 @@ export default function StockManagementPage() {
                   </button>
                   <input 
                     type="text" 
-                    inputMode="numeric"
+                    inputMode="decimal"
                     value={adjustAmounts[item.id] ?? ""} 
-                    onChange={(e) => setAdjustAmounts(prev => ({ ...prev, [item.id]: e.target.value.replace(/[^0-9]/g, "") }))}
+                    onChange={(e) => setAdjustAmounts(prev => ({ ...prev, [item.id]: e.target.value.replace(/[^0-9.,]/g, "") }))}
                     className="w-12 h-10 text-center font-bold text-slate-900 border-x border-slate-200 bg-slate-50/50 outline-none text-sm"
                   />
                   <button className="h-10 w-10 flex items-center justify-center text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 transition-colors" onClick={() => handleStockAdjust(item, getAdjustAmount(item.id))}>
@@ -521,9 +522,9 @@ export default function StockManagementPage() {
                         </button>
                         <input 
                           type="text" 
-                          inputMode="numeric"
+                          inputMode="decimal"
                           value={adjustAmounts[item.id] ?? ""} 
-                          onChange={(e) => setAdjustAmounts(prev => ({ ...prev, [item.id]: e.target.value.replace(/[^0-9]/g, "") }))}
+                          onChange={(e) => setAdjustAmounts(prev => ({ ...prev, [item.id]: e.target.value.replace(/[^0-9.,]/g, "") }))}
                           className="w-12 h-8 text-center font-bold text-slate-900 border-x border-slate-200 bg-slate-50/50 outline-none text-xs"
                         />
                         <button 
@@ -686,6 +687,7 @@ export default function StockManagementPage() {
                   type="number"
                   required
                   min={0}
+                  step="any"
                   placeholder="0"
                   value={entryForm.adet}
                   onChange={e => setEntryForm(prev => ({ ...prev, adet: e.target.value === "" ? "" : Number(e.target.value) }))}
