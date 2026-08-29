@@ -537,6 +537,144 @@ export default function PatientListPage() {
     .filter(a => (a.musteriAdi || "") === selectedPatientName)
     .sort((a,b) => (b.tarih || "").localeCompare(a.tarih || ""));
 
+  const { appointmentTxMapping, mappedFaceTreatments } = useMemo(() => {
+    const mapping: Record<string, string> = {};
+    const usedTxNos = new Set<string>();
+    
+    // Pass 1: Strict matching by targetType
+    hstAppointments.forEach(a => {
+      const dateStr = a.tarih ? (isValid(parseISO(a.tarih)) ? format(parseISO(a.tarih), 'dd.MM.yyyy') : a.tarih) : '';
+      const dateFaceTreatments = (selProfile.face_treatments || []).filter(ft => (ft.date || "").split(' ')[0] === dateStr);
+      
+      if (dateFaceTreatments.length === 0) return;
+    
+      const h = a.hizmetId ? services.find(x => x.id.toString() === a.hizmetId.toString()) : null;
+      const serviceName = (h?.ad || "").toLowerCase();
+      
+      let targetType = "";
+      if (serviceName.includes("botoks") || serviceName.includes("botox") || serviceName.includes("masseter")) targetType = "botoks";
+      else if (serviceName.includes("dolgu")) targetType = "dolgu";
+      else if (serviceName.includes("mezo") || serviceName.includes("gençlik") || serviceName.includes("somon")) targetType = "mezoterapi";
+    
+      if (targetType) {
+        const uniqueTxs = Array.from(new Set(dateFaceTreatments.map(t => t.transactionNo).filter(Boolean))) as string[];
+        const matchedTxNo = uniqueTxs.find(txNo => {
+          if (usedTxNos.has(txNo)) return false;
+          return dateFaceTreatments.some(ft => ft.transactionNo === txNo && (ft.type || "").toLowerCase() === targetType);
+        });
+        
+        if (matchedTxNo) {
+          mapping[a.id] = matchedTxNo;
+          usedTxNos.add(matchedTxNo);
+        }
+      }
+    });
+
+    // Pass 2: Appointments with targetType that failed strict matching (e.g. wrong type saved in FaceMap)
+    hstAppointments.forEach(a => {
+      if (mapping[a.id]) return;
+      
+      const h = a.hizmetId ? services.find(x => x.id.toString() === a.hizmetId.toString()) : null;
+      const serviceName = (h?.ad || "").toLowerCase();
+      
+      let targetType = "";
+      if (serviceName.includes("botoks") || serviceName.includes("botox") || serviceName.includes("masseter")) targetType = "botoks";
+      else if (serviceName.includes("dolgu")) targetType = "dolgu";
+      else if (serviceName.includes("mezo") || serviceName.includes("gençlik") || serviceName.includes("somon")) targetType = "mezoterapi";
+
+      if (targetType) {
+        const dateStr = a.tarih ? (isValid(parseISO(a.tarih)) ? format(parseISO(a.tarih), 'dd.MM.yyyy') : a.tarih) : '';
+        const dateFaceTreatments = (selProfile.face_treatments || []).filter(ft => (ft.date || "").split(' ')[0] === dateStr);
+        const uniqueTxs = Array.from(new Set(dateFaceTreatments.map(t => t.transactionNo).filter(Boolean))) as string[];
+        const matchedTxNo = uniqueTxs.find(txNo => !usedTxNos.has(txNo));
+        
+        if (matchedTxNo) {
+          mapping[a.id] = matchedTxNo;
+          usedTxNos.add(matchedTxNo);
+        }
+      }
+    });
+
+    // Pass 3: Generic appointments (no targetType) get whatever is left
+    hstAppointments.forEach(a => {
+      if (mapping[a.id]) return;
+      
+      const dateStr = a.tarih ? (isValid(parseISO(a.tarih)) ? format(parseISO(a.tarih), 'dd.MM.yyyy') : a.tarih) : '';
+      const dateFaceTreatments = (selProfile.face_treatments || []).filter(ft => (ft.date || "").split(' ')[0] === dateStr);
+      const uniqueTxs = Array.from(new Set(dateFaceTreatments.map(t => t.transactionNo).filter(Boolean))) as string[];
+      const matchedTxNo = uniqueTxs.find(txNo => !usedTxNos.has(txNo));
+      
+      if (matchedTxNo) {
+        mapping[a.id] = matchedTxNo;
+        usedTxNos.add(matchedTxNo);
+      }
+    });
+
+    // Pass 4: Loose matching by targetType (Different Date fallback)
+    hstAppointments.forEach(a => {
+      if (mapping[a.id]) return;
+      
+      const h = a.hizmetId ? services.find(x => x.id.toString() === a.hizmetId.toString()) : null;
+      const serviceName = (h?.ad || "").toLowerCase();
+      
+      let targetType = "";
+      if (serviceName.includes("botoks") || serviceName.includes("botox") || serviceName.includes("masseter")) targetType = "botoks";
+      else if (serviceName.includes("dolgu")) targetType = "dolgu";
+      else if (serviceName.includes("mezo") || serviceName.includes("gençlik") || serviceName.includes("somon")) targetType = "mezoterapi";
+      
+      if (targetType) {
+        const unassignedTreatments = (selProfile.face_treatments || []).filter(ft => {
+          if (!ft.transactionNo || usedTxNos.has(ft.transactionNo)) return false;
+          return (ft.type || "").toLowerCase() === targetType;
+        });
+        
+        const uniqueTxs = Array.from(new Set(unassignedTreatments.map(t => t.transactionNo).filter(Boolean))) as string[];
+        if (uniqueTxs.length > 0) {
+          const matchedTxNo = uniqueTxs[0];
+          mapping[a.id] = matchedTxNo;
+          usedTxNos.add(matchedTxNo);
+        }
+      }
+    });
+
+    // Pass 5: Absolute fallback for any remaining unassigned transaction
+    hstAppointments.forEach(a => {
+      if (mapping[a.id]) return;
+      
+      const unassignedTreatments = (selProfile.face_treatments || []).filter(ft => ft.transactionNo && !usedTxNos.has(ft.transactionNo));
+      const uniqueTxs = Array.from(new Set(unassignedTreatments.map(t => t.transactionNo).filter(Boolean))) as string[];
+      if (uniqueTxs.length > 0) {
+        const matchedTxNo = uniqueTxs[0];
+        mapping[a.id] = matchedTxNo;
+        usedTxNos.add(matchedTxNo);
+      }
+    });
+
+    // Apply the mapped dates to the face treatments so the UI always reflects the appointment date
+    const txToAppointment: Record<string, Appointment> = {};
+    Object.entries(mapping).forEach(([aptId, txNo]) => {
+      const apt = hstAppointments.find(a => a.id === aptId);
+      if (apt) txToAppointment[txNo] = apt;
+    });
+
+    const treatments = selProfile.face_treatments || [];
+    const newTreatments = treatments.map(t => {
+      const baseTxNo = t.isControl ? t.parentTransactionNo : t.transactionNo;
+      if (baseTxNo && txToAppointment[baseTxNo]) {
+        const apt = txToAppointment[baseTxNo];
+        const dateStr = apt.tarih ? (isValid(parseISO(apt.tarih)) ? format(parseISO(apt.tarih), 'dd.MM.yyyy') : apt.tarih) : '';
+        const timeStr = apt.saat || "";
+        return {
+          ...t,
+          date: `${dateStr} ${timeStr}`.trim()
+        };
+      }
+      return t;
+    });
+
+    return { appointmentTxMapping: mapping, mappedFaceTreatments: newTreatments };
+  }, [hstAppointments, selProfile.face_treatments, services]);
+
   if (isLoading || !isMounted) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -910,118 +1048,6 @@ export default function PatientListPage() {
                  {activeTab === 'timeline' && (
                   <div className="space-y-6">
                      {(() => {
-                       const appointmentTxMapping: Record<string, string> = {};
-                       const usedTxNos = new Set<string>();
-                       
-                       // Pass 1: Strict matching by targetType
-                       hstAppointments.forEach(a => {
-                         const dateStr = a.tarih ? (isValid(parseISO(a.tarih)) ? format(parseISO(a.tarih), 'dd.MM.yyyy') : a.tarih) : '';
-                         const dateFaceTreatments = (selProfile.face_treatments || []).filter(ft => (ft.date || "").split(' ')[0] === dateStr);
-                         
-                         if (dateFaceTreatments.length === 0) return;
-                       
-                         const h = a.hizmetId ? services.find(x => x.id.toString() === a.hizmetId.toString()) : null;
-                         const serviceName = (h?.ad || "").toLowerCase();
-                         
-                         let targetType = "";
-                         if (serviceName.includes("botoks") || serviceName.includes("botox") || serviceName.includes("masseter")) targetType = "botoks";
-                         else if (serviceName.includes("dolgu")) targetType = "dolgu";
-                         else if (serviceName.includes("mezo") || serviceName.includes("gençlik") || serviceName.includes("somon")) targetType = "mezoterapi";
-                       
-                         if (targetType) {
-                           const uniqueTxs = Array.from(new Set(dateFaceTreatments.map(t => t.transactionNo).filter(Boolean))) as string[];
-                           const matchedTxNo = uniqueTxs.find(txNo => {
-                             if (usedTxNos.has(txNo)) return false;
-                             return dateFaceTreatments.some(ft => ft.transactionNo === txNo && (ft.type || "").toLowerCase() === targetType);
-                           });
-                           
-                           if (matchedTxNo) {
-                             appointmentTxMapping[a.id] = matchedTxNo;
-                             usedTxNos.add(matchedTxNo);
-                           }
-                         }
-                       });
-
-                       // Pass 2: Appointments with targetType that failed strict matching (e.g. wrong type saved in FaceMap)
-                       hstAppointments.forEach(a => {
-                         if (appointmentTxMapping[a.id]) return;
-                         
-                         const h = a.hizmetId ? services.find(x => x.id.toString() === a.hizmetId.toString()) : null;
-                         const serviceName = (h?.ad || "").toLowerCase();
-                         
-                         let targetType = "";
-                         if (serviceName.includes("botoks") || serviceName.includes("botox") || serviceName.includes("masseter")) targetType = "botoks";
-                         else if (serviceName.includes("dolgu")) targetType = "dolgu";
-                         else if (serviceName.includes("mezo") || serviceName.includes("gençlik") || serviceName.includes("somon")) targetType = "mezoterapi";
-
-                         if (targetType) {
-                           const dateStr = a.tarih ? (isValid(parseISO(a.tarih)) ? format(parseISO(a.tarih), 'dd.MM.yyyy') : a.tarih) : '';
-                           const dateFaceTreatments = (selProfile.face_treatments || []).filter(ft => (ft.date || "").split(' ')[0] === dateStr);
-                           const uniqueTxs = Array.from(new Set(dateFaceTreatments.map(t => t.transactionNo).filter(Boolean))) as string[];
-                           const matchedTxNo = uniqueTxs.find(txNo => !usedTxNos.has(txNo));
-                           
-                           if (matchedTxNo) {
-                             appointmentTxMapping[a.id] = matchedTxNo;
-                             usedTxNos.add(matchedTxNo);
-                           }
-                         }
-                       });
-
-                       // Pass 3: Generic appointments (no targetType) get whatever is left
-                       hstAppointments.forEach(a => {
-                         if (appointmentTxMapping[a.id]) return;
-                         
-                         const dateStr = a.tarih ? (isValid(parseISO(a.tarih)) ? format(parseISO(a.tarih), 'dd.MM.yyyy') : a.tarih) : '';
-                         const dateFaceTreatments = (selProfile.face_treatments || []).filter(ft => (ft.date || "").split(' ')[0] === dateStr);
-                         const uniqueTxs = Array.from(new Set(dateFaceTreatments.map(t => t.transactionNo).filter(Boolean))) as string[];
-                         const matchedTxNo = uniqueTxs.find(txNo => !usedTxNos.has(txNo));
-                         
-                         if (matchedTxNo) {
-                           appointmentTxMapping[a.id] = matchedTxNo;
-                           usedTxNos.add(matchedTxNo);
-                         }
-                       });
-
-                       // Pass 4: Loose matching by targetType (Different Date fallback)
-                       hstAppointments.forEach(a => {
-                         if (appointmentTxMapping[a.id]) return;
-                         
-                         const h = a.hizmetId ? services.find(x => x.id.toString() === a.hizmetId.toString()) : null;
-                         const serviceName = (h?.ad || "").toLowerCase();
-                         
-                         let targetType = "";
-                         if (serviceName.includes("botoks") || serviceName.includes("botox") || serviceName.includes("masseter")) targetType = "botoks";
-                         else if (serviceName.includes("dolgu")) targetType = "dolgu";
-                         else if (serviceName.includes("mezo") || serviceName.includes("gençlik") || serviceName.includes("somon")) targetType = "mezoterapi";
-                         
-                         if (targetType) {
-                           const unassignedTreatments = (selProfile.face_treatments || []).filter(ft => {
-                             if (!ft.transactionNo || usedTxNos.has(ft.transactionNo)) return false;
-                             return (ft.type || "").toLowerCase() === targetType;
-                           });
-                           
-                           const uniqueTxs = Array.from(new Set(unassignedTreatments.map(t => t.transactionNo).filter(Boolean))) as string[];
-                           if (uniqueTxs.length > 0) {
-                             const matchedTxNo = uniqueTxs[0];
-                             appointmentTxMapping[a.id] = matchedTxNo;
-                             usedTxNos.add(matchedTxNo);
-                           }
-                         }
-                       });
-
-                       // Pass 5: Absolute fallback for any remaining unassigned transaction
-                       hstAppointments.forEach(a => {
-                         if (appointmentTxMapping[a.id]) return;
-                         
-                         const unassignedTreatments = (selProfile.face_treatments || []).filter(ft => ft.transactionNo && !usedTxNos.has(ft.transactionNo));
-                         const uniqueTxs = Array.from(new Set(unassignedTreatments.map(t => t.transactionNo).filter(Boolean))) as string[];
-                         if (uniqueTxs.length > 0) {
-                           const matchedTxNo = uniqueTxs[0];
-                           appointmentTxMapping[a.id] = matchedTxNo;
-                           usedTxNos.add(matchedTxNo);
-                         }
-                       });
-
                        if (hstAppointments.length === 0) return <div className="text-center py-10 italic text-slate-400 bg-white border border-slate-100 rounded-xl shadow-sm">Henüz işlem geçmişi bulunamadı.</div>;
 
                        return (
@@ -1030,10 +1056,10 @@ export default function PatientListPage() {
                               const h = a.hizmetId ? services.find(x => x.id.toString() === a.hizmetId.toString()) : null;
                               const isStatusDone = a.durum === 'onaylandi';
                               const dateStr = a.tarih ? (isValid(parseISO(a.tarih)) ? format(parseISO(a.tarih), 'dd.MM.yyyy') : a.tarih) : '';
-                              const dateFaceTreatments = (selProfile.face_treatments || []).filter(ft => (ft.date || "").split(' ')[0] === dateStr);
+                              const dateFaceTreatments = mappedFaceTreatments.filter(ft => (ft.date || "").split(' ')[0] === dateStr);
                               const assignedTxNo = appointmentTxMapping[a.id];
                               
-                              const matchedFaceTreatments = assignedTxNo ? (selProfile.face_treatments || []).filter(ft => ft.transactionNo === assignedTxNo || ft.parentTransactionNo === assignedTxNo) : [];
+                              const matchedFaceTreatments = assignedTxNo ? mappedFaceTreatments.filter(ft => ft.transactionNo === assignedTxNo || ft.parentTransactionNo === assignedTxNo) : [];
 
                               return (
                                 <div key={a.id} className="relative pl-6">
@@ -1042,7 +1068,7 @@ export default function PatientListPage() {
                                    <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
                                       <div className="flex items-center justify-between mb-2">
                                          <div className="text-[0.7rem] font-bold text-slate-400 tracking-wide uppercase flex items-center gap-1.5">
-                                           <Clock className="w-3 h-3 text-blue-500"/> {a.tarih} · {a.saat}
+                                           <Clock className="w-3 h-3 text-blue-500"/> {dateStr} · {a.saat}
                                            {(() => {
                                              if (matchedFaceTreatments.length === 0) return null;
                                              let primaryTxNo = "";
@@ -1111,7 +1137,7 @@ export default function PatientListPage() {
                {activeTab === 'facemap' && (
                  <FaceMap
                    gender={selProfile.face_gender || 'female'}
-                   treatments={selProfile.face_treatments || []}
+                   treatments={mappedFaceTreatments}
                    patientName={selectedPatientName}
                    stockHistory={selProfile.stock_history || []}
                    appointmentDate={selectedPatientApptDate}

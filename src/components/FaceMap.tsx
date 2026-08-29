@@ -232,7 +232,9 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
         });
       }
     } else if (clickPos && onAddTreatment) {
-      const formattedApptDate = appointmentDate && isValid(parseISO(appointmentDate)) ? format(parseISO(appointmentDate), "dd.MM.yyyy") : format(new Date(), "dd.MM.yyyy");
+      const formattedApptDate = appointmentDate 
+        ? (isValid(parseISO(appointmentDate)) ? format(parseISO(appointmentDate), "dd.MM.yyyy") : appointmentDate) 
+        : format(new Date(), "dd.MM.yyyy");
       const formattedApptTime = appointmentTime || format(new Date(), "HH:mm");
       const todayDate = formattedApptDate;
 
