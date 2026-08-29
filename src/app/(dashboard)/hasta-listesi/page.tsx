@@ -205,13 +205,18 @@ export default function PatientListPage() {
       Object.keys(groupsByDate).forEach(date => {
         const group = groupsByDate[date];
         const existingTx = group.find(t => t.transactionNo)?.transactionNo;
-        const txNo = existingTx || `#ISL-${(++maxNum).toString().padStart(4, '0')}`;
+        let generatedTxNo = "";
         
         group.forEach(t => {
-          if (t.transactionNo !== txNo) {
+          if (!t.transactionNo) {
             hasChanges = true;
+            if (!existingTx && !generatedTxNo) {
+              generatedTxNo = `#ISL-${(++maxNum).toString().padStart(4, '0')}`;
+            }
+            newTreatments.push({ ...t, transactionNo: existingTx || generatedTxNo });
+          } else {
+            newTreatments.push(t);
           }
-          newTreatments.push({ ...t, transactionNo: txNo });
         });
       });
 
