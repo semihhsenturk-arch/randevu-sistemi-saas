@@ -1142,12 +1142,12 @@ export default function PatientListPage() {
                                           {a.notlar}
                                         </div>
                                       )}
-                                      {matchedFaceTreatments.length > 0 && (
+                                      {dateFaceTreatments.length > 0 && (
                                         <button
                                           onClick={() => setActiveTab('facemap')}
                                           className="mt-3 flex items-center gap-1.5 text-[0.7rem] font-bold text-rose-600 bg-rose-50 px-3 py-1.5 rounded-lg border border-rose-100 hover:bg-rose-100 transition-colors"
                                         >
-                                          <Syringe className="w-3 h-3" /> Yüz Haritasını Gör ({matchedFaceTreatments.length} işlem)
+                                          <Syringe className="w-3 h-3" /> Yüz Haritasını Gör ({dateFaceTreatments.length} işlem)
                                         </button>
                                       )}
                                    </div>
