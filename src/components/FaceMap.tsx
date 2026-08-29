@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { X, Plus, Syringe, Clock, ZoomIn, ZoomOut, RotateCcw, Trash2, Maximize2, Minimize2, Pencil, Receipt, MapPin } from "lucide-react";
 import { TransactionReceiptModal } from "./TransactionReceiptModal";
-import { format } from "date-fns";
+import { format, parseISO, isValid } from "date-fns";
 
 interface FaceMapProps {
   gender: "female" | "male";
@@ -21,9 +21,11 @@ interface FaceMapProps {
   readonly?: boolean;
   patientName?: string;
   stockHistory?: any[];
+  appointmentDate?: string;
+  appointmentTime?: string;
 }
 
-export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreatment, onDeleteTreatment, onGenderChange, readonly = false, patientName, stockHistory = [] }: FaceMapProps) {
+export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreatment, onDeleteTreatment, onGenderChange, readonly = false, patientName, stockHistory = [], appointmentDate, appointmentTime }: FaceMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -230,7 +232,10 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
         });
       }
     } else if (clickPos && onAddTreatment) {
-      const todayDate = format(new Date(), "dd.MM.yyyy");
+      const formattedApptDate = appointmentDate && isValid(parseISO(appointmentDate)) ? format(parseISO(appointmentDate), "dd.MM.yyyy") : format(new Date(), "dd.MM.yyyy");
+      const formattedApptTime = appointmentTime || format(new Date(), "HH:mm");
+      const todayDate = formattedApptDate;
+
       let txNo = "";
 
       if (formIsControl && formParentTxNo) {
@@ -256,7 +261,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
 
       const t: FaceTreatment = {
         id: `ft_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-        date: format(new Date(), "dd.MM.yyyy HH:mm"),
+        date: `${formattedApptDate} ${formattedApptTime}`,
         zone: `${clickPos.x.toFixed(1)},${clickPos.y.toFixed(1)}`,
         type: formType,
         amount: parseFloat(formAmount),

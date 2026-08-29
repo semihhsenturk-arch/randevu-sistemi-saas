@@ -48,6 +48,8 @@ export default function PatientListPage() {
   const [selectedPatientName, setSelectedPatientName] = useState("");
   const [globalReceiptGroup, setGlobalReceiptGroup] = useState<{ date: string; txNo: string; treatments: any[] } | null>(null);
   const [selectedPatientPhone, setSelectedPatientPhone] = useState("");
+  const [selectedPatientApptDate, setSelectedPatientApptDate] = useState("");
+  const [selectedPatientApptTime, setSelectedPatientApptTime] = useState("");
 
   // Consent
   const [consentModalOpen, setConsentModalOpen] = useState(false);
@@ -168,10 +170,12 @@ export default function PatientListPage() {
     done: filteredPatients.filter(a => a.durum === "onaylandi").length
   }), [filteredPatients]);
 
-  const openProfile = (rawName: string, phone: string) => {
+  const openProfile = (rawName: string, phone: string, apptDate?: string, apptTime?: string) => {
     const name = rawName.toLocaleUpperCase("tr-TR");
     setSelectedPatientName(name);
     setSelectedPatientPhone(phone);
+    setSelectedPatientApptDate(apptDate || "");
+    setSelectedPatientApptTime(apptTime || "");
     const prof = { ...(profiles[name] || { notes_list: [], meds: [], stock_history: [] }) };
     
     // MIGRATION: Ensure all existing face treatments have a transactionNo (ONE per date group)
@@ -602,7 +606,7 @@ export default function PatientListPage() {
             <div key={p.id} className={`bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 ${p.durum === 'beklemede' ? 'border-amber-200 bg-amber-50/10' : ''}`}>
               <div className="flex justify-between items-start">
                 <div className="flex flex-col flex-1 min-w-0 mr-3">
-                  <span className="font-extrabold text-[#0a3d34] text-lg line-clamp-2 break-words" onClick={() => openProfile(p.musteriAdi, p.telefon || "")}>{p.musteriAdi}</span>
+                  <span className="font-extrabold text-[#0a3d34] text-lg line-clamp-2 break-words" onClick={() => openProfile(p.musteriAdi, p.telefon || "", p.tarih, p.saat)}>{p.musteriAdi}</span>
                   <span className="text-sm font-medium text-slate-500">{p.telefon || "Telefon Yok"}</span>
                 </div>
                 <div className="flex flex-col items-end gap-1 shrink-0 mt-1">
@@ -655,7 +659,7 @@ export default function PatientListPage() {
               return (
                 <TableRow key={p.id} className={`hover:bg-emerald-50/30 transition-colors ${p.durum === 'beklemede' ? 'bg-amber-50/20' : ''}`}>
                   <TableCell className="text-center py-4">
-                     <span className="font-bold text-[#0a3d34] cursor-pointer hover:underline underline-offset-4" onClick={() => openProfile(p.musteriAdi, p.telefon || "")}>
+                     <span className="font-bold text-[#0a3d34] cursor-pointer hover:underline underline-offset-4" onClick={() => openProfile(p.musteriAdi, p.telefon || "", p.tarih, p.saat)}>
                         {p.musteriAdi}
                      </span>
                   </TableCell>
@@ -1109,7 +1113,9 @@ export default function PatientListPage() {
                    gender={selProfile.face_gender || 'female'}
                    treatments={selProfile.face_treatments || []}
                    patientName={selectedPatientName}
-                    stockHistory={selProfile.stock_history || []}
+                   stockHistory={selProfile.stock_history || []}
+                   appointmentDate={selectedPatientApptDate}
+                   appointmentTime={selectedPatientApptTime}
                    onGenderChange={async (g) => {
                      const current = profiles[selectedPatientName] || { notes_list: [], meds: [], stock_history: [] };
                      const updated = { ...current, face_gender: g };
