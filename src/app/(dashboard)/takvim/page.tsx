@@ -581,7 +581,7 @@ export default function CalendarPage() {
     if (currentApt.id && !currentApt.id.startsWith("temp_")) {
       const idx = sorted.findIndex(a => a.id === currentApt.id);
       if (idx !== -1) {
-        return `#ISL-${(idx + 1).toString().padStart(5, '0')}`;
+        return `#ISL-${(idx + 1).toString().padStart(4, '0')}`;
       }
     }
     
@@ -592,7 +592,7 @@ export default function CalendarPage() {
         return (a.saat || "").localeCompare(b.saat || "");
     });
     const idx = withTemp.findIndex(a => a.id === "temp_predict");
-    return `#ISL-${(idx + 1).toString().padStart(5, '0')}`;
+    return `#ISL-${(idx + 1).toString().padStart(4, '0')}`;
   }, [appointments, currentApt]);
 
   if (!isMounted) {

@@ -205,7 +205,7 @@ export default function PatientListPage() {
       Object.keys(groupsByDate).forEach(date => {
         const group = groupsByDate[date];
         const existingTx = group.find(t => t.transactionNo)?.transactionNo;
-        const txNo = existingTx || `#ISL-${(++maxNum).toString().padStart(5, '0')}`;
+        const txNo = existingTx || `#ISL-${(++maxNum).toString().padStart(4, '0')}`;
         
         group.forEach(t => {
           if (t.transactionNo !== txNo) {
