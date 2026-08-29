@@ -225,6 +225,32 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
   const handleSubmit = () => {
     if (!formAmount) return;
     
+    const formattedApptDate = appointmentDate 
+      ? (isValid(parseISO(appointmentDate)) ? format(parseISO(appointmentDate), "dd.MM.yyyy") : appointmentDate) 
+      : format(new Date(), "dd.MM.yyyy");
+    const formattedApptTime = appointmentTime || format(new Date(), "HH:mm");
+    const todayDate = formattedApptDate;
+
+    let txNo = "";
+
+    if (formIsControl && formParentTxNo) {
+      const existing = editingId ? treatments.find(t => t.id === editingId) : null;
+      if (existing && existing.isControl && existing.parentTransactionNo === formParentTxNo && existing.transactionNo) {
+        txNo = existing.transactionNo;
+      } else {
+        const todayControl = treatments.find(t => t.id !== editingId && t.date.startsWith(todayDate) && t.isControl && t.parentTransactionNo === formParentTxNo && t.transactionNo);
+        if (todayControl && todayControl.transactionNo) {
+          txNo = todayControl.transactionNo;
+        } else {
+          const existingControls = treatments.filter(t => t.id !== editingId && t.isControl && t.parentTransactionNo === formParentTxNo);
+          const uniqueTxNos = new Set(existingControls.map(t => t.transactionNo).filter(Boolean));
+          txNo = `${formParentTxNo}-K${uniqueTxNos.size + 1}`;
+        }
+      }
+    } else {
+      txNo = formTransactionNo || generateTransactionNo(treatments);
+    }
+
     if (editingId && onUpdateTreatment) {
       const existing = treatments.find(t => t.id === editingId);
       if (existing) {
@@ -237,32 +263,10 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
           note: formNote || undefined,
           isControl: formIsControl,
           parentTransactionNo: formIsControl ? formParentTxNo : undefined,
+          transactionNo: txNo,
         });
       }
     } else if (clickPos && onAddTreatment) {
-      const formattedApptDate = appointmentDate 
-        ? (isValid(parseISO(appointmentDate)) ? format(parseISO(appointmentDate), "dd.MM.yyyy") : appointmentDate) 
-        : format(new Date(), "dd.MM.yyyy");
-      const formattedApptTime = appointmentTime || format(new Date(), "HH:mm");
-      const todayDate = formattedApptDate;
-
-      let txNo = "";
-
-      if (formIsControl && formParentTxNo) {
-        // Reuse today's control txNo for the same parent if exists
-        const todayControl = treatments.find(t => t.date.startsWith(todayDate) && t.isControl && t.parentTransactionNo === formParentTxNo && t.transactionNo);
-        if (todayControl && todayControl.transactionNo) {
-          txNo = todayControl.transactionNo;
-        } else {
-          // Find next K index
-          const existingControls = treatments.filter(t => t.isControl && t.parentTransactionNo === formParentTxNo);
-          const uniqueTxNos = new Set(existingControls.map(t => t.transactionNo).filter(Boolean));
-          txNo = `${formParentTxNo}-K${uniqueTxNos.size + 1}`;
-        }
-      } else {
-        txNo = formTransactionNo || generateTransactionNo(treatments);
-      }
-
       const t: FaceTreatment = {
         id: `ft_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
         date: `${formattedApptDate} ${formattedApptTime}`,
