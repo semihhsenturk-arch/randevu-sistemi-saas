@@ -301,17 +301,19 @@ export function useDatabase() {
   };
 
   const assignGlobalTransactionNumbers = (profiles: Record<string, Omit<PatientProfile, "patient_name">>) => {
-    const groups: { patientName: string; dayStr: string; timestamp: number }[] = [];
+    const groups: { patientName: string; dayStr: string; type: string; timestamp: number }[] = [];
     
     // Her hastanın gün bazında ilk işleminin saatini bul
     for (const [patientName, profile] of Object.entries(profiles)) {
       if (!profile.face_treatments || profile.face_treatments.length === 0) continue;
       
-      const dayMap = new Map<string, string>(); // day -> earliest date string
+      const dayTypeMap = new Map<string, string>(); // day|type -> earliest date string
       for (const t of profile.face_treatments) {
+        if (t.isControl) continue; // Kontroller yeni ISL almaz
         const day = t.date.split(" ")[0];
-        if (!dayMap.has(day)) {
-          dayMap.set(day, t.date);
+        const key = `${day}|${t.type}`;
+        if (!dayTypeMap.has(key)) {
+          dayTypeMap.set(key, t.date);
         } else {
           // compare times safely (dd.MM.yyyy HH:mm format)
           const parseD = (dStr: string) => {
@@ -321,13 +323,14 @@ export function useDatabase() {
             const [HH, mm] = tStr.split(":");
             return new Date(Number(YYYY), Number(MM) - 1, Number(DD), Number(HH), Number(mm)).getTime();
           };
-          if (parseD(t.date) < parseD(dayMap.get(day)!)) {
-            dayMap.set(day, t.date);
+          if (parseD(t.date) < parseD(dayTypeMap.get(key)!)) {
+            dayTypeMap.set(key, t.date);
           }
         }
       }
       
-      for (const [day, earliestDate] of dayMap.entries()) {
+      for (const [key, earliestDate] of dayTypeMap.entries()) {
+        const [day, type] = key.split("|");
         const parseD = (dStr: string) => {
           const [d, tStr] = dStr.split(" ");
           if (!tStr) return 0;
@@ -338,6 +341,7 @@ export function useDatabase() {
         groups.push({
           patientName,
           dayStr: day,
+          type: type,
           timestamp: parseD(earliestDate)
         });
       }
@@ -347,18 +351,19 @@ export function useDatabase() {
     groups.sort((a, b) => a.timestamp - b.timestamp);
     
     // Sırayla ISL numarası ata
-    const dayToTxNo = new Map<string, string>();
+    const dayTypeToTxNo = new Map<string, string>();
     groups.forEach((g, index) => {
       const txNo = `#ISL-${(index + 1).toString().padStart(4, '0')}`;
-      dayToTxNo.set(`${g.patientName}|${g.dayStr}`, txNo);
+      dayTypeToTxNo.set(`${g.patientName}|${g.dayStr}|${g.type}`, txNo);
     });
     
     // Profillere ISL numaralarını yaz
     for (const [patientName, profile] of Object.entries(profiles)) {
       if (profile.face_treatments) {
         profile.face_treatments = profile.face_treatments.map(t => {
+          if (t.isControl) return t; // Kontrollerin transactionNo'sunu koru
           const day = t.date.split(" ")[0];
-          const txNo = dayToTxNo.get(`${patientName}|${day}`);
+          const txNo = dayTypeToTxNo.get(`${patientName}|${day}|${t.type}`);
           return { ...t, transactionNo: txNo || t.transactionNo };
         });
       }

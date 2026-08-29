@@ -57,19 +57,35 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
   const imgSrc = isFemale ? "/images/face-female.png" : "/images/face-male.png";
   const fullscreenBgColor = isFemale ? "#e9e9e9" : "#f2f3f2";
 
-  // Group treatments by date
+  // Group treatments by date and txNo
   const dateGroups = useMemo(() => {
     const groups: Record<string, FaceTreatment[]> = {};
     treatments.forEach(t => {
       const dateKey = t.date.split(" ")[0];
-      if (!groups[dateKey]) groups[dateKey] = [];
-      groups[dateKey].push(t);
+      const txKey = t.transactionNo || 'none';
+      const key = `${dateKey}_${txKey}`;
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(t);
     });
-    return Object.entries(groups).sort((a, b) => b[0].localeCompare(a[0]));
+    return Object.entries(groups).sort((a, b) => {
+       const dateA = a[1][0].date.split(" ")[0];
+       const dateB = b[1][0].date.split(" ")[0];
+       const dateCmp = dateB.localeCompare(dateA);
+       if (dateCmp !== 0) return dateCmp;
+       const txA = a[1][0].transactionNo || '';
+       const txB = b[1][0].transactionNo || '';
+       return txB.localeCompare(txA);
+    });
   }, [treatments]);
 
   const activeTreatments = useMemo(() => {
-    if (selectedDate) return treatments.filter(t => t.date.split(" ")[0] === selectedDate);
+    if (selectedDate) {
+      return treatments.filter(t => {
+        const dateKey = t.date.split(" ")[0];
+        const txKey = t.transactionNo || 'none';
+        return `${dateKey}_${txKey}` === selectedDate;
+      });
+    }
     return treatments;
   }, [treatments, selectedDate]);
 
@@ -229,8 +245,8 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
           txNo = `${formParentTxNo}-K${uniqueTxNos.size + 1}`;
         }
       } else {
-        // Reuse today's non-control txNo if exists
-        const todayTx = treatments.find(t => t.date.startsWith(todayDate) && !t.isControl && t.transactionNo);
+        // Reuse today's non-control txNo if exists AND matches formType
+        const todayTx = treatments.find(t => t.date.startsWith(todayDate) && !t.isControl && t.type === formType && t.transactionNo);
         if (todayTx && todayTx.transactionNo) {
           txNo = todayTx.transactionNo;
         } else {
@@ -417,15 +433,17 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                   {selectedDate && <button onClick={() => setSelectedDate(null)} className="text-[0.55rem] font-bold text-emerald-600 hover:text-emerald-800 underline underline-offset-2 bg-white/80 px-1.5 rounded backdrop-blur-sm shadow-sm border border-emerald-100">Tümü</button>}
                 </div>
                 <div className="flex flex-col gap-1 max-h-[40vh] overflow-y-auto custom-scrollbar-inner pr-1">
-                  {dateGroups.map(([date, items]) => {
+                  {dateGroups.map(([key, items]) => {
+                    const date = items[0].date.split(" ")[0];
+                    const types = Array.from(new Set(items.map(t => t.type === "botoks" ? "Botoks" : t.type === "dolgu" ? "Dolgu" : "Mezoterapi"))).join(", ");
                     const totalUnits = items.reduce((sum, t) => sum + (t.amount || 0), 0);
                     return (
-                      <div key={date} className="flex items-stretch gap-1">
+                      <div key={key} className="flex items-stretch gap-1">
                         <button
-                          onClick={() => setSelectedDate(selectedDate === date ? null : date)}
-                          className={`px-2.5 py-1.5 rounded-lg text-[0.6rem] font-bold transition-all border flex items-center justify-between gap-3 shadow-sm text-left ${selectedDate === date ? "bg-emerald-50/90 text-emerald-700 border-emerald-200" : "bg-white/80 backdrop-blur-sm text-slate-600 border-slate-200/70 hover:border-slate-300"}`}
+                          onClick={() => setSelectedDate(selectedDate === key ? null : key)}
+                          className={`px-2.5 py-1.5 rounded-lg text-[0.6rem] font-bold transition-all border flex items-center justify-between gap-3 shadow-sm text-left ${selectedDate === key ? "bg-emerald-50/90 text-emerald-700 border-emerald-200" : "bg-white/80 backdrop-blur-sm text-slate-600 border-slate-200/70 hover:border-slate-300"}`}
                         >
-                          <span className="truncate">{date} · {items.length} işl.</span>
+                          <span className="truncate">{date} ({types}) · {items.length} işl.</span>
                           <span className="font-extrabold shrink-0">{totalUnits} ünite</span>
                         </button>
                       </div>
@@ -785,7 +803,9 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                     {selectedDate && <button onClick={() => setSelectedDate(null)} className="text-[0.55rem] font-bold text-emerald-600 hover:text-emerald-800 underline underline-offset-2">Tümü</button>}
                   </div>
                   <div className="flex flex-wrap gap-1">
-                    {dateGroups.map(([date, items]) => {
+                    {dateGroups.map(([key, items]) => {
+                      const date = items[0].date.split(" ")[0];
+                      const types = Array.from(new Set(items.map(t => t.type === "botoks" ? "Botoks" : t.type === "dolgu" ? "Dolgu" : "Mezoterapi"))).join(", ");
                       const totalUnits = items.reduce((sum, t) => sum + (t.amount || 0), 0);
                       
                       let primaryTxNo = "";
@@ -808,12 +828,12 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                       }
 
                       return (
-                        <div key={date} className="w-full flex items-stretch justify-between gap-1">
+                        <div key={key} className="w-full flex items-stretch justify-between gap-1">
                           <button
-                            onClick={() => setSelectedDate(selectedDate === date ? null : date)}
-                            className={`px-2.5 py-1.5 rounded-lg text-[0.6rem] font-bold transition-all border flex items-center gap-1 ${selectedDate === date ? "bg-emerald-50 text-emerald-700 border-emerald-200 shadow-sm" : "bg-white text-slate-500 border-slate-100 hover:border-slate-200"}`}
+                            onClick={() => setSelectedDate(selectedDate === key ? null : key)}
+                            className={`px-2.5 py-1.5 rounded-lg text-[0.6rem] font-bold transition-all border flex items-center gap-1 ${selectedDate === key ? "bg-emerald-50 text-emerald-700 border-emerald-200 shadow-sm" : "bg-white text-slate-500 border-slate-100 hover:border-slate-200"}`}
                           >
-                            <span>{date} · {items.length} işlem · <span className="font-extrabold">{totalUnits} ünite</span></span>
+                            <span>{date} ({types}) · {items.length} işlem · <span className="font-extrabold">{totalUnits} ünite</span></span>
                           </button>
                           {displayTxNo && (
                             <button
