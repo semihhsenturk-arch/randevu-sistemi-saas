@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useDatabase, Appointment, Service, getCacheSync, CACHE_KEYS } from "@/hooks/use-database";
 import { CalendarCheck, Banknote, TrendingUp, Loader2, ArrowUpRight, ArrowDownRight, Coins, Percent, Ban, Users, Wallet } from "lucide-react";
-import { format, startOfMonth, subDays, startOfWeek, endOfWeek, getWeek } from "date-fns";
+import { format, startOfMonth, subDays, startOfWeek, endOfWeek, getWeek, parseISO, isValid } from "date-fns";
 import { tr } from "date-fns/locale/tr";
 import { useAuth } from "@/hooks/use-auth";
 import { FlatPicker } from "@/components/ui/flat-picker";
@@ -209,86 +209,124 @@ export default function DashboardAnalyticsPage() {
     
     // Calculate transactions list
     const transactions: any[] = [];
+    const appointmentTxMapping: Record<string, string> = {};
+    const usedTxNos = new Set<string>();
 
+    // Pass 1: Strict matching by targetType
+    filtered.forEach((a: any) => {
+      const profile = patientProfiles[a.musteriAdi.toLocaleUpperCase("tr-TR")] || patientProfiles[a.musteriAdi];
+      if (!profile) return;
+      const dateStr = a.tarih ? (isValid(parseISO(a.tarih)) ? format(parseISO(a.tarih), 'dd.MM.yyyy') : (() => {
+        const [yyyy, mm, dd] = a.tarih.split('-'); return `${dd}.${mm}.${yyyy}`;
+      })()) : '';
+      const dateFaceTreatments = (profile.face_treatments || []).filter((ft: any) => (ft.date || "").split(' ')[0] === dateStr);
+      if (dateFaceTreatments.length === 0) return;
+      const h = a.hizmetId ? services.find(x => x.id.toString() === a.hizmetId.toString()) : null;
+      const serviceName = (h?.ad || "").toLowerCase();
+      let targetType = "";
+      if (serviceName.includes("botoks") || serviceName.includes("botox") || serviceName.includes("masseter")) targetType = "botoks";
+      else if (serviceName.includes("dolgu")) targetType = "dolgu";
+      else if (serviceName.includes("mezo") || serviceName.includes("gençlik") || serviceName.includes("somon")) targetType = "mezoterapi";
+      if (targetType) {
+        const uniqueTxs = Array.from(new Set(dateFaceTreatments.map((t: any) => t.transactionNo).filter(Boolean))) as string[];
+        const matchedTxNo = uniqueTxs.find(txNo => {
+          if (usedTxNos.has(txNo)) return false;
+          return dateFaceTreatments.some((ft: any) => ft.transactionNo === txNo && (ft.type || "").toLowerCase() === targetType);
+        });
+        if (matchedTxNo) { appointmentTxMapping[a.id] = matchedTxNo; usedTxNos.add(matchedTxNo); }
+      }
+    });
+
+    // Pass 2: Loose matching by targetType for remaining
+    filtered.forEach((a: any) => {
+      if (appointmentTxMapping[a.id]) return;
+      const profile = patientProfiles[a.musteriAdi.toLocaleUpperCase("tr-TR")] || patientProfiles[a.musteriAdi];
+      if (!profile) return;
+      const dateStr = a.tarih ? (isValid(parseISO(a.tarih)) ? format(parseISO(a.tarih), 'dd.MM.yyyy') : (() => {
+        const [yyyy, mm, dd] = a.tarih.split('-'); return `${dd}.${mm}.${yyyy}`;
+      })()) : '';
+      const dateFaceTreatments = (profile.face_treatments || []).filter((ft: any) => (ft.date || "").split(' ')[0] === dateStr);
+      if (dateFaceTreatments.length === 0) return;
+      const h = a.hizmetId ? services.find(x => x.id.toString() === a.hizmetId.toString()) : null;
+      const serviceName = (h?.ad || "").toLowerCase();
+      let targetType = "";
+      if (serviceName.includes("botoks") || serviceName.includes("botox") || serviceName.includes("masseter")) targetType = "botoks";
+      else if (serviceName.includes("dolgu")) targetType = "dolgu";
+      else if (serviceName.includes("mezo") || serviceName.includes("gençlik") || serviceName.includes("somon")) targetType = "mezoterapi";
+      if (targetType) {
+        const uniqueTxs = Array.from(new Set(dateFaceTreatments.map((t: any) => t.transactionNo).filter(Boolean))) as string[];
+        const matchedTxNo = uniqueTxs.find(txNo => !usedTxNos.has(txNo));
+        if (matchedTxNo) { appointmentTxMapping[a.id] = matchedTxNo; usedTxNos.add(matchedTxNo); }
+      }
+    });
+
+    // Pass 3: Generic matching for remaining
+    filtered.forEach((a: any) => {
+      if (appointmentTxMapping[a.id]) return;
+      const profile = patientProfiles[a.musteriAdi.toLocaleUpperCase("tr-TR")] || patientProfiles[a.musteriAdi];
+      if (!profile) return;
+      const dateStr = a.tarih ? (isValid(parseISO(a.tarih)) ? format(parseISO(a.tarih), 'dd.MM.yyyy') : (() => {
+        const [yyyy, mm, dd] = a.tarih.split('-'); return `${dd}.${mm}.${yyyy}`;
+      })()) : '';
+      const dateFaceTreatments = (profile.face_treatments || []).filter((ft: any) => (ft.date || "").split(' ')[0] === dateStr);
+      const uniqueTxs = Array.from(new Set(dateFaceTreatments.map((t: any) => t.transactionNo).filter(Boolean))) as string[];
+      const matchedTxNo = uniqueTxs.find(txNo => !usedTxNos.has(txNo));
+      if (matchedTxNo) { appointmentTxMapping[a.id] = matchedTxNo; usedTxNos.add(matchedTxNo); }
+    });
+
+    // Generate Transactions from Appointments
     filtered.forEach((a: any) => {
       const svc = services.find(h => h.id.toString() === a.hizmetId.toString());
       const revenue = a.customPrice !== undefined && a.customPrice !== null ? a.customPrice : (svc ? svc.fiyat : 0);
-      
       if (svc) { totalRevenue += revenue; counts[svc.ad] = (counts[svc.ad] || 0) + 1; }
-
+      
       const profile = patientProfiles[a.musteriAdi.toLocaleUpperCase("tr-TR")] || patientProfiles[a.musteriAdi];
-      let txNo = "-";
       let materialCost = 0;
+      let txNo = appointmentTxMapping[a.id] || "-";
 
       if (profile) {
-        const [yyyy, mm, dd] = a.tarih.split('-');
-        const targetDateStr = `${dd}.${mm}.${yyyy}`;
-        
-        const treatments = profile.face_treatments?.filter((t: any) => t.date.split(' ')[0] === targetDateStr) || [];
-        if (treatments.length > 0 && treatments[0].transactionNo) {
-          txNo = treatments[0].transactionNo;
-        } else if (treatments.length > 0) {
-          txNo = "Kayıtlı İşlem"; // Fallback if no specific ISL number yet
+        const dateStr = a.tarih ? (isValid(parseISO(a.tarih)) ? format(parseISO(a.tarih), 'dd.MM.yyyy') : (() => {
+          const [yyyy, mm, dd] = a.tarih.split('-'); return `${dd}.${mm}.${yyyy}`;
+        })()) : '';
+        const targetDateStr = dateStr;
+
+        if (txNo === "-" && profile.face_treatments) {
+            const treatments = profile.face_treatments.filter((t: any) => t.date.split(' ')[0] === targetDateStr);
+            if (treatments.length > 0 && !treatments[0].transactionNo) txNo = "Kayıtlı İşlem";
         }
 
         const stockHistory = profile.stock_history || [];
-        let relevantStocks = stockHistory.filter((h: any) => h.date.split(' ')[0] === targetDateStr);
-        
-        if (relevantStocks.length === 0) {
-           relevantStocks = stockHistory.filter((h: any) => h.treatment_date && h.treatment_date.split(' ')[0] === targetDateStr);
+        let relevantStocks = [];
+        if (txNo && txNo !== "-" && txNo !== "Kayıtlı İşlem") {
+          relevantStocks = stockHistory.filter((h: any) => h.transaction_no === txNo);
         }
-        
         if (relevantStocks.length === 0) {
-           const today = new Date();
-           const todayStr = `${today.getDate().toString().padStart(2, '0')}.${(today.getMonth() + 1).toString().padStart(2, '0')}.${today.getFullYear()}`;
-           relevantStocks = stockHistory.filter((h: any) => h.date.includes(todayStr));
-        }
-        
-        if (relevantStocks.length === 0 && stockHistory.length > 0) {
-           relevantStocks = stockHistory;
+           relevantStocks = stockHistory.filter((h: any) => (!h.transaction_no) && (h.date.split(' ')[0] === targetDateStr || (h.treatment_date && h.treatment_date.split(' ')[0] === targetDateStr)));
         }
         
         relevantStocks.forEach((stock: any) => {
            stock.text.split(", ").forEach((itemStr: string) => {
               const costMatch = itemStr.match(/\[Maliyet:\s*([\d.]+)\]/);
               const embeddedUnitPrice = costMatch ? parseFloat(costMatch[1]) : null;
-
-              const cleanItemStr = itemStr
-                .replace(/\s*\(Toplam Maliyet:.*?\)/g, "")
-                .replace(/\s*\(Maliyet:.*?\)/g, "")
-                .replace(/\s*\[Toplam Maliyet:.*?\]/g, "")
-                .replace(/\s*\[Maliyet:.*?\]/g, "")
-                .trim();
+              const cleanItemStr = itemStr.replace(/\s*\(Toplam Maliyet:.*?\)/g, "").replace(/\s*\(Maliyet:.*?\)/g, "").replace(/\s*\[Toplam Maliyet:.*?\]/g, "").replace(/\s*\[Maliyet:.*?\]/g, "").trim();
               const parts = cleanItemStr.split(" ");
-              const amountStr = parts[0];
-              const amount = parseFloat(amountStr) || 0;
+              const amount = parseFloat(parts[0]) || 0;
               const itemName = parts.slice(2).join(" ");
-              
               const invItem = inventory?.items?.find((i: any) => i.ad === itemName);
               const unitPrice = embeddedUnitPrice !== null ? embeddedUnitPrice : (invItem?.fiyat || 0);
               materialCost += (unitPrice * amount);
            });
         });
 
-        // If this is a control session, zero out its material cost because it will be aggregated into the parent
         if (txNo.includes("-K")) {
            materialCost = 0;
-        } 
-        // If this is a primary session, add the costs of any child control sessions
-        else if (txNo !== "-") {
-           const allTreatments = profile.face_treatments || [];
-           const childControls = allTreatments.filter((t: any) => t.isControl && t.parentTransactionNo === txNo);
+        } else if (txNo !== "-") {
+           const childControls = (profile.face_treatments || []).filter((t: any) => t.isControl && t.parentTransactionNo === txNo);
            const childTxNos = Array.from(new Set(childControls.map((t: any) => t.transactionNo).filter(Boolean)));
-           
-           childTxNos.forEach((childTxNo: string) => {
+           childTxNos.forEach((childTxNo: any) => {
               const childTx = childControls.find((t: any) => t.transactionNo === childTxNo);
-              const dateStr = childTx?.date.split(" ")[0] || "";
-              
-              let relevantStocksForChild = stockHistory.filter((h: any) => 
-                h.transaction_no === childTxNo || 
-                (!h.transaction_no && (h.date.split(' ')[0] === dateStr || (h.treatment_date && h.treatment_date.split(' ')[0] === dateStr)))
-              );
-              
+              const childDateStr = childTx?.date.split(" ")[0] || "";
+              let relevantStocksForChild = stockHistory.filter((h: any) => h.transaction_no === childTxNo || (!h.transaction_no && (h.date.split(' ')[0] === childDateStr || (h.treatment_date && h.treatment_date.split(' ')[0] === childDateStr))));
               relevantStocksForChild.forEach((stock: any) => {
                 stock.text.split(", ").forEach((itemStr: string) => {
                   const costMatch = itemStr.match(/\[Maliyet:\s*([\d.]+)\]/);
@@ -297,7 +335,6 @@ export default function DashboardAnalyticsPage() {
                   const parts = cleanItemStr.split(" ");
                   const amount = parseFloat(parts[0]) || 0;
                   const itemName = parts.slice(2).join(" ");
-                  
                   const invItem = inventory?.items?.find((i: any) => i.ad === itemName);
                   const unitPrice = embeddedUnitPrice !== null ? embeddedUnitPrice : (invItem?.fiyat || 0);
                   materialCost += (unitPrice * amount);
@@ -329,6 +366,84 @@ export default function DashboardAnalyticsPage() {
         materialCost,
         profit,
         margin
+      });
+    });
+
+    // Generate Transactions for unassigned ISL numbers
+    Object.keys(patientProfiles).forEach(patientName => {
+      const profile = patientProfiles[patientName];
+      if (!profile || !profile.face_treatments) return;
+      const uniqueTreatments = Array.from(new Set(profile.face_treatments.map((t: any) => t.transactionNo).filter(Boolean)));
+      uniqueTreatments.forEach((txNo: any) => {
+        if (usedTxNos.has(txNo)) return;
+        const treatment = profile.face_treatments.find((t: any) => t.transactionNo === txNo);
+        if (!treatment || treatment.isControl) return; // Control costs are absorbed by parent
+
+        const tDateParts = treatment.date.split(" ")[0].split(".");
+        if (tDateParts.length !== 3) return;
+        const tDateISO = `${tDateParts[2]}-${tDateParts[1]}-${tDateParts[0]}`; // YYYY-MM-DD
+        
+        if (tDateISO >= appliedStartDate && tDateISO <= appliedEndDate) {
+          let materialCost = 0;
+          const targetDateStr = treatment.date.split(" ")[0];
+          
+          const stockHistory = profile.stock_history || [];
+          let relevantStocks = stockHistory.filter((h: any) => h.transaction_no === txNo);
+          if (relevantStocks.length === 0) {
+             relevantStocks = stockHistory.filter((h: any) => (!h.transaction_no) && (h.date.split(' ')[0] === targetDateStr || (h.treatment_date && h.treatment_date.split(' ')[0] === targetDateStr)));
+          }
+          relevantStocks.forEach((stock: any) => {
+             stock.text.split(", ").forEach((itemStr: string) => {
+                const costMatch = itemStr.match(/\[Maliyet:\s*([\d.]+)\]/);
+                const embeddedUnitPrice = costMatch ? parseFloat(costMatch[1]) : null;
+                const cleanItemStr = itemStr.replace(/\s*\(Toplam Maliyet:.*?\)/g, "").replace(/\s*\(Maliyet:.*?\)/g, "").replace(/\s*\[Toplam Maliyet:.*?\]/g, "").replace(/\s*\[Maliyet:.*?\]/g, "").trim();
+                const parts = cleanItemStr.split(" ");
+                const amount = parseFloat(parts[0]) || 0;
+                const itemName = parts.slice(2).join(" ");
+                const invItem = inventory?.items?.find((i: any) => i.ad === itemName);
+                const unitPrice = embeddedUnitPrice !== null ? embeddedUnitPrice : (invItem?.fiyat || 0);
+                materialCost += (unitPrice * amount);
+             });
+          });
+
+          // Add child controls costs
+          const childControls = (profile.face_treatments || []).filter((t: any) => t.isControl && t.parentTransactionNo === txNo);
+          const childTxNos = Array.from(new Set(childControls.map((t: any) => t.transactionNo).filter(Boolean)));
+          childTxNos.forEach((childTxNo: any) => {
+              const childTx = childControls.find((t: any) => t.transactionNo === childTxNo);
+              const childDateStr = childTx?.date.split(" ")[0] || "";
+              let relevantStocksForChild = stockHistory.filter((h: any) => h.transaction_no === childTxNo || (!h.transaction_no && (h.date.split(' ')[0] === childDateStr || (h.treatment_date && h.treatment_date.split(' ')[0] === childDateStr))));
+              relevantStocksForChild.forEach((stock: any) => {
+                stock.text.split(", ").forEach((itemStr: string) => {
+                  const costMatch = itemStr.match(/\[Maliyet:\s*([\d.]+)\]/);
+                  const embeddedUnitPrice = costMatch ? parseFloat(costMatch[1]) : null;
+                  const cleanItemStr = itemStr.replace(/\s*\(Toplam Maliyet:.*?\)/g, "").replace(/\s*\(Maliyet:.*?\)/g, "").replace(/\s*\[Toplam Maliyet:.*?\]/g, "").replace(/\s*\[Maliyet:.*?\]/g, "").trim();
+                  const parts = cleanItemStr.split(" ");
+                  const amount = parseFloat(parts[0]) || 0;
+                  const itemName = parts.slice(2).join(" ");
+                  const invItem = inventory?.items?.find((i: any) => i.ad === itemName);
+                  const unitPrice = embeddedUnitPrice !== null ? embeddedUnitPrice : (invItem?.fiyat || 0);
+                  materialCost += (unitPrice * amount);
+                });
+              });
+          });
+
+          const revenue = 0; // Orphan transactions have no linked appointment price
+          const profit = revenue - materialCost;
+          totalCost += materialCost;
+          
+          transactions.push({
+            id: `orphan_${txNo}`,
+            patientName: patientName,
+            date: tDateISO,
+            txNo,
+            serviceName: "Ek İşlem (Kayıtsız Randevu)",
+            revenue,
+            materialCost,
+            profit,
+            margin: 0
+          });
+        }
       });
     });
 
