@@ -978,6 +978,46 @@ export default function PatientListPage() {
                          }
                        });
 
+                       // Pass 4: Loose matching by targetType (Different Date fallback)
+                       hstAppointments.forEach(a => {
+                         if (appointmentTxMapping[a.id]) return;
+                         
+                         const h = a.hizmetId ? services.find(x => x.id.toString() === a.hizmetId.toString()) : null;
+                         const serviceName = (h?.ad || "").toLowerCase();
+                         
+                         let targetType = "";
+                         if (serviceName.includes("botoks") || serviceName.includes("botox") || serviceName.includes("masseter")) targetType = "botoks";
+                         else if (serviceName.includes("dolgu")) targetType = "dolgu";
+                         else if (serviceName.includes("mezo") || serviceName.includes("gençlik") || serviceName.includes("somon")) targetType = "mezoterapi";
+                         
+                         if (targetType) {
+                           const unassignedTreatments = (selProfile.face_treatments || []).filter(ft => {
+                             if (!ft.transactionNo || usedTxNos.has(ft.transactionNo)) return false;
+                             return (ft.type || "").toLowerCase() === targetType;
+                           });
+                           
+                           const uniqueTxs = Array.from(new Set(unassignedTreatments.map(t => t.transactionNo).filter(Boolean))) as string[];
+                           if (uniqueTxs.length > 0) {
+                             const matchedTxNo = uniqueTxs[0];
+                             appointmentTxMapping[a.id] = matchedTxNo;
+                             usedTxNos.add(matchedTxNo);
+                           }
+                         }
+                       });
+
+                       // Pass 5: Absolute fallback for any remaining unassigned transaction
+                       hstAppointments.forEach(a => {
+                         if (appointmentTxMapping[a.id]) return;
+                         
+                         const unassignedTreatments = (selProfile.face_treatments || []).filter(ft => ft.transactionNo && !usedTxNos.has(ft.transactionNo));
+                         const uniqueTxs = Array.from(new Set(unassignedTreatments.map(t => t.transactionNo).filter(Boolean))) as string[];
+                         if (uniqueTxs.length > 0) {
+                           const matchedTxNo = uniqueTxs[0];
+                           appointmentTxMapping[a.id] = matchedTxNo;
+                           usedTxNos.add(matchedTxNo);
+                         }
+                       });
+
                        if (hstAppointments.length === 0) return <div className="text-center py-10 italic text-slate-400 bg-white border border-slate-100 rounded-xl shadow-sm">Henüz işlem geçmişi bulunamadı.</div>;
 
                        return (
@@ -989,7 +1029,7 @@ export default function PatientListPage() {
                               const dateFaceTreatments = (selProfile.face_treatments || []).filter(ft => (ft.date || "").split(' ')[0] === dateStr);
                               const assignedTxNo = appointmentTxMapping[a.id];
                               
-                              const matchedFaceTreatments = assignedTxNo ? dateFaceTreatments.filter(ft => ft.transactionNo === assignedTxNo || ft.parentTransactionNo === assignedTxNo) : [];
+                              const matchedFaceTreatments = assignedTxNo ? (selProfile.face_treatments || []).filter(ft => ft.transactionNo === assignedTxNo || ft.parentTransactionNo === assignedTxNo) : [];
 
                               return (
                                 <div key={a.id} className="relative pl-6">
