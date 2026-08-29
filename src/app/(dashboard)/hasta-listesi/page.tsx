@@ -903,94 +903,131 @@ export default function PatientListPage() {
                  </div>
                )}
 
-               {activeTab === 'timeline' && (
-                 <div className="space-y-6">
-                    {hstAppointments.length === 0 ? <div className="text-center py-10 italic text-slate-400 bg-white border border-slate-100 rounded-xl shadow-sm">Henüz işlem geçmişi bulunamadı.</div> : (
-                      <div className="relative border-l-2 border-slate-100 ml-3 space-y-6">
-                         {hstAppointments.map(a => {
-                           const h = a.hizmetId ? services.find(x => x.id.toString() === a.hizmetId.toString()) : null;
-                           const isStatusDone = a.durum === 'onaylandi';
-                           const dateFaceTreatments = (selProfile.face_treatments || []).filter(ft => (ft.date || "").split(' ')[0] === (a.tarih ? format(new Date(a.tarih), 'dd.MM.yyyy') : ''));
-                           
-                           const serviceName = (h?.ad || "").toLowerCase();
-                           let targetType = "";
-                           if (serviceName.includes("botoks")) targetType = "botoks";
-                           else if (serviceName.includes("dolgu")) targetType = "dolgu";
-                           else if (serviceName.includes("mezo")) targetType = "mezoterapi";
+                 {activeTab === 'timeline' && (
+                  <div className="space-y-6">
+                     {(() => {
+                       const appointmentTxMapping: Record<string, string> = {};
+                       const usedTxNos = new Set<string>();
+                       
+                       // We reverse hstAppointments to process the oldest first, or just process as is?
+                       // hstAppointments is sorted newest first. Let's process it as is.
+                       hstAppointments.forEach(a => {
+                         const dateStr = a.tarih ? format(new Date(a.tarih), 'dd.MM.yyyy') : '';
+                         const dateFaceTreatments = (selProfile.face_treatments || []).filter(ft => (ft.date || "").split(' ')[0] === dateStr);
+                         
+                         if (dateFaceTreatments.length === 0) return;
+                       
+                         const h = a.hizmetId ? services.find(x => x.id.toString() === a.hizmetId.toString()) : null;
+                         const serviceName = (h?.ad || "").toLowerCase();
+                         
+                         let targetType = "";
+                         if (serviceName.includes("botoks") || serviceName.includes("botox") || serviceName.includes("masseter")) targetType = "botoks";
+                         else if (serviceName.includes("dolgu")) targetType = "dolgu";
+                         else if (serviceName.includes("mezo") || serviceName.includes("gençlik") || serviceName.includes("somon")) targetType = "mezoterapi";
+                       
+                         const uniqueTxs = Array.from(new Set(dateFaceTreatments.map(t => t.transactionNo).filter(Boolean))) as string[];
+                         
+                         let matchedTxNo = uniqueTxs.find(txNo => {
+                           if (usedTxNos.has(txNo)) return false;
+                           if (!targetType) return true;
+                           return dateFaceTreatments.some(ft => ft.transactionNo === txNo && (ft.type || "").toLowerCase() === targetType);
+                         });
+                       
+                         if (!matchedTxNo) {
+                           matchedTxNo = uniqueTxs.find(txNo => !usedTxNos.has(txNo));
+                         }
+                       
+                         if (matchedTxNo) {
+                           appointmentTxMapping[a.id] = matchedTxNo;
+                           usedTxNos.add(matchedTxNo);
+                         }
+                       });
 
-                           const matchedFaceTreatments = targetType ? dateFaceTreatments.filter(ft => ft.type === targetType) : dateFaceTreatments;
+                       if (hstAppointments.length === 0) return <div className="text-center py-10 italic text-slate-400 bg-white border border-slate-100 rounded-xl shadow-sm">Henüz işlem geçmişi bulunamadı.</div>;
 
-                           return (
-                             <div key={a.id} className="relative pl-6">
-                                {/* Timeline Dot */}
-                                <div className={`absolute -left-[5px] top-1.5 w-2 h-2 rounded-full ring-4 ring-white ${isStatusDone ? 'bg-[#0a3d34]' : 'bg-amber-400'}`} />
-                                <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
-                                   <div className="flex items-center justify-between mb-2">
-                                      <div className="text-[0.7rem] font-bold text-slate-400 tracking-wide uppercase flex items-center gap-1.5">
-                                        <Clock className="w-3 h-3 text-blue-500"/> {a.tarih} · {a.saat}
-                                        {(() => {
-                                          if (matchedFaceTreatments.length === 0) return null;
-                                          let primaryTxNo = "";
-                                          let displayTxNo = "";
-                                          let targetDate = a.tarih ? format(new Date(a.tarih), 'dd.MM.yyyy') : '';
-                                          let isOnlyControl = false;
-                                          
-                                          const normalTx = matchedFaceTreatments.find(t => !t.isControl && t.transactionNo);
-                                          if (normalTx) {
-                                            primaryTxNo = normalTx.transactionNo!;
-                                            displayTxNo = primaryTxNo;
-                                          } else {
-                                            const controlTx = matchedFaceTreatments.find(t => t.isControl && t.parentTransactionNo);
-                                            if (controlTx) {
-                                              isOnlyControl = true;
-                                              displayTxNo = "Kontrol";
-                                            }
-                                          }
+                       return (
+                         <div className="relative border-l-2 border-slate-100 ml-3 space-y-6">
+                            {hstAppointments.map(a => {
+                              const h = a.hizmetId ? services.find(x => x.id.toString() === a.hizmetId.toString()) : null;
+                              const isStatusDone = a.durum === 'onaylandi';
+                              const dateStr = a.tarih ? format(new Date(a.tarih), 'dd.MM.yyyy') : '';
+                              const dateFaceTreatments = (selProfile.face_treatments || []).filter(ft => (ft.date || "").split(' ')[0] === dateStr);
+                              const assignedTxNo = appointmentTxMapping[a.id];
+                              
+                              const matchedFaceTreatments = assignedTxNo ? dateFaceTreatments.filter(ft => ft.transactionNo === assignedTxNo || ft.parentTransactionNo === assignedTxNo) : [];
 
-                                          if (!displayTxNo) return null;
+                              return (
+                                <div key={a.id} className="relative pl-6">
+                                   {/* Timeline Dot */}
+                                   <div className={`absolute -left-[5px] top-1.5 w-2 h-2 rounded-full ring-4 ring-white ${isStatusDone ? 'bg-[#0a3d34]' : 'bg-amber-400'}`} />
+                                   <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+                                      <div className="flex items-center justify-between mb-2">
+                                         <div className="text-[0.7rem] font-bold text-slate-400 tracking-wide uppercase flex items-center gap-1.5">
+                                           <Clock className="w-3 h-3 text-blue-500"/> {a.tarih} · {a.saat}
+                                           {(() => {
+                                             if (matchedFaceTreatments.length === 0) return null;
+                                             let primaryTxNo = "";
+                                             let displayTxNo = "";
+                                             let targetDate = a.tarih ? format(new Date(a.tarih), 'dd.MM.yyyy') : '';
+                                             let isOnlyControl = false;
+                                             
+                                             const normalTx = matchedFaceTreatments.find(t => !t.isControl && t.transactionNo);
+                                             if (normalTx) {
+                                               primaryTxNo = normalTx.transactionNo!;
+                                               displayTxNo = primaryTxNo;
+                                             } else {
+                                               const controlTx = matchedFaceTreatments.find(t => t.isControl && t.parentTransactionNo);
+                                               if (controlTx) {
+                                                 isOnlyControl = true;
+                                                 displayTxNo = "Kontrol";
+                                               }
+                                             }
 
-                                          return (
-                                            <button 
-                                              onClick={() => {
-                                                if (!isOnlyControl) {
-                                                  setGlobalReceiptGroup({ date: targetDate, txNo: primaryTxNo, treatments: matchedFaceTreatments });
-                                                }
-                                              }}
-                                              className={`ml-2 px-2 py-0.5 rounded-md font-mono font-extrabold text-[0.6rem] shadow-sm transition-colors ${isOnlyControl ? 'bg-emerald-100 text-emerald-700 cursor-default' : 'bg-slate-800 text-white hover:bg-slate-700 cursor-pointer'}`}
-                                              title={isOnlyControl ? "Kontrol Seansı" : "İşlem Fişini Gör"}
-                                            >
-                                              {displayTxNo}
-                                            </button>
-                                          );
-                                        })()}
+                                             if (!displayTxNo) return null;
+
+                                             return (
+                                               <button 
+                                                 onClick={() => {
+                                                   if (!isOnlyControl) {
+                                                     setGlobalReceiptGroup({ date: targetDate, txNo: primaryTxNo, treatments: matchedFaceTreatments });
+                                                   }
+                                                 }}
+                                                 className={`ml-2 px-2 py-0.5 rounded-md font-mono font-extrabold text-[0.6rem] shadow-sm transition-colors ${isOnlyControl ? 'bg-emerald-100 text-emerald-700 cursor-default' : 'bg-slate-800 text-white hover:bg-slate-700 cursor-pointer'}`}
+                                                 title={isOnlyControl ? "Kontrol Seansı" : "İşlem Fişini Gör"}
+                                               >
+                                                 {displayTxNo}
+                                               </button>
+                                             );
+                                           })()}
+                                         </div>
+                                         <span className={`text-[0.65rem] font-bold px-2 py-0.5 rounded-full ${isStatusDone ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>
+                                           {isStatusDone ? 'Tamamlandı' : 'Beklemede'}
+                                         </span>
                                       </div>
-                                      <span className={`text-[0.65rem] font-bold px-2 py-0.5 rounded-full ${isStatusDone ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>
-                                        {isStatusDone ? 'Tamamlandı' : 'Beklemede'}
-                                      </span>
+                                      <div className="text-[0.95rem] font-bold text-[#111827]">{h?.ad}</div>
+                                      {a.notlar && (
+                                        <div className="mt-3 bg-slate-50 text-slate-600 text-[0.8rem] p-3 rounded-xl border border-slate-100">
+                                          <span className="font-bold text-slate-400 text-[0.65rem] block uppercase mb-1">Not:</span>
+                                          {a.notlar}
+                                        </div>
+                                      )}
+                                      {matchedFaceTreatments.length > 0 && (
+                                        <button
+                                          onClick={() => setActiveTab('facemap')}
+                                          className="mt-3 flex items-center gap-1.5 text-[0.7rem] font-bold text-rose-600 bg-rose-50 px-3 py-1.5 rounded-lg border border-rose-100 hover:bg-rose-100 transition-colors"
+                                        >
+                                          <Syringe className="w-3 h-3" /> Yüz Haritasını Gör ({matchedFaceTreatments.length} işlem)
+                                        </button>
+                                      )}
                                    </div>
-                                   <div className="text-[0.95rem] font-bold text-[#111827]">{h?.ad}</div>
-                                   {a.notlar && (
-                                     <div className="mt-3 bg-slate-50 text-slate-600 text-[0.8rem] p-3 rounded-xl border border-slate-100">
-                                       <span className="font-bold text-slate-400 text-[0.65rem] block uppercase mb-1">Not:</span>
-                                       {a.notlar}
-                                     </div>
-                                   )}
-                                   {matchedFaceTreatments.length > 0 && (
-                                     <button
-                                       onClick={() => setActiveTab('facemap')}
-                                       className="mt-3 flex items-center gap-1.5 text-[0.7rem] font-bold text-rose-600 bg-rose-50 px-3 py-1.5 rounded-lg border border-rose-100 hover:bg-rose-100 transition-colors"
-                                     >
-                                       <Syringe className="w-3 h-3" /> Yüz Haritasını Gör ({matchedFaceTreatments.length} işlem)
-                                     </button>
-                                   )}
                                 </div>
-                             </div>
-                           )
-                         })}
-                      </div>
-                    )}
-                 </div>
-               )}
+                              )
+                            })}
+                         </div>
+                       );
+                     })()}
+                  </div>
+                )}
 
                {activeTab === 'facemap' && (
                  <FaceMap
