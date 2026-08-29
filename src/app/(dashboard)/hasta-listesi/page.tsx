@@ -1059,7 +1059,22 @@ export default function PatientListPage() {
                               const dateFaceTreatments = mappedFaceTreatments.filter(ft => (ft.date || "").split(' ')[0] === dateStr);
                               const assignedTxNo = appointmentTxMapping[a.id];
                               
-                              const matchedFaceTreatments = assignedTxNo ? mappedFaceTreatments.filter(ft => ft.transactionNo === assignedTxNo || ft.parentTransactionNo === assignedTxNo) : [];
+                              const allMappedTxs = Object.values(appointmentTxMapping);
+                              const orphanFaceTxs = Array.from(new Set(dateFaceTreatments.map(ft => ft.isControl ? ft.parentTransactionNo : ft.transactionNo).filter(Boolean))).filter(tx => !allMappedTxs.includes(tx as string));
+                              const dateStockHistory = (selProfile.stock_history || []).filter(sh => (sh.treatment_date && sh.treatment_date.split(' ')[0] === dateStr) || (!sh.treatment_date && sh.date.split(' ')[0] === dateStr));
+                              const orphanStockTxs = Array.from(new Set(dateStockHistory.map(sh => sh.transaction_no).filter(Boolean))).filter(tx => !allMappedTxs.includes(tx as string));
+                              
+                              const txNosToShow = new Set<string>();
+                              if (assignedTxNo) txNosToShow.add(assignedTxNo);
+                              
+                              const isFirstApptOfDay = hstAppointments.filter(app => (app.tarih ? (isValid(parseISO(app.tarih)) ? format(parseISO(app.tarih), 'dd.MM.yyyy') : app.tarih) : '') === dateStr)[0]?.id === a.id;
+                              if (isFirstApptOfDay) {
+                                orphanFaceTxs.forEach(tx => txNosToShow.add(tx as string));
+                                orphanStockTxs.forEach(tx => txNosToShow.add(tx as string));
+                              }
+                              
+                              // Check if we need to show a generic "İşlem Fişi" for stock without any transaction_no
+                              const hasUnassignedStock = isFirstApptOfDay && dateStockHistory.some(sh => !sh.transaction_no);
 
                               return (
                                 <div key={a.id} className="relative pl-6">
@@ -1067,34 +1082,29 @@ export default function PatientListPage() {
                                    <div className={`absolute -left-[5px] top-1.5 w-2 h-2 rounded-full ring-4 ring-white ${isStatusDone ? 'bg-[#0a3d34]' : 'bg-amber-400'}`} />
                                    <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
                                       <div className="flex items-center justify-between mb-2">
-                                         <div className="text-[0.7rem] font-bold text-slate-400 tracking-wide uppercase flex items-center gap-1.5">
+                                         <div className="text-[0.7rem] font-bold text-slate-400 tracking-wide uppercase flex flex-wrap items-center gap-1.5">
                                            <Clock className="w-3 h-3 text-blue-500"/> {dateStr} · {a.saat}
-                                           {(() => {
-                                             if (matchedFaceTreatments.length === 0) return null;
-                                             let primaryTxNo = "";
-                                             let displayTxNo = "";
-                                             let targetDate = a.tarih ? (isValid(parseISO(a.tarih)) ? format(parseISO(a.tarih), 'dd.MM.yyyy') : a.tarih) : '';
-                                             let isOnlyControl = false;
+                                           {Array.from(txNosToShow).map(txNo => {
+                                             const txFaceTreatments = mappedFaceTreatments.filter(ft => ft.transactionNo === txNo || ft.parentTransactionNo === txNo);
                                              
-                                             const normalTx = matchedFaceTreatments.find(t => !t.isControl && t.transactionNo);
-                                             if (normalTx) {
-                                               primaryTxNo = normalTx.transactionNo!;
-                                               displayTxNo = primaryTxNo;
-                                             } else {
-                                               const controlTx = matchedFaceTreatments.find(t => t.isControl && t.parentTransactionNo);
-                                               if (controlTx) {
+                                             let displayTxNo = txNo;
+                                             let isOnlyControl = false;
+                                             let targetDate = a.tarih ? (isValid(parseISO(a.tarih)) ? format(parseISO(a.tarih), 'dd.MM.yyyy') : a.tarih) : '';
+                                             
+                                             if (txFaceTreatments.length > 0) {
+                                               const normalTx = txFaceTreatments.find(t => !t.isControl);
+                                               if (!normalTx) {
                                                  isOnlyControl = true;
                                                  displayTxNo = "Kontrol";
                                                }
                                              }
 
-                                             if (!displayTxNo) return null;
-
                                              return (
                                                <button 
+                                                 key={txNo}
                                                  onClick={() => {
                                                    if (!isOnlyControl) {
-                                                     setGlobalReceiptGroup({ date: targetDate, txNo: primaryTxNo, treatments: matchedFaceTreatments });
+                                                     setGlobalReceiptGroup({ date: targetDate, txNo: txNo, treatments: txFaceTreatments });
                                                    }
                                                  }}
                                                  className={`ml-2 px-2 py-0.5 rounded-md font-mono font-extrabold text-[0.6rem] shadow-sm transition-colors ${isOnlyControl ? 'bg-emerald-100 text-emerald-700 cursor-default' : 'bg-slate-800 text-white hover:bg-slate-700 cursor-pointer'}`}
@@ -1103,7 +1113,19 @@ export default function PatientListPage() {
                                                  {displayTxNo}
                                                </button>
                                              );
-                                           })()}
+                                           })}
+                                           {hasUnassignedStock && (
+                                              <button 
+                                                onClick={() => {
+                                                  let targetDate = a.tarih ? (isValid(parseISO(a.tarih)) ? format(parseISO(a.tarih), 'dd.MM.yyyy') : a.tarih) : '';
+                                                  setGlobalReceiptGroup({ date: targetDate, txNo: "", treatments: [] });
+                                                }}
+                                                className={`ml-2 px-2 py-0.5 rounded-md font-mono font-extrabold text-[0.6rem] shadow-sm transition-colors bg-slate-800 text-white hover:bg-slate-700 cursor-pointer`}
+                                                title="İşlem Fişini Gör"
+                                              >
+                                                İşlem Fişi
+                                              </button>
+                                           )}
                                          </div>
                                          <span className={`text-[0.65rem] font-bold px-2 py-0.5 rounded-full ${isStatusDone ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>
                                            {isStatusDone ? 'Tamamlandı' : 'Beklemede'}
