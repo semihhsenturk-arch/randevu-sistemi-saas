@@ -89,7 +89,14 @@ export default function DashboardAnalyticsPage() {
     if (!tx || !profile) return;
     const [yyyy, mm, dd] = tx.date.split('-');
     const targetDateStr = `${dd}.${mm}.${yyyy}`;
-    const treatments = profile.face_treatments?.filter((t: any) => t.date.split(' ')[0] === targetDateStr) || [];
+    
+    const treatments = profile.face_treatments?.filter((t: any) => {
+      if (tx.txNo && tx.txNo !== "-") {
+        return t.transactionNo === tx.txNo || t.parentTransactionNo === tx.txNo;
+      }
+      return t.date.split(' ')[0] === targetDateStr && (!t.transactionNo || t.transactionNo === "-");
+    }) || [];
+    
     setSelectedReceipt({
       date: targetDateStr,
       txNo: tx.txNo,
