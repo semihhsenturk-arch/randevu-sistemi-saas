@@ -911,7 +911,7 @@ export default function PatientListPage() {
                        
                        // Pass 1: Strict matching by targetType
                        hstAppointments.forEach(a => {
-                         const dateStr = a.tarih ? format(new Date(a.tarih), 'dd.MM.yyyy') : '';
+                         const dateStr = a.tarih ? (isValid(parseISO(a.tarih)) ? format(parseISO(a.tarih), 'dd.MM.yyyy') : a.tarih) : '';
                          const dateFaceTreatments = (selProfile.face_treatments || []).filter(ft => (ft.date || "").split(' ')[0] === dateStr);
                          
                          if (dateFaceTreatments.length === 0) return;
@@ -951,7 +951,7 @@ export default function PatientListPage() {
                          else if (serviceName.includes("mezo") || serviceName.includes("gençlik") || serviceName.includes("somon")) targetType = "mezoterapi";
 
                          if (targetType) {
-                           const dateStr = a.tarih ? format(new Date(a.tarih), 'dd.MM.yyyy') : '';
+                           const dateStr = a.tarih ? (isValid(parseISO(a.tarih)) ? format(parseISO(a.tarih), 'dd.MM.yyyy') : a.tarih) : '';
                            const dateFaceTreatments = (selProfile.face_treatments || []).filter(ft => (ft.date || "").split(' ')[0] === dateStr);
                            const uniqueTxs = Array.from(new Set(dateFaceTreatments.map(t => t.transactionNo).filter(Boolean))) as string[];
                            const matchedTxNo = uniqueTxs.find(txNo => !usedTxNos.has(txNo));
@@ -967,7 +967,7 @@ export default function PatientListPage() {
                        hstAppointments.forEach(a => {
                          if (appointmentTxMapping[a.id]) return;
                          
-                         const dateStr = a.tarih ? format(new Date(a.tarih), 'dd.MM.yyyy') : '';
+                         const dateStr = a.tarih ? (isValid(parseISO(a.tarih)) ? format(parseISO(a.tarih), 'dd.MM.yyyy') : a.tarih) : '';
                          const dateFaceTreatments = (selProfile.face_treatments || []).filter(ft => (ft.date || "").split(' ')[0] === dateStr);
                          const uniqueTxs = Array.from(new Set(dateFaceTreatments.map(t => t.transactionNo).filter(Boolean))) as string[];
                          const matchedTxNo = uniqueTxs.find(txNo => !usedTxNos.has(txNo));
@@ -985,7 +985,7 @@ export default function PatientListPage() {
                             {hstAppointments.map(a => {
                               const h = a.hizmetId ? services.find(x => x.id.toString() === a.hizmetId.toString()) : null;
                               const isStatusDone = a.durum === 'onaylandi';
-                              const dateStr = a.tarih ? format(new Date(a.tarih), 'dd.MM.yyyy') : '';
+                              const dateStr = a.tarih ? (isValid(parseISO(a.tarih)) ? format(parseISO(a.tarih), 'dd.MM.yyyy') : a.tarih) : '';
                               const dateFaceTreatments = (selProfile.face_treatments || []).filter(ft => (ft.date || "").split(' ')[0] === dateStr);
                               const assignedTxNo = appointmentTxMapping[a.id];
                               
@@ -1003,7 +1003,7 @@ export default function PatientListPage() {
                                              if (matchedFaceTreatments.length === 0) return null;
                                              let primaryTxNo = "";
                                              let displayTxNo = "";
-                                             let targetDate = a.tarih ? format(new Date(a.tarih), 'dd.MM.yyyy') : '';
+                                             let targetDate = a.tarih ? (isValid(parseISO(a.tarih)) ? format(parseISO(a.tarih), 'dd.MM.yyyy') : a.tarih) : '';
                                              let isOnlyControl = false;
                                              
                                              const normalTx = matchedFaceTreatments.find(t => !t.isControl && t.transactionNo);
