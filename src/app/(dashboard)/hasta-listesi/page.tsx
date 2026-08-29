@@ -537,116 +537,28 @@ export default function PatientListPage() {
     .filter(a => (a.musteriAdi || "") === selectedPatientName)
     .sort((a,b) => (b.tarih || "").localeCompare(a.tarih || ""));
 
+  const globalAppointmentTxMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    const sorted = [...appointments]
+      .filter(a => a.durum !== "iptal")
+      .sort((a,b) => {
+        const dComp = (a.tarih || "").localeCompare(b.tarih || "");
+        if (dComp !== 0) return dComp;
+        return (a.saat || "").localeCompare(b.saat || "");
+      });
+      
+    sorted.forEach((a, idx) => {
+      map[a.id] = `#ISL-${(idx + 1).toString().padStart(4, '0')}`;
+    });
+    return map;
+  }, [appointments]);
+
   const { appointmentTxMapping, mappedFaceTreatments } = useMemo(() => {
     const mapping: Record<string, string> = {};
-    const usedTxNos = new Set<string>();
     
-    // Pass 1: Strict matching by targetType
     hstAppointments.forEach(a => {
-      const dateStr = a.tarih ? (isValid(parseISO(a.tarih)) ? format(parseISO(a.tarih), 'dd.MM.yyyy') : a.tarih) : '';
-      const dateFaceTreatments = (selProfile.face_treatments || []).filter(ft => (ft.date || "").split(' ')[0] === dateStr);
-      
-      if (dateFaceTreatments.length === 0) return;
-    
-      const h = a.hizmetId ? services.find(x => x.id.toString() === a.hizmetId.toString()) : null;
-      const serviceName = (h?.ad || "").toLowerCase();
-      
-      let targetType = "";
-      if (serviceName.includes("botoks") || serviceName.includes("botox") || serviceName.includes("masseter")) targetType = "botoks";
-      else if (serviceName.includes("dolgu")) targetType = "dolgu";
-      else if (serviceName.includes("mezo") || serviceName.includes("gençlik") || serviceName.includes("somon")) targetType = "mezoterapi";
-    
-      if (targetType) {
-        const uniqueTxs = Array.from(new Set(dateFaceTreatments.map(t => t.transactionNo).filter(Boolean))) as string[];
-        const matchedTxNo = uniqueTxs.find(txNo => {
-          if (usedTxNos.has(txNo)) return false;
-          return dateFaceTreatments.some(ft => ft.transactionNo === txNo && (ft.type || "").toLowerCase() === targetType);
-        });
-        
-        if (matchedTxNo) {
-          mapping[a.id] = matchedTxNo;
-          usedTxNos.add(matchedTxNo);
-        }
-      }
-    });
-
-    // Pass 2: Appointments with targetType that failed strict matching (e.g. wrong type saved in FaceMap)
-    hstAppointments.forEach(a => {
-      if (mapping[a.id]) return;
-      
-      const h = a.hizmetId ? services.find(x => x.id.toString() === a.hizmetId.toString()) : null;
-      const serviceName = (h?.ad || "").toLowerCase();
-      
-      let targetType = "";
-      if (serviceName.includes("botoks") || serviceName.includes("botox") || serviceName.includes("masseter")) targetType = "botoks";
-      else if (serviceName.includes("dolgu")) targetType = "dolgu";
-      else if (serviceName.includes("mezo") || serviceName.includes("gençlik") || serviceName.includes("somon")) targetType = "mezoterapi";
-
-      if (targetType) {
-        const dateStr = a.tarih ? (isValid(parseISO(a.tarih)) ? format(parseISO(a.tarih), 'dd.MM.yyyy') : a.tarih) : '';
-        const dateFaceTreatments = (selProfile.face_treatments || []).filter(ft => (ft.date || "").split(' ')[0] === dateStr);
-        const uniqueTxs = Array.from(new Set(dateFaceTreatments.map(t => t.transactionNo).filter(Boolean))) as string[];
-        const matchedTxNo = uniqueTxs.find(txNo => !usedTxNos.has(txNo));
-        
-        if (matchedTxNo) {
-          mapping[a.id] = matchedTxNo;
-          usedTxNos.add(matchedTxNo);
-        }
-      }
-    });
-
-    // Pass 3: Generic appointments (no targetType) get whatever is left
-    hstAppointments.forEach(a => {
-      if (mapping[a.id]) return;
-      
-      const dateStr = a.tarih ? (isValid(parseISO(a.tarih)) ? format(parseISO(a.tarih), 'dd.MM.yyyy') : a.tarih) : '';
-      const dateFaceTreatments = (selProfile.face_treatments || []).filter(ft => (ft.date || "").split(' ')[0] === dateStr);
-      const uniqueTxs = Array.from(new Set(dateFaceTreatments.map(t => t.transactionNo).filter(Boolean))) as string[];
-      const matchedTxNo = uniqueTxs.find(txNo => !usedTxNos.has(txNo));
-      
-      if (matchedTxNo) {
-        mapping[a.id] = matchedTxNo;
-        usedTxNos.add(matchedTxNo);
-      }
-    });
-
-    // Pass 4: Loose matching by targetType (Different Date fallback)
-    hstAppointments.forEach(a => {
-      if (mapping[a.id]) return;
-      
-      const h = a.hizmetId ? services.find(x => x.id.toString() === a.hizmetId.toString()) : null;
-      const serviceName = (h?.ad || "").toLowerCase();
-      
-      let targetType = "";
-      if (serviceName.includes("botoks") || serviceName.includes("botox") || serviceName.includes("masseter")) targetType = "botoks";
-      else if (serviceName.includes("dolgu")) targetType = "dolgu";
-      else if (serviceName.includes("mezo") || serviceName.includes("gençlik") || serviceName.includes("somon")) targetType = "mezoterapi";
-      
-      if (targetType) {
-        const unassignedTreatments = (selProfile.face_treatments || []).filter(ft => {
-          if (!ft.transactionNo || usedTxNos.has(ft.transactionNo)) return false;
-          return (ft.type || "").toLowerCase() === targetType;
-        });
-        
-        const uniqueTxs = Array.from(new Set(unassignedTreatments.map(t => t.transactionNo).filter(Boolean))) as string[];
-        if (uniqueTxs.length > 0) {
-          const matchedTxNo = uniqueTxs[0];
-          mapping[a.id] = matchedTxNo;
-          usedTxNos.add(matchedTxNo);
-        }
-      }
-    });
-
-    // Pass 5: Absolute fallback for any remaining unassigned transaction
-    hstAppointments.forEach(a => {
-      if (mapping[a.id]) return;
-      
-      const unassignedTreatments = (selProfile.face_treatments || []).filter(ft => ft.transactionNo && !usedTxNos.has(ft.transactionNo));
-      const uniqueTxs = Array.from(new Set(unassignedTreatments.map(t => t.transactionNo).filter(Boolean))) as string[];
-      if (uniqueTxs.length > 0) {
-        const matchedTxNo = uniqueTxs[0];
-        mapping[a.id] = matchedTxNo;
-        usedTxNos.add(matchedTxNo);
+      if (globalAppointmentTxMap[a.id]) {
+        mapping[a.id] = globalAppointmentTxMap[a.id];
       }
     });
 
@@ -673,7 +585,7 @@ export default function PatientListPage() {
     });
 
     return { appointmentTxMapping: mapping, mappedFaceTreatments: newTreatments };
-  }, [hstAppointments, selProfile.face_treatments, services]);
+  }, [hstAppointments, selProfile.face_treatments, globalAppointmentTxMap]);
 
   if (isLoading || !isMounted) {
     return (
