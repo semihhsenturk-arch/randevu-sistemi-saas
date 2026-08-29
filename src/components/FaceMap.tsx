@@ -439,7 +439,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                 </div>
                 <div className="flex flex-col gap-1 max-h-[40vh] overflow-y-auto custom-scrollbar-inner pr-1">
                   {dateGroups.map(([key, items]) => {
-                    const date = items[0].date.split(" ")[0];
+                    const date = items[0].date;
                     const types = Array.from(new Set(items.map(t => t.type === "botoks" ? "Botoks" : t.type === "dolgu" ? "Dolgu" : "Mezoterapi"))).join(", ");
                     const totalUnits = items.reduce((sum, t) => sum + (t.amount || 0), 0);
                     return (
@@ -809,13 +809,13 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                   </div>
                   <div className="flex flex-wrap gap-1">
                     {dateGroups.map(([key, items]) => {
-                      const date = items[0].date.split(" ")[0];
+                      const date = items[0].date;
                       const types = Array.from(new Set(items.map(t => t.type === "botoks" ? "Botoks" : t.type === "dolgu" ? "Dolgu" : "Mezoterapi"))).join(", ");
                       const totalUnits = items.reduce((sum, t) => sum + (t.amount || 0), 0);
                       
                       let primaryTxNo = "";
                       let displayTxNo = "";
-                      let targetDate = date;
+                      let targetDate = date.split(" ")[0];
                       let isOnlyControl = false;
 
                       // Find the first non-control transaction, if any

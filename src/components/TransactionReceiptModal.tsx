@@ -37,7 +37,8 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
     ));
   }
   
-  const firstTime = relevantStocks.length > 0 ? (relevantStocks[0].date.split(" ")[1] || "") : "";
+  const treatmentTime = receiptDateGroup.treatments.length > 0 ? (receiptDateGroup.treatments[0].date.split(" ")[1] || "") : "";
+  const firstTime = treatmentTime || (relevantStocks.length > 0 ? (relevantStocks[0].date.split(" ")[1] || "") : "");
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={onClose}>
