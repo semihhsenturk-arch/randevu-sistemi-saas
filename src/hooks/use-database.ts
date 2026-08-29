@@ -32,19 +32,50 @@ export type FaceTreatment = {
  * Generates a unique transaction number for a face treatment.
  * Format: #ISL-XXXXX (5-digit, incremented based on existing treatments)
  */
-export function generateTransactionNo(existingTreatments: FaceTreatment[]): string {
+export function generateTransactionNo(existingTreatments?: FaceTreatment[]): string {
   let maxNum = 0;
-  for (const t of existingTreatments) {
-    if (t.transactionNo) {
-      const match = t.transactionNo.match(/#ISL-(\d+)/);
-      if (match) {
-        const num = parseInt(match[1], 10);
-        if (num > maxNum) maxNum = num;
+  
+  // Try to find max across ALL cached profiles to ensure global uniqueness
+  if (typeof window !== "undefined") {
+    try {
+      const cachedData = localStorage.getItem(CACHE_KEYS.PROFILES);
+      if (cachedData) {
+        const allProfiles = JSON.parse(cachedData);
+        for (const key in allProfiles) {
+          const profile = allProfiles[key];
+          if (profile.face_treatments) {
+            for (const t of profile.face_treatments) {
+              if (t.transactionNo) {
+                const match = t.transactionNo.match(/#ISL-(\d+)/);
+                if (match) {
+                  const num = parseInt(match[1], 10);
+                  if (num > maxNum) maxNum = num;
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to read global profiles for transaction number generation", e);
+    }
+  }
+
+  // Fallback: check provided treatments just in case
+  if (existingTreatments && existingTreatments.length > 0) {
+    for (const t of existingTreatments) {
+      if (t.transactionNo) {
+        const match = t.transactionNo.match(/#ISL-(\d+)/);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (num > maxNum) maxNum = num;
+        }
       }
     }
   }
+
   const nextNum = maxNum + 1;
-  return `#ISL-${nextNum.toString().padStart(5, '0')}`;
+  return `#ISL-${nextNum.toString().padStart(4, '0')}`;
 }
 
 export type BeforeAfterPhoto = {
@@ -300,77 +331,6 @@ export function useDatabase() {
     return treatments.map(t => t.unit === "cc" ? { ...t, unit: "ünite" } : t);
   };
 
-  const assignGlobalTransactionNumbers = (profiles: Record<string, Omit<PatientProfile, "patient_name">>) => {
-    const groups: { patientName: string; dayStr: string; type: string; timestamp: number }[] = [];
-    
-    // Her hastanın gün bazında ilk işleminin saatini bul
-    for (const [patientName, profile] of Object.entries(profiles)) {
-      if (!profile.face_treatments || profile.face_treatments.length === 0) continue;
-      
-      const dayTypeMap = new Map<string, string>(); // day|type -> earliest date string
-      for (const t of profile.face_treatments) {
-        if (t.isControl) continue; // Kontroller yeni ISL almaz
-        const day = t.date.split(" ")[0];
-        const key = `${day}|${t.type}`;
-        if (!dayTypeMap.has(key)) {
-          dayTypeMap.set(key, t.date);
-        } else {
-          // compare times safely (dd.MM.yyyy HH:mm format)
-          const parseD = (dStr: string) => {
-            const [d, tStr] = dStr.split(" ");
-            if (!tStr) return 0;
-            const [DD, MM, YYYY] = d.split(".");
-            const [HH, mm] = tStr.split(":");
-            return new Date(Number(YYYY), Number(MM) - 1, Number(DD), Number(HH), Number(mm)).getTime();
-          };
-          if (parseD(t.date) < parseD(dayTypeMap.get(key)!)) {
-            dayTypeMap.set(key, t.date);
-          }
-        }
-      }
-      
-      for (const [key, earliestDate] of dayTypeMap.entries()) {
-        const [day, type] = key.split("|");
-        const parseD = (dStr: string) => {
-          const [d, tStr] = dStr.split(" ");
-          if (!tStr) return 0;
-          const [DD, MM, YYYY] = d.split(".");
-          const [HH, mm] = tStr.split(":");
-          return new Date(Number(YYYY), Number(MM) - 1, Number(DD), Number(HH), Number(mm)).getTime();
-        };
-        groups.push({
-          patientName,
-          dayStr: day,
-          type: type,
-          timestamp: parseD(earliestDate)
-        });
-      }
-    }
-    
-    // Tüm grupları zamana göre kronolojik sırala
-    groups.sort((a, b) => a.timestamp - b.timestamp);
-    
-    // Sırayla ISL numarası ata
-    const dayTypeToTxNo = new Map<string, string>();
-    groups.forEach((g, index) => {
-      const txNo = `#ISL-${(index + 1).toString().padStart(4, '0')}`;
-      dayTypeToTxNo.set(`${g.patientName}|${g.dayStr}|${g.type}`, txNo);
-    });
-    
-    // Profillere ISL numaralarını yaz
-    for (const [patientName, profile] of Object.entries(profiles)) {
-      if (profile.face_treatments) {
-        profile.face_treatments = profile.face_treatments.map(t => {
-          if (t.isControl) return t; // Kontrollerin transactionNo'sunu koru
-          const day = t.date.split(" ")[0];
-          const txNo = dayTypeToTxNo.get(`${patientName}|${day}|${t.type}`);
-          return { ...t, transactionNo: txNo || t.transactionNo };
-        });
-      }
-    }
-    return profiles;
-  };
-
   const getPatientProfiles = useCallback(async () => {
     try {
       if (!userId || userId === "demo-user") {
@@ -381,7 +341,7 @@ export function useDatabase() {
             cached[key].face_treatments = normalizeFaceTreatments(cached[key].face_treatments!);
           }
         }
-        return assignGlobalTransactionNumbers(cached);
+        return cached;
       }
 
       const { data, error } = await supabase
@@ -405,9 +365,8 @@ export function useDatabase() {
             before_after_photos: p.before_after_photos || [],
           };
         });
-        const finalProfiles = assignGlobalTransactionNumbers(profiles);
-        setCache(CACHE_KEYS.PROFILES, finalProfiles);
-        return finalProfiles;
+        setCache(CACHE_KEYS.PROFILES, profiles);
+        return profiles;
       }
     } catch (e) {
       console.warn("fetchFreshProfiles failed, falling back to cache", e);
@@ -419,7 +378,7 @@ export function useDatabase() {
         fallback[key].face_treatments = normalizeFaceTreatments(fallback[key].face_treatments!);
       }
     }
-    return assignGlobalTransactionNumbers(fallback);
+    return fallback;
   }, [userId]);
 
   const savePatientProfile = useCallback(async (rawName: string, profile: Omit<PatientProfile, "patient_name">) => {
@@ -460,8 +419,7 @@ export function useDatabase() {
     
     const cached = getCache<Record<string, Omit<PatientProfile, "patient_name">>>(CACHE_KEYS.PROFILES) || {};
     cached[name] = profile;
-    const finalCached = assignGlobalTransactionNumbers(cached);
-    setCache(CACHE_KEYS.PROFILES, finalCached);
+    setCache(CACHE_KEYS.PROFILES, cached);
   }, [userId]);
 
   // ─── Inventory ─────────────────────────────────────────────────
