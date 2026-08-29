@@ -566,6 +566,35 @@ export default function CalendarPage() {
     [activeDragId, appointments]
   );
 
+  const computedTxNo = useMemo(() => {
+    if (!currentApt) return "";
+    
+    // Create sorted list of all active appointments
+    const sorted = [...appointments]
+      .filter(a => a.durum !== "iptal")
+      .sort((a,b) => {
+        const dComp = (a.tarih || "").localeCompare(b.tarih || "");
+        if (dComp !== 0) return dComp;
+        return (a.saat || "").localeCompare(b.saat || "");
+      });
+      
+    if (currentApt.id && !currentApt.id.startsWith("temp_")) {
+      const idx = sorted.findIndex(a => a.id === currentApt.id);
+      if (idx !== -1) {
+        return `#ISL-${(idx + 1).toString().padStart(5, '0')}`;
+      }
+    }
+    
+    const tempApt = { ...currentApt, id: "temp_predict" } as Appointment;
+    const withTemp = [...sorted, tempApt].sort((a,b) => {
+        const dComp = (a.tarih || "").localeCompare(b.tarih || "");
+        if (dComp !== 0) return dComp;
+        return (a.saat || "").localeCompare(b.saat || "");
+    });
+    const idx = withTemp.findIndex(a => a.id === "temp_predict");
+    return `#ISL-${(idx + 1).toString().padStart(5, '0')}`;
+  }, [appointments, currentApt]);
+
   if (!isMounted) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -789,6 +818,15 @@ export default function CalendarPage() {
             </div>
 
             <form className="space-y-4" onSubmit={handleSaveModal}>
+              <div className="flex items-center gap-2 mb-2 p-3 bg-emerald-50 border border-emerald-100 rounded-xl">
+                <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                  <Check className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-[0.65rem] font-bold text-emerald-600 uppercase tracking-wider">İşlem Fişi No</div>
+                  <div className="text-sm font-extrabold text-emerald-900">{computedTxNo}</div>
+                </div>
+              </div>
               <div className="space-y-1.5">
                 <Label className="block text-[0.75rem] font-bold text-[#64748b] uppercase tracking-[0.05em]">
                   ADI SOYADI

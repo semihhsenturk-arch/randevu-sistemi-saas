@@ -23,9 +23,10 @@ interface FaceMapProps {
   stockHistory?: any[];
   appointmentDate?: string;
   appointmentTime?: string;
+  patientTransactions?: { txNo: string; date: string; time: string; service: string }[];
 }
 
-export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreatment, onDeleteTreatment, onGenderChange, readonly = false, patientName, stockHistory = [], appointmentDate, appointmentTime }: FaceMapProps) {
+export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreatment, onDeleteTreatment, onGenderChange, readonly = false, patientName, stockHistory = [], appointmentDate, appointmentTime, patientTransactions = [] }: FaceMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -54,6 +55,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
   const [formNote, setFormNote] = useState("");
   const [formIsControl, setFormIsControl] = useState(false);
   const [formParentTxNo, setFormParentTxNo] = useState("");
+  const [formTransactionNo, setFormTransactionNo] = useState("");
 
   const isFemale = gender === "female";
   const imgSrc = isFemale ? "/images/face-female.png" : "/images/face-male.png";
@@ -191,7 +193,12 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
     setFormNote("");
     setFormIsControl(false);
     setFormParentTxNo("");
-  }, [readonly, zoom]);
+    if (patientTransactions.length > 0) {
+      setFormTransactionNo(patientTransactions[0].txNo);
+    } else {
+      setFormTransactionNo("");
+    }
+  }, [readonly, zoom, patientTransactions]);
 
   const handleCloseForm = () => {
     setShowForm(false);
@@ -210,6 +217,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
     setFormNote(t.note || "");
     setFormIsControl(t.isControl || false);
     setFormParentTxNo(t.parentTransactionNo || "");
+    setFormTransactionNo(t.transactionNo || "");
     setEditingId(t.id);
     setShowForm(true);
   };
@@ -252,13 +260,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
           txNo = `${formParentTxNo}-K${uniqueTxNos.size + 1}`;
         }
       } else {
-        // Reuse today's non-control txNo if exists AND matches formType
-        const todayTx = treatments.find(t => t.date.startsWith(todayDate) && !t.isControl && t.type === formType && t.transactionNo);
-        if (todayTx && todayTx.transactionNo) {
-          txNo = todayTx.transactionNo;
-        } else {
-          txNo = generateTransactionNo(treatments);
-        }
+        txNo = formTransactionNo || generateTransactionNo(treatments);
       }
 
       const t: FaceTreatment = {
@@ -730,6 +732,27 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600"><Syringe className="w-3.5 h-3.5" /></div>
                     <div className="text-sm font-extrabold text-slate-800">{editingId ? "Tedaviyi Düzenle" : "Yeni Tedavi Noktası"}</div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 mb-2">
+                    <div className="col-span-2 space-y-1 bg-emerald-50/50 p-2 rounded-lg border border-emerald-100">
+                      <Label className="text-[0.65rem] font-bold text-emerald-700 uppercase tracking-wider">İşlem Fişi Seçimi</Label>
+                      <Select value={formTransactionNo} onValueChange={setFormTransactionNo}>
+                        <SelectTrigger className="h-9 text-xs bg-white text-slate-800 border-emerald-200">
+                          <SelectValue placeholder="İşlem Fişi Seçin..." />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white border-slate-200 z-[99999]">
+                          {patientTransactions.length === 0 && (
+                            <SelectItem value="none" disabled>Randevu bulunamadı</SelectItem>
+                          )}
+                          {patientTransactions.map(tx => (
+                            <SelectItem key={tx.txNo} value={tx.txNo} className="text-slate-800 cursor-pointer">
+                              <span className="font-mono font-bold mr-2">{tx.txNo}</span>
+                              {tx.date} {tx.time} - {tx.service}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">

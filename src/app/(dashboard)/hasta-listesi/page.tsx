@@ -1142,6 +1142,17 @@ export default function PatientListPage() {
                    stockHistory={selProfile.stock_history || []}
                    appointmentDate={selectedPatientApptDate}
                    appointmentTime={selectedPatientApptTime}
+                   patientTransactions={hstAppointments.map(a => {
+                     const h = a.hizmetId ? services.find(x => x.id.toString() === a.hizmetId.toString()) : null;
+                     const txNo = appointmentTxMapping[a.id];
+                     const dateStr = a.tarih ? (isValid(parseISO(a.tarih)) ? format(parseISO(a.tarih), 'dd.MM.yyyy') : a.tarih) : '';
+                     return {
+                       txNo: txNo || "",
+                       date: dateStr,
+                       time: a.saat || "",
+                       service: h?.ad || "Bilinmeyen Hizmet"
+                     };
+                   }).filter(t => t.txNo !== "")}
                    onGenderChange={async (g) => {
                      const current = profiles[selectedPatientName] || { notes_list: [], meds: [], stock_history: [] };
                      const updated = { ...current, face_gender: g };
