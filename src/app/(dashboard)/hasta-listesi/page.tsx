@@ -911,6 +911,15 @@ export default function PatientListPage() {
                            const h = a.hizmetId ? services.find(x => x.id.toString() === a.hizmetId.toString()) : null;
                            const isStatusDone = a.durum === 'onaylandi';
                            const dateFaceTreatments = (selProfile.face_treatments || []).filter(ft => (ft.date || "").split(' ')[0] === (a.tarih ? format(new Date(a.tarih), 'dd.MM.yyyy') : ''));
+                           
+                           const serviceName = (h?.ad || "").toLowerCase();
+                           let targetType = "";
+                           if (serviceName.includes("botoks")) targetType = "botoks";
+                           else if (serviceName.includes("dolgu")) targetType = "dolgu";
+                           else if (serviceName.includes("mezo")) targetType = "mezoterapi";
+
+                           const matchedFaceTreatments = targetType ? dateFaceTreatments.filter(ft => ft.type === targetType) : dateFaceTreatments;
+
                            return (
                              <div key={a.id} className="relative pl-6">
                                 {/* Timeline Dot */}
@@ -920,18 +929,18 @@ export default function PatientListPage() {
                                       <div className="text-[0.7rem] font-bold text-slate-400 tracking-wide uppercase flex items-center gap-1.5">
                                         <Clock className="w-3 h-3 text-blue-500"/> {a.tarih} · {a.saat}
                                         {(() => {
-                                          if (dateFaceTreatments.length === 0) return null;
+                                          if (matchedFaceTreatments.length === 0) return null;
                                           let primaryTxNo = "";
                                           let displayTxNo = "";
                                           let targetDate = a.tarih ? format(new Date(a.tarih), 'dd.MM.yyyy') : '';
                                           let isOnlyControl = false;
                                           
-                                          const normalTx = dateFaceTreatments.find(t => !t.isControl && t.transactionNo);
+                                          const normalTx = matchedFaceTreatments.find(t => !t.isControl && t.transactionNo);
                                           if (normalTx) {
                                             primaryTxNo = normalTx.transactionNo!;
                                             displayTxNo = primaryTxNo;
                                           } else {
-                                            const controlTx = dateFaceTreatments.find(t => t.isControl && t.parentTransactionNo);
+                                            const controlTx = matchedFaceTreatments.find(t => t.isControl && t.parentTransactionNo);
                                             if (controlTx) {
                                               isOnlyControl = true;
                                               displayTxNo = "Kontrol";
@@ -944,7 +953,7 @@ export default function PatientListPage() {
                                             <button 
                                               onClick={() => {
                                                 if (!isOnlyControl) {
-                                                  setGlobalReceiptGroup({ date: targetDate, txNo: primaryTxNo, treatments: dateFaceTreatments });
+                                                  setGlobalReceiptGroup({ date: targetDate, txNo: primaryTxNo, treatments: matchedFaceTreatments });
                                                 }
                                               }}
                                               className={`ml-2 px-2 py-0.5 rounded-md font-mono font-extrabold text-[0.6rem] shadow-sm transition-colors ${isOnlyControl ? 'bg-emerald-100 text-emerald-700 cursor-default' : 'bg-slate-800 text-white hover:bg-slate-700 cursor-pointer'}`}
@@ -966,12 +975,12 @@ export default function PatientListPage() {
                                        {a.notlar}
                                      </div>
                                    )}
-                                   {dateFaceTreatments.length > 0 && (
+                                   {matchedFaceTreatments.length > 0 && (
                                      <button
                                        onClick={() => setActiveTab('facemap')}
                                        className="mt-3 flex items-center gap-1.5 text-[0.7rem] font-bold text-rose-600 bg-rose-50 px-3 py-1.5 rounded-lg border border-rose-100 hover:bg-rose-100 transition-colors"
                                      >
-                                       <Syringe className="w-3 h-3" /> Yüz Haritasını Gör ({dateFaceTreatments.length} işlem)
+                                       <Syringe className="w-3 h-3" /> Yüz Haritasını Gör ({matchedFaceTreatments.length} işlem)
                                      </button>
                                    )}
                                 </div>
