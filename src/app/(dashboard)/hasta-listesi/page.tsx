@@ -1141,7 +1141,14 @@ export default function PatientListPage() {
                                            {isStatusDone ? 'Tamamlandı' : 'Beklemede'}
                                          </span>
                                       </div>
-                                      <div className="text-[0.95rem] font-bold text-[#111827]">{h?.ad}</div>
+                                      <div className="text-[0.95rem] font-bold text-[#111827] flex items-center gap-2">
+                                        {h?.ad}
+                                        {Array.from(txNosToShow).map(txNo => (
+                                          <span key={`inline-${txNo}`} className="text-[0.7rem] font-mono text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                                            {txNo}
+                                          </span>
+                                        ))}
+                                      </div>
                                       {a.notlar && (
                                         <div className="mt-3 bg-slate-50 text-slate-600 text-[0.8rem] p-3 rounded-xl border border-slate-100">
                                           <span className="font-bold text-slate-400 text-[0.65rem] block uppercase mb-1">Not:</span>

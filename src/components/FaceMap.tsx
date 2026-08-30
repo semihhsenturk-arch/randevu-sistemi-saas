@@ -229,27 +229,8 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
       ? (isValid(parseISO(appointmentDate)) ? format(parseISO(appointmentDate), "dd.MM.yyyy") : appointmentDate) 
       : format(new Date(), "dd.MM.yyyy");
     const formattedApptTime = appointmentTime || format(new Date(), "HH:mm");
-    const todayDate = formattedApptDate;
 
-    let txNo = "";
-
-    if (formIsControl && formParentTxNo) {
-      const existing = editingId ? treatments.find(t => t.id === editingId) : null;
-      if (existing && existing.isControl && existing.parentTransactionNo === formParentTxNo && existing.transactionNo) {
-        txNo = existing.transactionNo;
-      } else {
-        const todayControl = treatments.find(t => t.id !== editingId && t.date.startsWith(todayDate) && t.isControl && t.parentTransactionNo === formParentTxNo && t.transactionNo);
-        if (todayControl && todayControl.transactionNo) {
-          txNo = todayControl.transactionNo;
-        } else {
-          const existingControls = treatments.filter(t => t.id !== editingId && t.isControl && t.parentTransactionNo === formParentTxNo);
-          const uniqueTxNos = new Set(existingControls.map(t => t.transactionNo).filter(Boolean));
-          txNo = `${formParentTxNo}-K${uniqueTxNos.size + 1}`;
-        }
-      }
-    } else {
-      txNo = formTransactionNo || generateTransactionNo(treatments);
-    }
+    let txNo = formTransactionNo || generateTransactionNo(treatments);
 
     if (editingId && onUpdateTreatment) {
       const existing = treatments.find(t => t.id === editingId);
