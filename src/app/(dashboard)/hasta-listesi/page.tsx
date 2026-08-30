@@ -1147,9 +1147,15 @@ export default function PatientListPage() {
                               // Check if we need to show a generic "İşlem Fişi" for stock without any transaction_no
                               const hasUnassignedStock = isFirstApptOfDay && dateStockHistory.some(sh => !sh.transaction_no);
 
-                              const txUnitSum = dateFaceTreatments.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
+                              const currentFaceTreatments = dateFaceTreatments.filter(ft => {
+                                const tx = ft.isControl ? ft.parentTransactionNo : ft.transactionNo;
+                                if (tx) return txNosToShow.has(tx);
+                                return isFirstApptOfDay;
+                              });
+
+                              const txUnitSum = currentFaceTreatments.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
                               const formattedTxUnitSum = Number(txUnitSum.toFixed(2));
-                              const rawUnit = dateFaceTreatments[0]?.unit || 'ünite';
+                              const rawUnit = currentFaceTreatments[0]?.unit || 'ünite';
                               const txUnitName = rawUnit.charAt(0).toUpperCase() + rawUnit.slice(1);
                               const txUnitText = formattedTxUnitSum > 0 ? ` - ${formattedTxUnitSum} ${txUnitName}` : '';
 
@@ -1222,12 +1228,12 @@ export default function PatientListPage() {
                                           {a.notlar}
                                         </div>
                                       )}
-                                      {dateFaceTreatments.length > 0 && (
+                                      {currentFaceTreatments.length > 0 && (
                                         <button
                                           onClick={() => setActiveTab('facemap')}
                                           className="mt-3 flex items-center gap-1.5 text-[0.7rem] font-bold text-rose-600 bg-rose-50 px-3 py-1.5 rounded-lg border border-rose-100 hover:bg-rose-100 transition-colors"
                                         >
-                                          <Syringe className="w-3 h-3" /> {h?.ad ? `${h.ad} Haritasını Gör` : 'Yüz Haritasını Gör'} ({dateFaceTreatments.length} İşlem{txUnitText})
+                                          <Syringe className="w-3 h-3" /> {h?.ad ? `${h.ad} Haritasını Gör` : 'Yüz Haritasını Gör'} ({currentFaceTreatments.length} İşlem{txUnitText})
                                         </button>
                                       )}
                                    </div>
