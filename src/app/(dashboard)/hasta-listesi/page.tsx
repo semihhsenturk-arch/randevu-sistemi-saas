@@ -193,7 +193,7 @@ export default function PatientListPage() {
       let maxNum = 0;
       updatedTreatments.forEach(t => {
         if (t.transactionNo) {
-          const m = t.transactionNo.match(/#ISL-(\d+)/);
+          const m = t.transactionNo.match(/ISL[- ]*(\d+)/i);
           if (m) {
             const num = parseInt(m[1], 10);
             if (num > maxNum) maxNum = num;
@@ -573,11 +573,52 @@ export default function PatientListPage() {
         return (a.saat || "").localeCompare(b.saat || "");
       });
       
-    sorted.forEach((a, idx) => {
-      map[a.id] = `#ISL-${(idx + 1).toString().padStart(4, '0')}`;
+    const manualTxNos = new Set<number>();
+    const manualTxNoToApptId = new Map<number, string>();
+    
+    if (typeof window !== 'undefined') {
+       Object.keys(profiles).forEach(pName => {
+         const p = profiles[pName];
+         p.face_treatments?.forEach(t => {
+            if (t.transactionNo) {
+               const m = t.transactionNo.match(/ISL[- ]*(\d+)/i);
+               if (m) {
+                  const num = parseInt(m[1], 10);
+                  manualTxNos.add(num);
+                  const tDate = (t.date || "").split(" ")[0];
+                  const matchingApt = sorted.find(a => a.tarih === tDate && (a.musteriAdi || "") === pName);
+                  if (matchingApt) {
+                     manualTxNoToApptId.set(num, matchingApt.id);
+                  }
+               }
+            }
+         });
+       });
+    }
+
+    let counter = 1;
+    sorted.forEach((a) => {
+       let foundPreAssigned = false;
+       for (const [num, aptId] of manualTxNoToApptId.entries()) {
+          if (aptId === a.id) {
+             map[a.id] = `#ISL-${num.toString().padStart(4, '0')}`;
+             foundPreAssigned = true;
+             manualTxNoToApptId.delete(num);
+             break;
+          }
+       }
+       
+       if (!foundPreAssigned) {
+          while (manualTxNos.has(counter)) {
+             counter++;
+          }
+          map[a.id] = `#ISL-${counter.toString().padStart(4, '0')}`;
+          manualTxNos.add(counter);
+          counter++;
+       }
     });
     return map;
-  }, [appointments]);
+  }, [appointments, profiles]);
 
   const { appointmentTxMapping, mappedFaceTreatments } = useMemo(() => {
     const mapping: Record<string, string> = {};

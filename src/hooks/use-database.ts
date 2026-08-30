@@ -46,7 +46,7 @@ export function generateTransactionNo(existingTreatments?: FaceTreatment[]): str
           if (profile.face_treatments) {
             for (const t of profile.face_treatments) {
               if (t.transactionNo) {
-                const match = t.transactionNo.match(/#ISL-(\d+)/);
+                const match = t.transactionNo.match(/ISL[- ]*(\d+)/i);
                 if (match) {
                   const num = parseInt(match[1], 10);
                   if (num > maxNum) maxNum = num;
@@ -65,7 +65,7 @@ export function generateTransactionNo(existingTreatments?: FaceTreatment[]): str
   if (existingTreatments && existingTreatments.length > 0) {
     for (const t of existingTreatments) {
       if (t.transactionNo) {
-        const match = t.transactionNo.match(/#ISL-(\d+)/);
+        const match = t.transactionNo.match(/ISL[- ]*(\d+)/i);
         if (match) {
           const num = parseInt(match[1], 10);
           if (num > maxNum) maxNum = num;

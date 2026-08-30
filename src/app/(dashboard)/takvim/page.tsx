@@ -579,22 +579,68 @@ export default function CalendarPage() {
         if (dComp !== 0) return dComp;
         return (a.saat || "").localeCompare(b.saat || "");
       });
-      
-    if (currentApt.id && !currentApt.id.startsWith("temp_")) {
-      const idx = sorted.findIndex(a => a.id === currentApt.id);
-      if (idx !== -1) {
-        return `#ISL-${(idx + 1).toString().padStart(4, '0')}`;
-      }
-    }
-    
-    const tempApt = { ...currentApt, id: "temp_predict" } as Appointment;
-    const withTemp = [...sorted, tempApt].sort((a,b) => {
+
+    let targetId = currentApt.id;
+    if (!targetId || targetId.startsWith("temp_")) {
+      targetId = "temp_predict";
+      const tempApt = { ...currentApt, id: targetId } as Appointment;
+      sorted.push(tempApt);
+      sorted.sort((a,b) => {
         const dComp = (a.tarih || "").localeCompare(b.tarih || "");
         if (dComp !== 0) return dComp;
         return (a.saat || "").localeCompare(b.saat || "");
+      });
+    }
+
+    const manualTxNos = new Set<number>();
+    const manualTxNoToApptId = new Map<number, string>();
+
+    if (typeof window !== 'undefined') {
+       const profiles = getCacheSync<any>(CACHE_KEYS.PROFILES) || {};
+       Object.keys(profiles).forEach(pName => {
+         const p = profiles[pName];
+         p.face_treatments?.forEach((t: any) => {
+            if (t.transactionNo) {
+               const m = t.transactionNo.match(/ISL[- ]*(\d+)/i);
+               if (m) {
+                  const num = parseInt(m[1], 10);
+                  manualTxNos.add(num);
+                  const tDate = (t.date || "").split(" ")[0];
+                  const matchingApt = sorted.find(a => a.tarih === tDate && (a.musteriAdi || "") === pName);
+                  if (matchingApt) {
+                     manualTxNoToApptId.set(num, matchingApt.id);
+                  }
+               }
+            }
+         });
+       });
+    }
+
+    let counter = 1;
+    let finalTxNo = "";
+
+    sorted.forEach((a) => {
+       let foundPreAssigned = false;
+       for (const [num, aptId] of manualTxNoToApptId.entries()) {
+          if (aptId === a.id) {
+             if (a.id === targetId) finalTxNo = `#ISL-${num.toString().padStart(4, '0')}`;
+             foundPreAssigned = true;
+             manualTxNoToApptId.delete(num);
+             break;
+          }
+       }
+       
+       if (!foundPreAssigned) {
+          while (manualTxNos.has(counter)) {
+             counter++;
+          }
+          if (a.id === targetId) finalTxNo = `#ISL-${counter.toString().padStart(4, '0')}`;
+          manualTxNos.add(counter);
+          counter++;
+       }
     });
-    const idx = withTemp.findIndex(a => a.id === "temp_predict");
-    return `#ISL-${(idx + 1).toString().padStart(4, '0')}`;
+
+    return finalTxNo;
   }, [appointments, currentApt]);
 
   if (!isMounted) {
