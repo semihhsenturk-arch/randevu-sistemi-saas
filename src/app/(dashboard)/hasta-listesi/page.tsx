@@ -265,13 +265,32 @@ export default function PatientListPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMounted]);
 
-  const openConsent = (apt: Appointment) => {
+  const openConsent = async (apt: Appointment) => {
     const name = apt.musteriAdi.toLocaleUpperCase("tr-TR");
     setSelectedPatientName(name);
     setSelectedPatientPhone(apt.telefon || "");
     setConsentAppointment(apt);
     setConsentToEdit(null);
-    setConsentModalOpen(true);
+
+    try {
+      const records = await getConsentRecords(name);
+      
+      const existing = records.find(r => 
+        r.appointment_date === apt.tarih && 
+        r.appointment_time === apt.saat &&
+        r.signature_data
+      );
+
+      if (existing) {
+        setSelectedConsent(existing);
+        setConsentDetailOpen(true);
+      } else {
+        setConsentModalOpen(true);
+      }
+    } catch (err) {
+      console.error("Failed to check existing consent:", err);
+      setConsentModalOpen(true);
+    }
   };
 
   const openMaterial = (name: string) => {
