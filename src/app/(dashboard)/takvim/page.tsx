@@ -750,7 +750,7 @@ export default function CalendarPage() {
                     </div>
                   )}
                   <div 
-                    className={`appointment-card-legacy ${draggedApt.durum} drag-overlay-active`} 
+                    className={`appointment-card-legacy ${draggedApt.durum} ${services.find(h => h.id.toString() === draggedApt.hizmetId.toString())?.ad?.toLowerCase().includes('mezoterapi') ? 'mezoterapi' : ''} drag-overlay-active`} 
                     style={{ 
                       width: '170px', 
                       height: '48px', 

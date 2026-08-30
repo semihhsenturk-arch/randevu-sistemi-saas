@@ -72,7 +72,7 @@ export const DraggableAppointment = memo(function DraggableAppointment({ appoint
         onClick(appointment);
       }}
       style={dndStyle}
-      className={`appointment-card-legacy ${appointment.durum} group`}
+      className={`appointment-card-legacy ${appointment.durum} ${service?.ad?.toLowerCase().includes('mezoterapi') ? 'mezoterapi' : ''} group`}
     >
       <span className="apt-name pointer-events-none" title=" ">{appointment.musteriAdi}</span>
       <span className="apt-service pointer-events-none" title=" ">{service?.ad || "Bilinmeyen Hizmet"}</span>

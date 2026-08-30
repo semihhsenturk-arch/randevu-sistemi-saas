@@ -194,6 +194,10 @@
     @apply bg-emerald-50 border-l-[#10b981] text-emerald-900;
   }
   
+  .appointment-card-legacy.onaylandi.mezoterapi {
+    @apply bg-blue-50 border-l-[#3b82f6] text-blue-900;
+  }
+  
   .appointment-card-legacy.beklemede {
     @apply bg-amber-50 border-l-[#f59e0b] text-amber-900;
   }

@@ -691,7 +691,7 @@ export default function PatientListPage() {
                 </div>
               </div>
               <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-3 py-1 rounded-full text-[0.7rem] font-bold">{h?.ad}</span>
+                <span className={`${h?.ad?.toLowerCase().includes('mezoterapi') ? 'bg-blue-50 text-blue-700 border border-blue-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'} px-3 py-1 rounded-full text-[0.7rem] font-bold`}>{h?.ad}</span>
                 <div className="flex gap-2 items-center">
                   {p.whatsapp_status === 'declined' && (
                     <span className="text-[0.65rem] font-bold text-rose-600 bg-rose-50 px-2 py-1 rounded-md border border-rose-100 flex items-center gap-1"><X className="w-3 h-3" /> Reddedildi</span>
@@ -742,7 +742,7 @@ export default function PatientListPage() {
                   <TableCell className="text-center py-4 font-medium text-slate-600">{p.telefon || "-"}</TableCell>
                   <TableCell className="text-center py-4">
                      <div className="flex flex-col items-center gap-1.5">
-                       <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-3 py-1 rounded-full text-[0.7rem] font-bold">
+                       <span className={`${h?.ad?.toLowerCase().includes('mezoterapi') ? 'bg-blue-50 text-blue-700 border border-blue-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'} px-3 py-1 rounded-full text-[0.7rem] font-bold`}>
                          {h?.ad}
                        </span>
                        {p.whatsapp_status === 'declined' && (
