@@ -578,6 +578,7 @@ export default function PatientListPage() {
     
     if (typeof window !== 'undefined') {
        Object.keys(profiles).forEach(pName => {
+         const pNameLower = pName.toLocaleLowerCase("tr-TR").trim();
          const p = profiles[pName];
          p.face_treatments?.forEach(t => {
             if (t.transactionNo) {
@@ -585,10 +586,36 @@ export default function PatientListPage() {
                if (m) {
                   const num = parseInt(m[1], 10);
                   manualTxNos.add(num);
-                  const tDate = (t.date || "").split(" ")[0];
-                  const matchingApt = sorted.find(a => a.tarih === tDate && (a.musteriAdi || "") === pName);
+                  
+                  const parts = (t.date || "").split(" ");
+                  let tDateStr = parts[0] || "";
+                  const tTimeStr = parts[1] || "";
+                  
+                  if (tDateStr.includes(".")) {
+                     const dateParts = tDateStr.split(".");
+                     if (dateParts.length === 3) {
+                        tDateStr = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+                     }
+                  }
+                  
+                  const matchingApt = sorted.find(a => 
+                     a.tarih === tDateStr && 
+                     (a.saat || "") === tTimeStr &&
+                     (a.musteriAdi || "").toLocaleLowerCase("tr-TR").trim() === pNameLower
+                  );
+                  
+                  // Fallback: If exact time match fails, fallback to first appointment on that date without an assignment
                   if (matchingApt) {
                      manualTxNoToApptId.set(num, matchingApt.id);
+                  } else {
+                     const fallbackApt = sorted.find(a => 
+                        a.tarih === tDateStr && 
+                        (a.musteriAdi || "").toLocaleLowerCase("tr-TR").trim() === pNameLower &&
+                        !Array.from(manualTxNoToApptId.values()).includes(a.id)
+                     );
+                     if (fallbackApt) {
+                        manualTxNoToApptId.set(num, fallbackApt.id);
+                     }
                   }
                }
             }
