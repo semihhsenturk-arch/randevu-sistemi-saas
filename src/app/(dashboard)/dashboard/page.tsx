@@ -236,59 +236,96 @@ export default function DashboardAnalyticsPage() {
         }
     });
 
-    const usedAptIds = new Set<string>();
-    const txToAppointment = new Map<string, any>();
-    const normName = (name: string) => name.toLocaleUpperCase("tr-TR").trim();
-
-    // Map each txNo to the best appointment
-    allTxs.forEach(tx => {
-       if (tx.isControl) return; // Controls are merged into parents
-
-       const possibleApts = appointments.filter(a => 
-           a.durum === 'onaylandi' && 
-           !usedAptIds.has(a.id) &&
-           normName(a.musteriAdi) === normName(tx.patientName)
-       );
-       
-       if (possibleApts.length > 0) {
-           const parseD = (dStr: string) => {
-               const [DD, MM, YYYY] = dStr.split(".");
-               return new Date(Number(YYYY), Number(MM) - 1, Number(DD)).getTime();
-           };
-           const txTime = parseD(tx.dateStr);
-
-           possibleApts.sort((a, b) => {
-               const timeA = new Date(a.tarih).getTime();
-               const timeB = new Date(b.tarih).getTime();
-               const diffA = Math.abs(timeA - txTime);
-               const diffB = Math.abs(timeB - txTime);
-               if (diffA !== diffB) return diffA - diffB; // Closest date wins
+    const appointmentTxMapping: Record<string, string> = {};
+    const sortedMap = [...appointments]
+      .filter(a => a.durum !== "iptal")
+      .sort((a,b) => {
+        if (a.created_at && b.created_at) {
+           const cA = new Date(a.created_at).getTime();
+           const cB = new Date(b.created_at).getTime();
+           if (cA !== cB) return cA - cB;
+        }
+        const dComp = (a.tarih || "").localeCompare(b.tarih || "");
+        if (dComp !== 0) return dComp;
+        return (a.saat || "").localeCompare(b.saat || "");
+      });
+      
+    const manualTxNos = new Set<number>();
+    const manualTxNoToApptId = new Map<number, string>();
+    
+    Object.keys(patientProfiles).forEach(pName => {
+      const pNameLower = pName.toLocaleLowerCase("tr-TR").trim();
+      const p = patientProfiles[pName];
+      p.face_treatments?.forEach((t: any) => {
+         if (t.transactionNo) {
+            const m = t.transactionNo.match(/ISL[- ]*(\d+)/i);
+            if (m) {
+               const num = parseInt(m[1], 10);
+               manualTxNos.add(num);
                
-               // If same date, check service type match
-               const svcNameA = (services.find(s => s.id.toString() === a.hizmetId.toString())?.ad || "").toLowerCase();
-               const svcNameB = (services.find(s => s.id.toString() === b.hizmetId.toString())?.ad || "").toLowerCase();
-               let matchA = 0, matchB = 0;
-               if (tx.type) {
-                   if (tx.type === "botoks" && (svcNameA.includes("botoks") || svcNameA.includes("botox") || svcNameA.includes("masseter"))) matchA = 1;
-                   if (tx.type === "dolgu" && svcNameA.includes("dolgu")) matchA = 1;
-                   if (tx.type === "mezoterapi" && (svcNameA.includes("mezo") || svcNameA.includes("gençlik") || svcNameA.includes("somon"))) matchA = 1;
-                   
-                   if (tx.type === "botoks" && (svcNameB.includes("botoks") || svcNameB.includes("botox") || svcNameB.includes("masseter"))) matchB = 1;
-                   if (tx.type === "dolgu" && svcNameB.includes("dolgu")) matchB = 1;
-                   if (tx.type === "mezoterapi" && (svcNameB.includes("mezo") || svcNameB.includes("gençlik") || svcNameB.includes("somon"))) matchB = 1;
+               const parts = (t.date || "").split(" ");
+               let tDateStr = parts[0] || "";
+               const tTimeStr = parts[1] || "";
+               
+               if (tDateStr.includes(".")) {
+                  const dateParts = tDateStr.split(".");
+                  if (dateParts.length === 3) {
+                     tDateStr = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+                  }
                }
-               return matchB - matchA;
-           });
+               
+               const possibleApts = sortedMap.filter(a => 
+                  a.tarih === tDateStr && 
+                  (a.musteriAdi || "").toLocaleLowerCase("tr-TR").trim() === pNameLower
+               );
+               
+               let aptToBind = possibleApts.find(a => 
+                  (a.saat || "") === tTimeStr && 
+                  !Array.from(manualTxNoToApptId.values()).includes(a.id)
+               );
+               
+               if (!aptToBind) {
+                  aptToBind = possibleApts.find(a => !Array.from(manualTxNoToApptId.values()).includes(a.id));
+               }
+               
+               if (aptToBind) {
+                  manualTxNoToApptId.set(num, aptToBind.id);
+               }
+            }
+         }
+      });
+    });
 
-           const bestApt = possibleApts[0];
-           txToAppointment.set(tx.txNo, bestApt);
-           usedAptIds.add(bestApt.id);
+    let counter = 1;
+    sortedMap.forEach((a) => {
+       let foundPreAssigned = false;
+       for (const [num, aptId] of manualTxNoToApptId.entries()) {
+          if (aptId === a.id) {
+             appointmentTxMapping[a.id] = `#ISL-${num.toString().padStart(4, '0')}`;
+             foundPreAssigned = true;
+             manualTxNoToApptId.delete(num);
+             break;
+          }
+       }
+       if (!foundPreAssigned) {
+          while (manualTxNos.has(counter)) {
+             counter++;
+          }
+          appointmentTxMapping[a.id] = `#ISL-${counter.toString().padStart(4, '0')}`;
+          manualTxNos.add(counter);
+          counter++;
        }
     });
 
     const appointmentToTx = new Map<string, string>();
-    txToAppointment.forEach((apt, txNo) => {
-        appointmentToTx.set(apt.id, txNo);
+    const txToAppointment = new Map<string, any>();
+    
+    Object.entries(appointmentTxMapping).forEach(([aptId, txNo]) => {
+        appointmentToTx.set(aptId, txNo);
+        const apt = appointments.find(a => a.id === aptId);
+        if (apt) {
+            txToAppointment.set(txNo, apt);
+        }
     });
 
     const transactions: any[] = [];
