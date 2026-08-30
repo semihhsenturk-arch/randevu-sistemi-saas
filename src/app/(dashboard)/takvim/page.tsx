@@ -575,6 +575,11 @@ export default function CalendarPage() {
     const sorted = [...appointments]
       .filter(a => a.durum !== "iptal")
       .sort((a,b) => {
+        if (a.created_at && b.created_at) {
+           const cA = new Date(a.created_at).getTime();
+           const cB = new Date(b.created_at).getTime();
+           if (cA !== cB) return cA - cB;
+        }
         const dComp = (a.tarih || "").localeCompare(b.tarih || "");
         if (dComp !== 0) return dComp;
         return (a.saat || "").localeCompare(b.saat || "");
@@ -583,9 +588,14 @@ export default function CalendarPage() {
     let targetId = currentApt.id;
     if (!targetId || targetId.startsWith("temp_")) {
       targetId = "temp_predict";
-      const tempApt = { ...currentApt, id: targetId } as Appointment;
+      const tempApt = { ...currentApt, id: targetId, created_at: new Date().toISOString() } as Appointment;
       sorted.push(tempApt);
       sorted.sort((a,b) => {
+        if (a.created_at && b.created_at) {
+           const cA = new Date(a.created_at).getTime();
+           const cB = new Date(b.created_at).getTime();
+           if (cA !== cB) return cA - cB;
+        }
         const dComp = (a.tarih || "").localeCompare(b.tarih || "");
         if (dComp !== 0) return dComp;
         return (a.saat || "").localeCompare(b.saat || "");

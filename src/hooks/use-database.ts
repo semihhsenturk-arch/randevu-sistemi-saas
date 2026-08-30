@@ -12,6 +12,7 @@ export type Appointment = {
   notlar: string;
   whatsapp_status?: "sent" | "confirmed" | "declined" | null;
   customPrice?: number;
+  created_at?: string;
 };
 
 export type FaceTreatment = {
@@ -231,6 +232,7 @@ export function useDatabase() {
         notlar: d.notlar,
         whatsapp_status: d.whatsapp_status,
         customPrice: d.custom_price,
+        created_at: d.created_at,
       }));
       setCache(CACHE_KEYS.APPOINTMENTS, mapped);
       return mapped;
@@ -298,6 +300,7 @@ export function useDatabase() {
       notlar: data[0].notlar,
       whatsapp_status: data[0].whatsapp_status,
       customPrice: data[0].custom_price,
+      created_at: data[0].created_at,
     };
 
     // Cache'i güncelle: hem yeni ID hem eski (temp_) ID ile eşleşenleri temizle

@@ -568,6 +568,11 @@ export default function PatientListPage() {
     const sorted = [...appointments]
       .filter(a => a.durum !== "iptal")
       .sort((a,b) => {
+        if (a.created_at && b.created_at) {
+           const cA = new Date(a.created_at).getTime();
+           const cB = new Date(b.created_at).getTime();
+           if (cA !== cB) return cA - cB;
+        }
         const dComp = (a.tarih || "").localeCompare(b.tarih || "");
         if (dComp !== 0) return dComp;
         return (a.saat || "").localeCompare(b.saat || "");
