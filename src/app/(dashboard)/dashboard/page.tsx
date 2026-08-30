@@ -470,9 +470,8 @@ export default function DashboardAnalyticsPage() {
     const avgChange = prevAvgRevenue > 0 ? Math.round(((avgRevenue - prevAvgRevenue) / prevAvgRevenue) * 100) : 0;
 
     const barData = services.map(h => {
-      const qty = counts[h.ad] || 0;
-      const rev = filtered.filter(a => a.hizmetId.toString() === h.id.toString()).reduce((s) => s + (h.fiyat || 0), 0);
-      return { name: h.ad, revenue: rev, quantity: qty, color: h.renk || '#0a3d34' };
+      const stats = svcStats[h.ad] || { qty: 0, rev: 0 };
+      return { name: h.ad, revenue: stats.rev, quantity: stats.qty, color: h.renk || '#0a3d34' };
     }).sort((a, b) => a.name.localeCompare(b.name, 'tr'));
     const pieData = barData.filter(b => b.revenue > 0);
 
