@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useDatabase, Appointment, Service, getCacheSync, CACHE_KEYS } from "@/hooks/use-database";
+import { useTransactionMapping, collectAllTxNos, calculateMaterialCostForTx } from "@/hooks/useTransactionMapping";
 import { CalendarCheck, Banknote, TrendingUp, Loader2, ArrowUpRight, ArrowDownRight, Coins, Percent, Ban, Users, Wallet } from "lucide-react";
 import { format, startOfMonth, subDays, startOfWeek, endOfWeek, getWeek, parseISO, isValid } from "date-fns";
 import { tr } from "date-fns/locale/tr";
@@ -197,6 +198,8 @@ export default function DashboardAnalyticsPage() {
     return appointments.filter(a => a.durum === 'onaylandi' && a.tarih >= prevStart && a.tarih <= prevEnd);
   }, [appointments, appliedStartDate, appliedEndDate]);
 
+  const { appointmentTxMap: globalAppointmentTxMap } = useTransactionMapping(appointments, patientProfiles);
+
   const analytics = useMemo(() => {
     // Tüm döneme ait randevular (Durumdan bağımsız operasyonel KPI'lar için)
     const allFiltered = appointments.filter(a => a.tarih >= appliedStartDate && a.tarih <= appliedEndDate);
@@ -215,107 +218,9 @@ export default function DashboardAnalyticsPage() {
     const svcStats: Record<string, { qty: number; rev: number; cost: number; profit: number }> = {};
     
     // Gather all unique txNos from the entire system
-    const allTxs: { txNo: string, patientName: string, dateStr: string, type: string, isControl: boolean }[] = [];
-    Object.keys(patientProfiles).forEach(pName => {
-        const profile = patientProfiles[pName];
-        if (profile.face_treatments) {
-            profile.face_treatments.forEach((ft: any) => {
-                if (ft.transactionNo && !allTxs.some(x => x.txNo === ft.transactionNo)) {
-                    const day = ft.date.split(" ")[0]; // "dd.MM.yyyy"
-                    allTxs.push({ txNo: ft.transactionNo, patientName: pName, dateStr: day, type: ft.type || "", isControl: !!ft.isControl });
-                }
-            });
-        }
-        if (profile.stock_history) {
-            profile.stock_history.forEach((sh: any) => {
-                if (sh.transaction_no && sh.transaction_no !== "-" && !allTxs.some(x => x.txNo === sh.transaction_no)) {
-                    const day = sh.treatment_date ? sh.treatment_date.split(" ")[0] : sh.date.split(" ")[0];
-                    allTxs.push({ txNo: sh.transaction_no, patientName: pName, dateStr: day, type: "", isControl: sh.transaction_no.includes("-K") });
-                }
-            });
-        }
-    });
+    const allTxs = collectAllTxNos(patientProfiles);
 
-    const appointmentTxMapping: Record<string, string> = {};
-    const sortedMap = [...appointments]
-      .filter(a => a.durum !== "iptal")
-      .sort((a,b) => {
-        if (a.created_at && b.created_at) {
-           const cA = new Date(a.created_at).getTime();
-           const cB = new Date(b.created_at).getTime();
-           if (cA !== cB) return cA - cB;
-        }
-        const dComp = (a.tarih || "").localeCompare(b.tarih || "");
-        if (dComp !== 0) return dComp;
-        return (a.saat || "").localeCompare(b.saat || "");
-      });
-      
-    const manualTxNos = new Set<number>();
-    const manualTxNoToApptId = new Map<number, string>();
-    
-    Object.keys(patientProfiles).forEach(pName => {
-      const pNameLower = pName.toLocaleLowerCase("tr-TR").trim();
-      const p = patientProfiles[pName];
-      p.face_treatments?.forEach((t: any) => {
-         if (t.transactionNo) {
-            const m = t.transactionNo.match(/ISL[- ]*(\d+)/i);
-            if (m) {
-               const num = parseInt(m[1], 10);
-               manualTxNos.add(num);
-               
-               const parts = (t.date || "").split(" ");
-               let tDateStr = parts[0] || "";
-               const tTimeStr = parts[1] || "";
-               
-               if (tDateStr.includes(".")) {
-                  const dateParts = tDateStr.split(".");
-                  if (dateParts.length === 3) {
-                     tDateStr = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
-                  }
-               }
-               
-               const possibleApts = sortedMap.filter(a => 
-                  a.tarih === tDateStr && 
-                  (a.musteriAdi || "").toLocaleLowerCase("tr-TR").trim() === pNameLower
-               );
-               
-               let aptToBind = possibleApts.find(a => 
-                  (a.saat || "") === tTimeStr && 
-                  !Array.from(manualTxNoToApptId.values()).includes(a.id)
-               );
-               
-               if (!aptToBind) {
-                  aptToBind = possibleApts.find(a => !Array.from(manualTxNoToApptId.values()).includes(a.id));
-               }
-               
-               if (aptToBind) {
-                  manualTxNoToApptId.set(num, aptToBind.id);
-               }
-            }
-         }
-      });
-    });
-
-    let counter = 1;
-    sortedMap.forEach((a) => {
-       let foundPreAssigned = false;
-       for (const [num, aptId] of manualTxNoToApptId.entries()) {
-          if (aptId === a.id) {
-             appointmentTxMapping[a.id] = `#ISL-${num.toString().padStart(4, '0')}`;
-             foundPreAssigned = true;
-             manualTxNoToApptId.delete(num);
-             break;
-          }
-       }
-       if (!foundPreAssigned) {
-          while (manualTxNos.has(counter)) {
-             counter++;
-          }
-          appointmentTxMapping[a.id] = `#ISL-${counter.toString().padStart(4, '0')}`;
-          manualTxNos.add(counter);
-          counter++;
-       }
-    });
+    const appointmentTxMapping = globalAppointmentTxMap;
 
     const appointmentToTx = new Map<string, string>();
     const txToAppointment = new Map<string, any>();
@@ -332,58 +237,7 @@ export default function DashboardAnalyticsPage() {
     
     // Calculate costs for a given txNo
     const calculateMaterialCost = (txNo: string, patientName: string, targetDateStr: string) => {
-        let materialCost = 0;
-        const profile = patientProfiles[patientName.toLocaleUpperCase("tr-TR")] || patientProfiles[patientName];
-        if (!profile) return 0;
-        
-        const stockHistory = profile.stock_history || [];
-        let relevantStocks = [];
-        if (txNo && txNo !== "-") {
-            relevantStocks = stockHistory.filter((h: any) => h.transaction_no === txNo);
-        }
-        if (relevantStocks.length === 0) {
-            relevantStocks = stockHistory.filter((h: any) => (!h.transaction_no) && (h.date.split(' ')[0] === targetDateStr || (h.treatment_date && h.treatment_date.split(' ')[0] === targetDateStr)));
-        }
-        
-        relevantStocks.forEach((stock: any) => {
-           stock.text.split(", ").forEach((itemStr: string) => {
-              const costMatch = itemStr.match(/\[Maliyet:\s*([\d.]+)\]/);
-              const embeddedUnitPrice = costMatch ? parseFloat(costMatch[1]) : null;
-              const cleanItemStr = itemStr.replace(/\s*\(Toplam Maliyet:.*?\)/g, "").replace(/\s*\(Maliyet:.*?\)/g, "").replace(/\s*\[Toplam Maliyet:.*?\]/g, "").replace(/\s*\[Maliyet:.*?\]/g, "").trim();
-              const parts = cleanItemStr.split(" ");
-              const amount = parseFloat(parts[0]) || 0;
-              const itemName = parts.slice(2).join(" ");
-              const invItem = inventory?.items?.find((i: any) => i.ad === itemName);
-              const unitPrice = embeddedUnitPrice !== null ? embeddedUnitPrice : (invItem?.fiyat || 0);
-              materialCost += (unitPrice * amount);
-           });
-        });
-
-        if (txNo !== "-") {
-           const childControls = allTxs.filter(t => t.isControl && (
-             // Control sessions don't always have parent explicitly in allTxs, but in profile they do
-             (profile.face_treatments || []).some((ft: any) => ft.transactionNo === t.txNo && ft.parentTransactionNo === txNo)
-           ));
-           
-           childControls.forEach(child => {
-              const childDateStr = child.dateStr;
-              let relevantStocksForChild = stockHistory.filter((h: any) => h.transaction_no === child.txNo || (!h.transaction_no && (h.date.split(' ')[0] === childDateStr || (h.treatment_date && h.treatment_date.split(' ')[0] === childDateStr))));
-              relevantStocksForChild.forEach((stock: any) => {
-                stock.text.split(", ").forEach((itemStr: string) => {
-                  const costMatch = itemStr.match(/\[Maliyet:\s*([\d.]+)\]/);
-                  const embeddedUnitPrice = costMatch ? parseFloat(costMatch[1]) : null;
-                  const cleanItemStr = itemStr.replace(/\s*\(Toplam Maliyet:.*?\)/g, "").replace(/\s*\(Maliyet:.*?\)/g, "").replace(/\s*\[Toplam Maliyet:.*?\]/g, "").replace(/\s*\[Maliyet:.*?\]/g, "").trim();
-                  const parts = cleanItemStr.split(" ");
-                  const amount = parseFloat(parts[0]) || 0;
-                  const itemName = parts.slice(2).join(" ");
-                  const invItem = inventory?.items?.find((i: any) => i.ad === itemName);
-                  const unitPrice = embeddedUnitPrice !== null ? embeddedUnitPrice : (invItem?.fiyat || 0);
-                  materialCost += (unitPrice * amount);
-                });
-              });
-           });
-        }
-        return materialCost;
+        return calculateMaterialCostForTx(txNo, patientName, targetDateStr, patientProfiles, inventory?.items || [], allTxs);
     };
 
     // 1. Add all appointments in the date range
@@ -641,7 +495,7 @@ export default function DashboardAnalyticsPage() {
       cancelRate, confirmRate, dailyAvg,
       retentionRate, arpu, segmentationData, newVsExistingData, newPatientCount, existingPatientCount, returningCount, uniquePatientsPeriod
     };
-  }, [appointments, filtered, prevFiltered, services, patientProfiles, inventory, appliedStartDate, appliedEndDate]);
+  }, [appointments, filtered, prevFiltered, services, patientProfiles, inventory, appliedStartDate, appliedEndDate, globalAppointmentTxMap]);
 
   const varColor = (v: number) => v > 80 ? '#0d9488' : v > 40 ? '#f59e0b' : '#ef4444';
 
@@ -952,7 +806,7 @@ export default function DashboardAnalyticsPage() {
                   <YAxis stroke="#94a3b8" fontSize={11} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v/1000)}k`} />
                   <Tooltip 
                     contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', fontSize: 13, fontWeight: 600 }} 
-                    formatter={(v: any, name: string) => [
+                    formatter={(v: any, name: any) => [
                       name === 'revenue' || name === 'cost' ? `${Number(v).toLocaleString('tr-TR')} ₺` : `${v} randevu`,
                       name === 'revenue' ? 'Gelir' : name === 'cost' ? 'Gider' : 'Randevu'
                     ]} 

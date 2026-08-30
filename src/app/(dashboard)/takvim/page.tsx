@@ -932,7 +932,7 @@ export default function CalendarPage() {
                       type="button" 
                       variant="outline" 
                       onClick={() => {
-                        const url = `/hasta-listesi?openPatient=${encodeURIComponent(currentApt.musteriAdi)}&phone=${encodeURIComponent(currentApt.telefon || "")}`;
+                        const url = `/hasta-listesi?openPatient=${encodeURIComponent(currentApt.musteriAdi || "")}&phone=${encodeURIComponent(currentApt.telefon || "")}`;
                         router.push(url);
                       }}
                       className="h-12 px-4 shrink-0 rounded-xl font-bold border-slate-200 text-[#0a3d34] hover:bg-slate-50 flex items-center gap-2"

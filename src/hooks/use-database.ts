@@ -31,10 +31,19 @@ export type FaceTreatment = {
 
 /**
  * Generates a unique transaction number for a face treatment.
- * Format: #ISL-XXXXX (5-digit, incremented based on existing treatments)
+ * Format: #ISL-XXXXX (4-digit minimum, incremented based on ALL existing records)
+ * Scans both face_treatments AND stock_history for maximum robustness.
  */
 export function generateTransactionNo(existingTreatments?: FaceTreatment[]): string {
   let maxNum = 0;
+  
+  const extractMaxFromTxNo = (txNo: string) => {
+    const match = txNo.match(/ISL[- ]*(\d+)/i);
+    if (match) {
+      const num = parseInt(match[1], 10);
+      if (num > maxNum) maxNum = num;
+    }
+  };
   
   // Try to find max across ALL cached profiles to ensure global uniqueness
   if (typeof window !== "undefined") {
@@ -44,15 +53,16 @@ export function generateTransactionNo(existingTreatments?: FaceTreatment[]): str
         const allProfiles = JSON.parse(cachedData);
         for (const key in allProfiles) {
           const profile = allProfiles[key];
+          // Check face_treatments
           if (profile.face_treatments) {
             for (const t of profile.face_treatments) {
-              if (t.transactionNo) {
-                const match = t.transactionNo.match(/ISL[- ]*(\d+)/i);
-                if (match) {
-                  const num = parseInt(match[1], 10);
-                  if (num > maxNum) maxNum = num;
-                }
-              }
+              if (t.transactionNo) extractMaxFromTxNo(t.transactionNo);
+            }
+          }
+          // Also check stock_history for transaction_no references
+          if (profile.stock_history) {
+            for (const s of profile.stock_history) {
+              if (s.transaction_no) extractMaxFromTxNo(s.transaction_no);
             }
           }
         }
@@ -65,13 +75,7 @@ export function generateTransactionNo(existingTreatments?: FaceTreatment[]): str
   // Fallback: check provided treatments just in case
   if (existingTreatments && existingTreatments.length > 0) {
     for (const t of existingTreatments) {
-      if (t.transactionNo) {
-        const match = t.transactionNo.match(/ISL[- ]*(\d+)/i);
-        if (match) {
-          const num = parseInt(match[1], 10);
-          if (num > maxNum) maxNum = num;
-        }
-      }
+      if (t.transactionNo) extractMaxFromTxNo(t.transactionNo);
     }
   }
 

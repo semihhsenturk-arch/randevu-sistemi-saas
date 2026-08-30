@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useDatabase, Appointment, PatientProfile, FaceTreatment, InventoryItem, Service, ConsentRecord, getCacheSync, CACHE_KEYS, generateTransactionNo } from "@/hooks/use-database";
+import { useTransactionMapping } from "@/hooks/useTransactionMapping";
 import { FaceMap } from "@/components/FaceMap";
 import { TransactionReceiptModal } from "@/components/TransactionReceiptModal";
 import { BeforeAfterCompare } from "@/components/BeforeAfterCompare";
@@ -179,48 +180,58 @@ export default function PatientListPage() {
     const prof = { ...(profiles[name] || { notes_list: [], meds: [], stock_history: [] }) };
     
     // MIGRATION: Ensure all existing face treatments have a transactionNo (ONE per date group)
+    // Skip entirely if every treatment already has one (fast path)
     if (prof.face_treatments && prof.face_treatments.length > 0) {
-      let hasChanges = false;
-      const updatedTreatments = [...prof.face_treatments];
+      const needsMigration = prof.face_treatments.some(t => !t.transactionNo);
       
-      const groupsByDate: Record<string, FaceTreatment[]> = {};
-      updatedTreatments.forEach(t => {
-        const d = (t.date || "").split(" ")[0];
-        if (!groupsByDate[d]) groupsByDate[d] = [];
-        groupsByDate[d].push(t);
-      });
-      
-      let maxNum = 0;
-      updatedTreatments.forEach(t => {
-        if (t.transactionNo) {
-          const m = t.transactionNo.match(/ISL[- ]*(\d+)/i);
-          if (m) {
-            const num = parseInt(m[1], 10);
-            if (num > maxNum) maxNum = num;
-          }
-        }
-      });
-      
-      const newTreatments: FaceTreatment[] = [];
-      Object.keys(groupsByDate).forEach(date => {
-        const group = groupsByDate[date];
-        const existingTx = group.find(t => t.transactionNo)?.transactionNo;
-        let generatedTxNo = "";
+      if (needsMigration) {
+        const updatedTreatments = [...prof.face_treatments];
         
-        group.forEach(t => {
-          if (!t.transactionNo) {
-            hasChanges = true;
-            if (!existingTx && !generatedTxNo) {
-              generatedTxNo = `#ISL-${(++maxNum).toString().padStart(4, '0')}`;
+        const groupsByDate: Record<string, FaceTreatment[]> = {};
+        updatedTreatments.forEach(t => {
+          const d = (t.date || "").split(" ")[0];
+          if (!groupsByDate[d]) groupsByDate[d] = [];
+          groupsByDate[d].push(t);
+        });
+        
+        // Use generateTransactionNo for globally safe numbering
+        let maxNum = 0;
+        updatedTreatments.forEach(t => {
+          if (t.transactionNo) {
+            const m = t.transactionNo.match(/ISL[- ]*(\d+)/i);
+            if (m) {
+              const num = parseInt(m[1], 10);
+              if (num > maxNum) maxNum = num;
             }
-            newTreatments.push({ ...t, transactionNo: existingTx || generatedTxNo });
-          } else {
-            newTreatments.push(t);
           }
         });
-      });
+        
+        // Also check global max from generateTransactionNo
+        const globalTxNo = generateTransactionNo(updatedTreatments);
+        const globalMatch = globalTxNo.match(/ISL[- ]*(\d+)/i);
+        if (globalMatch) {
+          const globalNum = parseInt(globalMatch[1], 10) - 1; // -1 because generate returns next
+          if (globalNum > maxNum) maxNum = globalNum;
+        }
+        
+        const newTreatments: FaceTreatment[] = [];
+        Object.keys(groupsByDate).forEach(date => {
+          const group = groupsByDate[date];
+          const existingTx = group.find(t => t.transactionNo)?.transactionNo;
+          let generatedTxNo = "";
+          
+          group.forEach(t => {
+            if (!t.transactionNo) {
+              if (!existingTx && !generatedTxNo) {
+                generatedTxNo = `#ISL-${(++maxNum).toString().padStart(4, '0')}`;
+              }
+              newTreatments.push({ ...t, transactionNo: existingTx || generatedTxNo });
+            } else {
+              newTreatments.push(t);
+            }
+          });
+        });
 
-      if (hasChanges) {
         prof.face_treatments = newTreatments;
         savePatientProfile(name, prof).catch(err => console.error("Migration save err:", err));
         setProfiles(prev => ({ ...prev, [name]: prof }));
@@ -546,9 +557,17 @@ export default function PatientListPage() {
       if (specificTx) targetTxDate = specificTx.date;
     }
     
+    // Build structured cost_items for reliable parsing (new format, backward compatible)
+    const costItems = finalCart.map(c => {
+      const item = inventory.items.find(i => i.id === c.id);
+      const unitCost = item?.fiyat || 0;
+      return { name: c.name, amount: c.amount, unit: c.unit, unitCost };
+    });
+
     history.push({ 
       date: format(new Date(), "dd.MM.yyyy HH:mm"), 
       text: finalDetailStr,
+      cost_items: costItems,
       ...(selectedMaterialTxNo && selectedMaterialTxNo !== "none" ? { transaction_no: selectedMaterialTxNo } : {}),
       ...(targetTxDate ? { treatment_date: targetTxDate } : {})
     });
@@ -582,94 +601,7 @@ export default function PatientListPage() {
     .filter(a => (a.musteriAdi || "") === selectedPatientName)
     .sort((a,b) => (b.tarih || "").localeCompare(a.tarih || ""));
 
-  const globalAppointmentTxMap = useMemo(() => {
-    const map: Record<string, string> = {};
-    const sorted = [...appointments]
-      .filter(a => a.durum !== "iptal")
-      .sort((a,b) => {
-        if (a.created_at && b.created_at) {
-           const cA = new Date(a.created_at).getTime();
-           const cB = new Date(b.created_at).getTime();
-           if (cA !== cB) return cA - cB;
-        }
-        const dComp = (a.tarih || "").localeCompare(b.tarih || "");
-        if (dComp !== 0) return dComp;
-        return (a.saat || "").localeCompare(b.saat || "");
-      });
-      
-    const manualTxNos = new Set<number>();
-    const manualTxNoToApptId = new Map<number, string>();
-    
-    if (typeof window !== 'undefined') {
-       Object.keys(profiles).forEach(pName => {
-         const pNameLower = pName.toLocaleLowerCase("tr-TR").trim();
-         const p = profiles[pName];
-         p.face_treatments?.forEach(t => {
-            if (t.transactionNo) {
-               const m = t.transactionNo.match(/ISL[- ]*(\d+)/i);
-               if (m) {
-                  const num = parseInt(m[1], 10);
-                  manualTxNos.add(num);
-                  
-                  const parts = (t.date || "").split(" ");
-                  let tDateStr = parts[0] || "";
-                  const tTimeStr = parts[1] || "";
-                  
-                  if (tDateStr.includes(".")) {
-                     const dateParts = tDateStr.split(".");
-                     if (dateParts.length === 3) {
-                        tDateStr = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
-                     }
-                  }
-                  
-                  const possibleApts = sorted.filter(a => 
-                     a.tarih === tDateStr && 
-                     (a.musteriAdi || "").toLocaleLowerCase("tr-TR").trim() === pNameLower
-                  );
-                  
-                  // Try to find one with the exact time that IS NOT YET BOUND
-                  let aptToBind = possibleApts.find(a => 
-                     (a.saat || "") === tTimeStr && 
-                     !Array.from(manualTxNoToApptId.values()).includes(a.id)
-                  );
-                  
-                  // If all with that exact time are bound, try ANY appointment on that day that IS NOT YET BOUND
-                  if (!aptToBind) {
-                     aptToBind = possibleApts.find(a => !Array.from(manualTxNoToApptId.values()).includes(a.id));
-                  }
-                  
-                  if (aptToBind) {
-                     manualTxNoToApptId.set(num, aptToBind.id);
-                  }
-               }
-            }
-         });
-       });
-    }
-
-    let counter = 1;
-    sorted.forEach((a) => {
-       let foundPreAssigned = false;
-       for (const [num, aptId] of manualTxNoToApptId.entries()) {
-          if (aptId === a.id) {
-             map[a.id] = `#ISL-${num.toString().padStart(4, '0')}`;
-             foundPreAssigned = true;
-             manualTxNoToApptId.delete(num);
-             break;
-          }
-       }
-       
-       if (!foundPreAssigned) {
-          while (manualTxNos.has(counter)) {
-             counter++;
-          }
-          map[a.id] = `#ISL-${counter.toString().padStart(4, '0')}`;
-          manualTxNos.add(counter);
-          counter++;
-       }
-    });
-    return map;
-  }, [appointments, profiles]);
+  const { appointmentTxMap: globalAppointmentTxMap } = useTransactionMapping(appointments, profiles);
 
   const { appointmentTxMapping, mappedFaceTreatments } = useMemo(() => {
     const mapping: Record<string, string> = {};
