@@ -1042,10 +1042,27 @@ export default function PatientListPage() {
                            </div>
                            <div>
                              <div className="text-[0.85rem] font-extrabold text-[#1e293b]">
-                               Aydınlatılmış Onam Formu {serviceName ? `— ${serviceName}` : ''}
+                               Aydınlatılmış Onam Formu
                              </div>
-                             <div className="text-[0.7rem] font-bold text-slate-400 mt-0.5">
-                               {c.appointment_date || ''} {c.appointment_time ? `· ${c.appointment_time}` : ''}
+                             <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                               {c.appointment_date && (
+                                 <span className="flex items-center gap-1 bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[0.65rem] font-bold border border-slate-200">
+                                   <CalendarDays className="w-3 h-3 text-slate-400" />
+                                   {isValid(parseISO(c.appointment_date)) ? format(parseISO(c.appointment_date), 'dd.MM.yyyy') : c.appointment_date}
+                                 </span>
+                               )}
+                               {c.appointment_time && (
+                                 <span className="flex items-center gap-1 bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[0.65rem] font-bold border border-slate-200">
+                                   <Clock className="w-3 h-3 text-slate-400" />
+                                   {c.appointment_time}
+                                 </span>
+                               )}
+                               {serviceName && (
+                                 <span className="flex items-center gap-1 bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded text-[0.65rem] font-bold border border-indigo-100">
+                                   <Syringe className="w-3 h-3 text-indigo-400" />
+                                   {serviceName}
+                                 </span>
+                               )}
                              </div>
                            </div>
                          </div>
