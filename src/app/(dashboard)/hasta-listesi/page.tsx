@@ -155,13 +155,19 @@ export default function PatientListPage() {
         return matchesSearch;
       }
     }).sort((a,b) => {
+      const nameA = (a.musteriAdi || "").toLocaleUpperCase("tr-TR");
+      const nameB = (b.musteriAdi || "").toLocaleUpperCase("tr-TR");
+      const nameCompare = nameA.localeCompare(nameB, "tr-TR");
+      if (nameCompare !== 0) return nameCompare;
+
       const dateA = a.tarih || "";
       const dateB = b.tarih || "";
-      const timeA = a.saat || "";
-      const timeB = b.saat || "";
       const dateCompare = dateB.localeCompare(dateA);
       if (dateCompare !== 0) return dateCompare;
-      return timeA.localeCompare(timeB);
+      
+      const timeA = a.saat || "";
+      const timeB = b.saat || "";
+      return timeB.localeCompare(timeA);
     });
   }, [appointments, todayStr, searchTerm, filterType]);
 
