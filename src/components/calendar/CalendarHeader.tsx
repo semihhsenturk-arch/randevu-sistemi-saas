@@ -57,7 +57,7 @@ export function CalendarHeader({
 
         {/* Center: Stats Cards */}
         <div className="hidden md:flex items-center justify-center w-full lg:w-auto">
-          <div className="grid grid-cols-4 gap-2 lg:flex lg:gap-1.5 xl:gap-4">
+          <div className="grid grid-cols-3 gap-2 lg:flex lg:gap-1.5 xl:gap-4">
             {/* Bugün */}
             <div className="flex items-center gap-2 lg:gap-1.5 xl:gap-3.5 px-3 lg:px-2 xl:px-4 py-2 lg:py-1 xl:py-2 rounded-xl lg:rounded-lg xl:rounded-2xl border border-slate-100 shadow-sm bg-slate-50/20">
               <div className="w-8 h-8 lg:w-7 lg:h-7 xl:w-10 xl:h-10 flex items-center justify-center rounded-lg lg:rounded-md xl:rounded-xl bg-blue-50 text-blue-600 shadow-sm">
@@ -88,19 +88,6 @@ export function CalendarHeader({
               <div>
                 <div className="text-[0.65rem] lg:text-[0.55rem] xl:text-[0.72rem] font-bold text-slate-500 uppercase tracking-wider leading-none mb-0.5 xl:mb-1.5">Doluluk</div>
                 <div className="text-base lg:text-xs xl:text-lg font-black text-[#1e293b]">{stats.occupancy}%</div>
-              </div>
-            </div>
-
-            {/* Gelir */}
-            <div className="flex items-center gap-2 lg:gap-1.5 xl:gap-3.5 px-3 lg:px-2 xl:px-4 py-2 lg:py-1 xl:py-2 rounded-xl lg:rounded-lg xl:rounded-2xl border border-slate-100 shadow-sm bg-slate-50/20">
-              <div className="w-8 h-8 lg:w-7 lg:h-7 xl:w-10 xl:h-10 flex items-center justify-center rounded-lg lg:rounded-md xl:rounded-xl bg-[#0a3d3408] text-[#0a3d34] shadow-sm">
-                <Banknote className="w-4 h-4 lg:w-3.5 lg:h-3.5 xl:w-5 xl:h-5" />
-              </div>
-              <div>
-                <div className="text-[0.65rem] lg:text-[0.55rem] xl:text-[0.72rem] font-bold text-slate-500 uppercase tracking-wider leading-none mb-0.5 xl:mb-1.5">Gelir</div>
-                <div className="text-base lg:text-xs xl:text-lg font-black text-[#1e293b]">
-                  {stats.income.toLocaleString('tr-TR')} <span className="text-[0.75rem] lg:text-[0.55rem] xl:text-sm font-bold text-slate-400">TL</span>
-                </div>
               </div>
             </div>
           </div>
