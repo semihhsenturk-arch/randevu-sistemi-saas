@@ -618,24 +618,24 @@ export default function CalendarPage() {
                      }
                   }
                   
-                  const matchingApt = sorted.find(a => 
+                  const possibleApts = sorted.filter(a => 
                      a.tarih === tDateStr && 
-                     (a.saat || "") === tTimeStr &&
                      (a.musteriAdi || "").toLocaleLowerCase("tr-TR").trim() === pNameLower
                   );
                   
-                  // Fallback: If exact time match fails, fallback to first appointment on that date without an assignment
-                  if (matchingApt) {
-                     manualTxNoToApptId.set(num, matchingApt.id);
-                  } else {
-                     const fallbackApt = sorted.find(a => 
-                        a.tarih === tDateStr && 
-                        (a.musteriAdi || "").toLocaleLowerCase("tr-TR").trim() === pNameLower &&
-                        !Array.from(manualTxNoToApptId.values()).includes(a.id)
-                     );
-                     if (fallbackApt) {
-                        manualTxNoToApptId.set(num, fallbackApt.id);
-                     }
+                  // Try to find one with the exact time that IS NOT YET BOUND
+                  let aptToBind = possibleApts.find(a => 
+                     (a.saat || "") === tTimeStr && 
+                     !Array.from(manualTxNoToApptId.values()).includes(a.id)
+                  );
+                  
+                  // If all with that exact time are bound, try ANY appointment on that day that IS NOT YET BOUND
+                  if (!aptToBind) {
+                     aptToBind = possibleApts.find(a => !Array.from(manualTxNoToApptId.values()).includes(a.id));
+                  }
+                  
+                  if (aptToBind) {
+                     manualTxNoToApptId.set(num, aptToBind.id);
                   }
                }
             }
