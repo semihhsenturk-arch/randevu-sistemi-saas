@@ -1016,7 +1016,24 @@ export default function PatientListPage() {
                        </div>
                        <span className="italic text-sm text-slate-400 font-medium">Bu hastaya ait onam formu kaydı bulunmuyor.</span>
                      </div>
-                   ) : patientConsents.map((c: any, i: number) => (
+                   ) : patientConsents.map((c: any, i: number) => {
+                     let serviceName = "";
+                     if (c.appointment_id) {
+                       const apt = hstAppointments.find(a => a.id === c.appointment_id);
+                       if (apt && apt.hizmetId) {
+                         const svc = services.find(s => s.id.toString() === apt.hizmetId.toString());
+                         if (svc) serviceName = svc.ad;
+                       }
+                     }
+                     if (!serviceName && c.appointment_date) {
+                       const apt = hstAppointments.find(a => a.tarih === c.appointment_date && a.saat === c.appointment_time);
+                       if (apt && apt.hizmetId) {
+                         const svc = services.find(s => s.id.toString() === apt.hizmetId.toString());
+                         if (svc) serviceName = svc.ad;
+                       }
+                     }
+
+                     return (
                      <div key={c.id || i} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm hover:border-indigo-200 hover:shadow-md transition-all cursor-pointer relative group" onClick={() => { setSelectedConsent(c); setConsentDetailOpen(true); }}>
                        <div className="flex items-start justify-between mb-3">
                          <div className="flex items-center gap-3">
@@ -1024,7 +1041,9 @@ export default function PatientListPage() {
                              <Shield className="w-5 h-5" />
                            </div>
                            <div>
-                             <div className="text-[0.85rem] font-extrabold text-[#1e293b]">Aydınlatılmış Onam Formu</div>
+                             <div className="text-[0.85rem] font-extrabold text-[#1e293b]">
+                               Aydınlatılmış Onam Formu {serviceName ? `— ${serviceName}` : ''}
+                             </div>
                              <div className="text-[0.7rem] font-bold text-slate-400 mt-0.5">
                                {c.appointment_date || ''} {c.appointment_time ? `· ${c.appointment_time}` : ''}
                              </div>
@@ -1071,7 +1090,8 @@ export default function PatientListPage() {
                          {c.signed_at ? format(new Date(c.signed_at), "d MMMM yyyy, HH:mm", { locale: tr }) : ''}
                        </div>
                      </div>
-                   ))}
+                     );
+                   })}
                  </div>
                )}
 
