@@ -66,8 +66,9 @@ function RegisterContent() {
       setErrorMsg("Lütfen tüm alanları doldurunuz.");
       return;
     }
-    if (password.length < 6) {
-      setErrorMsg("Şifre en az 6 karakter olmalıdır.");
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+    if (!passwordRegex.test(password)) {
+      setErrorMsg("Şifre en az 8 karakter olmalı, ayrıca en az 1 harf ve 1 rakam içermelidir.");
       return;
     }
     setErrorMsg("");
