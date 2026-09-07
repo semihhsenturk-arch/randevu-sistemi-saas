@@ -11,7 +11,7 @@ export default function TermsPage() {
           Kullanım Şartları
         </h1>
         <p className="text-slate-500 font-medium">
-          BiCalendo Hizmet Koşulları ve B2B Sözleşmesi
+          BiCalendo Hizmet Koşulları ve B2B Sözleşmesi (Son Güncelleme: Eylül 2026)
         </p>
       </div>
 
@@ -64,10 +64,15 @@ export default function TermsPage() {
         </div>
 
         <div className="space-y-4">
-          <h2 className="text-xl font-bold text-slate-900">6. Hizmet Seviyesi (SLA) ve Sorumluluğun Sınırlandırılması</h2>
+          <h2 className="text-xl font-bold text-slate-900">6. Veri Güvenliği, Hizmet Seviyesi (SLA) ve Sorumluluğun Sınırlandırılması</h2>
           <p className="text-slate-600 leading-relaxed">
-            Platform, endüstri standartlarında en yüksek "Uptime" (kesintisiz çalışma) oranını hedeflemekle birlikte, hizmetin %100 kesintisiz veya hatasız olacağını garanti etmez. Planlı bakımlar veya mücbir sebeplerden (ör. global sunucu çökmeleri) kaynaklı veri erişim kesintilerinden veya olası ticari/gelir kayıplarından BiCalendo sorumlu tutulamaz.
+            Platform, endüstri standartlarında en yüksek "Uptime" (kesintisiz çalışma) oranını hedeflemekle birlikte, hizmetin %100 kesintisiz veya hatasız olacağını garanti etmez. 
           </p>
+          <ul className="list-disc pl-6 space-y-2 text-slate-600">
+            <li>Platform; AES-256 Şifreleme, Satır Bazlı Güvenlik (RLS), İz Kayıtları (Audit Logs) ve Hız Sınırlandırması (Rate Limiting) gibi ileri düzey güvenlik mimarileriyle korunmaktadır.</li>
+            <li>BiCalendo, kullanıcı verilerini korumak için azami özeni gösterir, ancak Kullanıcının hesap şifrelerini çaldırması, personeline yetkisiz erişim hakkı vermesi veya kendi cihazlarındaki zafiyetlerden kaynaklanan veri sızıntılarından BiCalendo sorumlu tutulamaz.</li>
+            <li>Planlı bakımlar veya mücbir sebeplerden (ör. global sunucu çökmeleri) kaynaklı veri erişim kesintilerinden veya olası ticari/gelir kayıplarından BiCalendo sorumlu tutulamaz.</li>
+          </ul>
         </div>
 
         <div className="space-y-4">

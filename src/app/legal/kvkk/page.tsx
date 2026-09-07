@@ -11,7 +11,7 @@ export default function KVKKPage() {
           KVKK Aydınlatma Metni
         </h1>
         <p className="text-slate-500 font-medium">
-          6698 Sayılı Kişisel Verilerin Korunması Kanunu Kapsamında
+          6698 Sayılı Kişisel Verilerin Korunması Kanunu Kapsamında (Son Güncelleme: Eylül 2026)
         </p>
       </div>
 
@@ -48,7 +48,20 @@ export default function KVKKPage() {
         </div>
 
         <div className="space-y-4">
-          <h2 className="text-xl font-bold text-slate-900">4. İlgili Kişinin Hakları (Madde 11)</h2>
+          <h2 className="text-xl font-bold text-slate-900">4. Veri Güvenliği Önlemlerimiz</h2>
+          <p className="text-slate-600 leading-relaxed">
+            Veri işleyen sıfatıyla altyapımızda barındırılan verilerin KVKK Madde 12 uyarınca hukuka aykırı erişilmesini önlemek amacıyla alınan idari ve teknik tedbirler şunlardır:
+          </p>
+          <ul className="list-disc pl-6 space-y-2 text-slate-600">
+            <li><strong>Mantıksal İzolasyon (RLS):</strong> Platformdaki her kliniğin verisi Satır Bazlı Güvenlik (Row Level Security) mimarisiyle birbirlerinden fiziksel ve mantıksal olarak izole edilmiştir.</li>
+            <li><strong>Şifreleme:</strong> T.C. Kimlik Numarası, İletişim Bilgileri ve Tıbbi Notlar gibi Özel Nitelikli Kişisel Veriler AES-256 standardında şifrelenerek veritabanında (at-rest) korunmaktadır.</li>
+            <li><strong>İz Kayıtları (Audit Logs):</strong> Veritabanında yapılan tüm değişiklikler (ekleme, silme, güncelleme) hangi kullanıcı tarafından yapıldığı ile birlikte kalıcı olarak loglanmaktadır.</li>
+            <li><strong>Saldırı Koruması:</strong> API uç noktalarımız Hız Sınırlandırma (Rate Limiting) sistemleriyle DDoS ve Bot saldırılarına karşı koruma altındadır.</li>
+          </ul>
+        </div>
+
+        <div className="space-y-4">
+          <h2 className="text-xl font-bold text-slate-900">5. İlgili Kişinin Hakları (Madde 11)</h2>
           <p className="text-slate-600 leading-relaxed">
             KVKK’nın 11. maddesi uyarınca veri sahipleri şu haklara sahiptir:
           </p>
@@ -61,7 +74,7 @@ export default function KVKKPage() {
         </div>
 
         <div className="space-y-4">
-          <h2 className="text-xl font-bold text-slate-900">5. Başvuru ve İletişim</h2>
+          <h2 className="text-xl font-bold text-slate-900">6. Başvuru ve İletişim</h2>
           <p className="text-slate-600 leading-relaxed">
             Haklarınızı kullanmak için taleplerinizi kimliğinizi tevsik edici belgelerle birlikte <strong>kvkk@bicalendo.com</strong> adresine iletebilirsiniz. Başvurularınız kanuni süre olan en geç 30 gün içinde yanıtlanacaktır. (Not: Hastaların kendi verilerine ilişkin taleplerini doğrudan hizmet aldıkları kliniğe/hekime iletmeleri gerekmektedir).
           </p>

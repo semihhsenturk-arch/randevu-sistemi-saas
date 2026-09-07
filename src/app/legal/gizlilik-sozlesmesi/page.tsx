@@ -11,7 +11,7 @@ export default function PrivacyPage() {
           Gizlilik Sözleşmesi
         </h1>
         <p className="text-slate-500 font-medium">
-          Son Güncelleme: 2 Mayıs 2026
+          Son Güncelleme: Eylül 2026
         </p>
       </div>
 
@@ -52,11 +52,13 @@ export default function PrivacyPage() {
         <div className="space-y-4">
           <h2 className="text-xl font-bold text-slate-900">4. Veri Güvenliği ve Teknik Önlemler</h2>
           <p className="text-slate-600 leading-relaxed">
-            Verileriniz endüstri standardı yöntemlerle korunmaktadır:
+            Verileriniz endüstri standardı yöntemler ve KVKK Madde 12 gereklilikleri doğrultusunda korunmaktadır:
           </p>
           <ul className="list-disc pl-6 space-y-2 text-slate-600">
-            <li><strong>Şifreleme:</strong> Tüm veriler aktarım sırasında (in-transit) güçlü SSL/TLS ve bekleme sırasında (at-rest) AES-256 standartları ile şifrelenir.</li>
-            <li><strong>Mantıksal İzolasyon (RLS):</strong> Supabase altyapımızda bulunan Satır Bazlı Güvenlik (Row Level Security) ile her kliniğin verisi diğerlerinden izole edilmiştir. Hiçbir klinik başka bir kliniğin verisine erişemez.</li>
+            <li><strong>Şifreleme (Encryption):</strong> Tüm veriler aktarım sırasında (in-transit) güçlü SSL/TLS ve veritabanında bekleme sırasında (at-rest) uygulanan AES-256 standartları ile şifrelenir. Özellikle kimlik numaraları ve telefon bilgileri veritabanına şifrelenerek yazılır.</li>
+            <li><strong>Mantıksal İzolasyon (RLS):</strong> Supabase altyapımızda bulunan Satır Bazlı Güvenlik (Row Level Security) ile her kliniğin verisi diğerlerinden %100 izole edilmiştir. Hiçbir klinik başka bir kliniğin verisine erişemez.</li>
+            <li><strong>İz Kayıtları (Audit Logs):</strong> Sistemde gerçekleştirilen her türlü veri ekleme, değiştirme veya silme işlemi, ilgili kullanıcının kimliği ile birlikte kalıcı ve değiştirilemez biçimde loglanarak güvenlik denetimine tabi tutulur.</li>
+            <li><strong>Saldırı Koruması:</strong> API servislerimiz Dağıtık Hız Sınırlandırma (Rate Limiting) algoritmalarıyla korunarak spam ve DDoS saldırılarına karşı dirençli hale getirilmiştir.</li>
             <li><strong>Yedekleme:</strong> Olası felaket senaryolarına karşı verileriniz düzenli ve güvenli olarak yedeklenir.</li>
           </ul>
         </div>
