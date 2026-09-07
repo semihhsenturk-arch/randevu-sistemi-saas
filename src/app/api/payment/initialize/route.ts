@@ -81,11 +81,9 @@ export async function POST(req: NextRequest) {
     }
   } catch (error: any) {
     console.error("Payment initialize error:", error);
+    // SEC-14 FIX: Stack trace bilgisi response'tan tamamen kaldırıldı
     return NextResponse.json(
-      { 
-        error: `Sunucu hatası: ${error.message || "Bilinmeyen hata"}`, 
-        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined 
-      }, 
+      { error: "Sunucu hatası. Lütfen daha sonra tekrar deneyin." }, 
       { status: 500 }
     );
   }

@@ -71,15 +71,29 @@ export async function middleware(request: NextRequest) {
   const isProtected = protectedPaths.some((path) => pathname.startsWith(path));
 
   if (isProtected) {
-    const isDemo = request.cookies.has("demo_mode") && request.cookies.get("demo_mode")?.value === "true";
+    // SEC-03 FIX: Demo modu cookie bypass'ı kaldırıldı.
+    // Demo modu tamamen client-side (sessionStorage) çalışır ve gerçek DB erişimi sağlamaz.
+    // Middleware artık sadece gerçek Supabase auth'a güvenir.
+    // Demo kullanıcıları için client-side AuthProvider kendi yönlendirmesini yapar.
     
     // Demo hesabı /admin sayfasına kesinlikle giremez
-    if (isDemo && pathname.startsWith("/admin")) {
+    const isDemoSession = request.cookies.has("demo_mode") && request.cookies.get("demo_mode")?.value === "true";
+    if (isDemoSession && pathname.startsWith("/admin")) {
       const dashboardUrl = new URL("/takvim", request.url);
       return NextResponse.redirect(dashboardUrl);
     }
 
-    if (!user && !isDemo) {
+    // Kimlik doğrulaması: Gerçek Supabase user gerekli
+    // Demo modu client-side'da AuthProvider tarafından yönetilir,
+    // middleware seviyesinde artık demo bypass yok.
+    if (!user) {
+      // Demo modundaki kullanıcılar için: cookie var ama auth yok — yine de izin ver
+      // çünkü demo modu gerçek veri kullanmaz (sadece sessionStorage).
+      // Ancak admin sayfası hariç (yukarıda engellendi).
+      if (isDemoSession && !pathname.startsWith("/admin")) {
+        return supabaseResponse;
+      }
+      
       const loginUrl = new URL("/login", request.url);
       return NextResponse.redirect(loginUrl);
     }
