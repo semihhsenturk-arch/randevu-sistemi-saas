@@ -4,7 +4,7 @@ import { getAuthenticatedUser } from "@/lib/supabase-server";
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await getAuthenticatedUser(req);
+    const user = await getAuthenticatedUser();
     if (!user) {
       return NextResponse.json({ error: "Yetkisiz işlem (Oturum bulunamadı)" }, { status: 401 });
     }
