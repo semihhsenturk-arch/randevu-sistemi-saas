@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { seedDemoData, DEMO_DURATION_MS } from "@/lib/demo-data";
+import { seedDemoData, DEFAULT_DEMO_DURATION_MS } from "@/lib/demo-data";
 import { Timer, Rocket, ArrowRight, User, Phone, Building2, Sparkles } from "lucide-react";
 
 interface DemoLeadModalProps {

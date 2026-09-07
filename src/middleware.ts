@@ -45,9 +45,17 @@ export async function middleware(request: NextRequest) {
   );
 
   if (isProtected) {
+    const isDemo = request.cookies.has("demo_mode") && request.cookies.get("demo_mode")?.value === "true";
+    
+    // Demo hesabı /admin sayfasına kesinlikle giremez
+    if (isDemo && pathname.startsWith("/admin")) {
+      const dashboardUrl = new URL("/takvim", request.url);
+      return NextResponse.redirect(dashboardUrl);
+    }
+
     const hasToken = hasSessionCookie(request);
 
-    if (!hasToken) {
+    if (!hasToken && !isDemo) {
       const loginUrl = new URL("/login", request.url);
       return NextResponse.redirect(loginUrl);
     }

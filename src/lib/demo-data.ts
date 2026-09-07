@@ -14,6 +14,7 @@ export const seedDemoData = () => {
   if (typeof window === "undefined") return;
 
   localStorage.setItem("demo_mode", "true");
+  document.cookie = "demo_mode=true; path=/; max-age=" + (30 * 60) + "; SameSite=Lax";
 
   // Start the demo timer on first entry
   if (!localStorage.getItem("demo_started_at")) {
@@ -442,6 +443,7 @@ export const getDemoStartedAt = (): number | null => {
 export const clearDemoData = () => {
   if (typeof window === "undefined") return;
   localStorage.removeItem("demo_mode");
+  document.cookie = "demo_mode=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
   localStorage.removeItem("demo_seeded");
   localStorage.removeItem("demo_started_at");
   localStorage.removeItem("demo_duration_override");
