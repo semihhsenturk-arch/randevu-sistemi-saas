@@ -53,7 +53,7 @@ const PROFILE_CACHE_KEY = "cached_user_profile";
 
 function getCachedProfile(): UserProfile | null {
   try {
-    const cached = localStorage.getItem(PROFILE_CACHE_KEY);
+    const cached = sessionStorage.getItem(PROFILE_CACHE_KEY);
     if (cached) return JSON.parse(cached);
   } catch {}
   return null;
@@ -62,9 +62,9 @@ function getCachedProfile(): UserProfile | null {
 function setCachedProfile(profile: UserProfile | null) {
   try {
     if (profile) {
-      localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profile));
+      sessionStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profile));
     } else {
-      localStorage.removeItem(PROFILE_CACHE_KEY);
+      sessionStorage.removeItem(PROFILE_CACHE_KEY);
     }
   } catch {}
 }
@@ -202,7 +202,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         if (mounted) {
           // DEMO MODE CHECK
-          const isDemoMode = typeof window !== "undefined" && localStorage.getItem("demo_mode") === "true";
+          const isDemoMode = typeof window !== "undefined" && sessionStorage.getItem("demo_mode") === "true";
           if (isDemoMode) {
             const demoProfile: UserProfile = {
               id: "demo-user",
@@ -298,7 +298,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(null);
     setProfile(null);
 
-    // Clear all cached data from localStorage
+    // Clear all cached data from sessionStorage
     const keysToClear = [
       'randevular', 
       'cache_appointments', 
@@ -318,9 +318,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       'cache_admin_users'
     ];
 
-    if (typeof window !== 'undefined' && window.localStorage) {
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      for (let i = 0; i < sessionStorage.length; i++) {
+        const key = sessionStorage.key(i);
         if (key && key.startsWith('sb-') && key.includes('-auth-token')) {
           keysToClear.push(key);
         }
@@ -328,7 +328,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       keysToClear.forEach(k => {
         try {
-          localStorage.removeItem(k);
+          sessionStorage.removeItem(k);
         } catch (e) {}
       });
     }
@@ -347,7 +347,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       // Önce cache'i temizle ki güncel veri gelsin
       if (typeof window !== 'undefined') {
-        localStorage.removeItem(PROFILE_CACHE_KEY);
+        sessionStorage.removeItem(PROFILE_CACHE_KEY);
       }
       
       const { data: profileData, error } = await supabase

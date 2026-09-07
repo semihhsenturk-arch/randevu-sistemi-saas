@@ -29,7 +29,7 @@ async function simulateMapping() {
 
   profilesData.forEach(p => {
     if (p.face_treatments && Array.isArray(p.face_treatments)) {
-      p.face_treatments.forEach(t => {
+      p.face_treatments.forEach((t: any) => {
         if (t.transactionNo) {
           const m = t.transactionNo.match(/ISL[- ]*(\d+)/i);
           if (m) {

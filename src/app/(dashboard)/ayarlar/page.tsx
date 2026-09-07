@@ -86,7 +86,7 @@ export default function AyarlarPage() {
   const price = planData[cycle];
   const isCancelled = profile.payment_status === "cancelled";
   const isPaid = profile.payment_status === "paid";
-  const isDemo = typeof window !== "undefined" && localStorage.getItem("demo_mode") === "true";
+  const isDemo = typeof window !== "undefined" && sessionStorage.getItem("demo_mode") === "true";
 
   const PlanIcon = plan === "starter" ? Zap : plan === "professional" ? ShieldCheck : Star;
   const planColorClass =

@@ -20,7 +20,7 @@ export default function DashboardLayout({
 
   useEffect(() => {
     setIsDemoMode(
-      typeof window !== "undefined" && localStorage.getItem("demo_mode") === "true"
+      typeof window !== "undefined" && sessionStorage.getItem("demo_mode") === "true"
     );
   }, []);
 

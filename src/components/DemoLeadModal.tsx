@@ -22,15 +22,15 @@ export function DemoLeadModal({ open, onClose }: DemoLeadModalProps) {
     setIsSending(true);
 
     // Save lead info locally (individual keys for analytics webhook compatibility)
-    localStorage.setItem("demo_lead", JSON.stringify({
+    sessionStorage.setItem("demo_lead", JSON.stringify({
       name: name.trim(),
       phone: phone.trim(),
       clinic: clinic.trim() || undefined,
       timestamp: new Date().toISOString(),
     }));
-    localStorage.setItem("demo_lead_name", name.trim());
-    localStorage.setItem("demo_lead_phone", phone.trim());
-    localStorage.setItem("demo_lead_clinic", clinic.trim() || "Belirtilmedi");
+    sessionStorage.setItem("demo_lead_name", name.trim());
+    sessionStorage.setItem("demo_lead_phone", phone.trim());
+    sessionStorage.setItem("demo_lead_clinic", clinic.trim() || "Belirtilmedi");
 
     // Backend API'mize gönderiyoruz (CORS sorunu olmaması için)
     try {
@@ -48,16 +48,16 @@ export function DemoLeadModal({ open, onClose }: DemoLeadModalProps) {
     } catch {}
 
     // Full 30-min demo
-    localStorage.setItem("demo_duration_override", "30");
-    localStorage.setItem("demo_duration_minutes", "30");
+    sessionStorage.setItem("demo_duration_override", "30");
+    sessionStorage.setItem("demo_duration_minutes", "30");
     seedDemoData();
     window.location.href = "/takvim";
   };
 
   const handleSkip = () => {
     // Reduced 15-min demo for skippers
-    localStorage.setItem("demo_duration_override", "15");
-    localStorage.setItem("demo_duration_minutes", "15");
+    sessionStorage.setItem("demo_duration_override", "15");
+    sessionStorage.setItem("demo_duration_minutes", "15");
     seedDemoData();
     window.location.href = "/takvim";
   };

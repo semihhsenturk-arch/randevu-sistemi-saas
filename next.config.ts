@@ -78,6 +78,10 @@ const iyzipayAllDeps = [
 ];
 
 const nextConfig: NextConfig = {
+  reactStrictMode: true,
+  typescript: {
+    ignoreBuildErrors: false,
+  },
   serverExternalPackages: iyzipayCorePackages,
   outputFileTracingIncludes: {
     '/api/payment/initialize': iyzipayAllDeps,
@@ -111,9 +115,6 @@ const nextConfig: NextConfig = {
         ],
       },
     ];
-  },
-  typescript: {
-    ignoreBuildErrors: true,
   },
 };
 

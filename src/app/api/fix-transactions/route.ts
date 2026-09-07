@@ -39,7 +39,7 @@ export async function GET() {
     }
 
     const updates = [];
-    const debugLogs = [];
+    const debugLogs: any[] = [];
 
     for (const profile of profiles) {
       if (!profile.patient_name) continue;

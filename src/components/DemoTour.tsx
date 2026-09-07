@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Joyride, Step, CallBackProps, STATUS, ACTIONS, EVENTS, TooltipRenderProps } from "react-joyride";
+import { Joyride, Step, STATUS, ACTIONS, EVENTS, TooltipRenderProps } from "react-joyride";
 import { usePathname, useRouter } from "next/navigation";
 
 // Custom Premium Tooltip Component for Joyride
@@ -88,27 +88,24 @@ const CustomTooltip = ({
   );
 };
 
-const getStepsForPath = (pathname: string): Step[] => {
+const getStepsForPath = (pathname: string): any[] => {
   if (pathname === "/takvim") {
     return [
       {
         target: "body",
         content: "Takvim arayüzü üzerinden kliniğinizin günlük iş akışını anlık takip edebilir, sürükle-bırak özelliği ile randevularınızı hızlıca organize edebilirsiniz.",
-        disableBeacon: true,
         placement: "center",
         title: "Kapsamlı Takvim Yönetimi"
       },
       {
         target: "#tour-add-appointment",
         content: "Sağ üst köşedeki buton ile saniyeler içinde yeni bir hasta kaydı oluşturabilir ve randevu planlamasını tamamlayabilirsiniz.",
-        disableBeacon: true,
         placement: "bottom",
         title: "Hızlı Randevu Oluşturma"
       },
       {
         target: "#tour-link-hasta-listesi",
         content: "Kapsamlı hasta profillerini ve yapay zeka destekli yüz haritalama (FaceMap) özelliğini incelemek için Hasta Listesi sekmesine ilerleyelim.",
-        disableBeacon: true,
         placement: "right",
         title: "Hasta Listesine Geçiş",
         spotlightClicks: true
@@ -119,21 +116,18 @@ const getStepsForPath = (pathname: string): Step[] => {
       {
         target: "body",
         content: "Bu alanda kliniğinize kayıtlı tüm hastaları filtreleyebilir, detaylı geçmişlerine ve randevu istatistiklerine tek tıkla ulaşabilirsiniz.",
-        disableBeacon: true,
         placement: "center",
         title: "Merkezi Hasta Veritabanı"
       },
       {
         target: "body",
         content: "Detaylı hasta profilinde yer alan FaceMap (Yüz Haritası) ile estetik ve dermatolojik işlemleri görsel olarak işaretleyip, tedavi süreçlerini profesyonelce kayıt altına alabilirsiniz.",
-        disableBeacon: true,
         placement: "center",
         title: "FaceMap ile İşlem Takibi"
       },
       {
         target: "#tour-link-stok-yonetimi",
         content: "İşlem yapıldıkça azalan ürünlerin takibini sağlayan otomatik Stok Yönetimi modülümüzü keşfetmek için bir sonraki adıma geçelim.",
-        disableBeacon: true,
         placement: "right",
         title: "Stok Yönetimine Geçiş",
         spotlightClicks: true
@@ -144,14 +138,12 @@ const getStepsForPath = (pathname: string): Step[] => {
       {
         target: "body",
         content: "Kliniğinizdeki sarf malzemelerin güncel durumunu buradan yönetebilir, kritik seviyeye düşen ürünler için sistemden otomatik uyarılar alarak tedarik zincirinizi koruyabilirsiniz.",
-        disableBeacon: true,
         placement: "center",
         title: "Akıllı Stok Takibi"
       },
       {
         target: "#tour-link-dashboard",
         content: "Son olarak, kliniğinizin finansal ve operasyonel büyümesini yapay zeka destekli raporlarla görmek için Analiz paneline göz atalım.",
-        disableBeacon: true,
         placement: "right",
         title: "Analiz ve Raporlamaya Geçiş",
         spotlightClicks: true
@@ -162,7 +154,6 @@ const getStepsForPath = (pathname: string): Step[] => {
       {
         target: "body",
         content: "Bu ekranda kliniğinizde sunduğunuz tüm işlemleri listeleyebilir, her bir işlem için tahmini süre ve fiyat bilgilerini girerek randevu planlamanızı otomatize edebilirsiniz.",
-        disableBeacon: true,
         placement: "center",
         title: "Hizmet ve Fiyatlandırma Yönetimi"
       },
@@ -172,14 +163,12 @@ const getStepsForPath = (pathname: string): Step[] => {
       {
         target: "body",
         content: "Analiz ekranı sayesinde aylık cironuzu, personel bazlı performansınızı ve hizmet doluluk oranlarınızı detaylı grafiklerle takip ederek stratejik kararlar alabilirsiniz.",
-        disableBeacon: true,
         placement: "center",
         title: "Yapay Zeka Destekli Analiz"
       },
       {
         target: "#tour-link-hizmet-yonetimi",
         content: "Şimdi klinik hizmetlerinizi ve fiyatlandırmalarınızı yönetebileceğiniz Hizmet Yönetimi modülünü incelemek için bir sonraki adıma geçelim.",
-        disableBeacon: true,
         placement: "right",
         title: "Hizmet Yönetimine Geçiş",
         spotlightClicks: true
@@ -191,19 +180,19 @@ const getStepsForPath = (pathname: string): Step[] => {
 
 export function DemoTour() {
   const [run, setRun] = useState(false);
-  const [steps, setSteps] = useState<Step[]>([]);
+  const [steps, setSteps] = useState<any[]>([]);
   const pathname = usePathname();
   const router = useRouter();
 
   const initTour = useCallback((forceRun = false) => {
     if (typeof window === "undefined") return;
-    const isDemo = localStorage.getItem("demo_mode") === "true";
+    const isDemo = sessionStorage.getItem("demo_mode") === "true";
     if (!isDemo) return;
 
     // Check if tours are enabled — default to true if not set (first visit)
-    const toursEnabled = localStorage.getItem("demo_tours_enabled") !== "false";
+    const toursEnabled = sessionStorage.getItem("demo_tours_enabled") !== "false";
     
-    const seenMap = JSON.parse(localStorage.getItem("demo_tours_seen") || "{}");
+    const seenMap = JSON.parse(sessionStorage.getItem("demo_tours_seen") || "{}");
     const pageSteps = getStepsForPath(pathname);
     
     if (pageSteps.length > 0) {
@@ -239,7 +228,7 @@ export function DemoTour() {
       const enabled = customEvent.detail?.enabled;
       if (enabled) {
         // When re-enabled, reset all seen states so tours show again
-        localStorage.removeItem("demo_tours_seen");
+        sessionStorage.removeItem("demo_tours_seen");
         // Trigger the current page's tour
         initTour(true);
       } else {
@@ -251,7 +240,7 @@ export function DemoTour() {
     return () => window.removeEventListener("toggle_demo_tours", handleToursToggle);
   }, [initTour]);
 
-  const handleJoyrideCallback = (data: CallBackProps) => {
+  const handleJoyrideCallback = (data: any) => {
     const { status, action, index, type } = data;
     const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
 
@@ -265,9 +254,9 @@ export function DemoTour() {
     if (finishedStatuses.includes(status) || action === ACTIONS.CLOSE) {
       setRun(false);
       // Mark this page's tour as seen
-      const seenMap = JSON.parse(localStorage.getItem("demo_tours_seen") || "{}");
+      const seenMap = JSON.parse(sessionStorage.getItem("demo_tours_seen") || "{}");
       seenMap[pathname] = true;
-      localStorage.setItem("demo_tours_seen", JSON.stringify(seenMap));
+      sessionStorage.setItem("demo_tours_seen", JSON.stringify(seenMap));
     }
   };
 
@@ -276,21 +265,15 @@ export function DemoTour() {
   return (
     <Joyride
       key={`${pathname}-${run}`}
-      steps={steps}
+      steps={steps as any}
       run={run}
       continuous={true}
-      showProgress={false}
       showSkipButton={true}
       disableOverlayClose={true}
-      disableBeacon={true}
+      {...({ showProgress: false, disableBeacon: true } as any)}
       tooltipComponent={CustomTooltip}
       callback={handleJoyrideCallback}
-      styles={{
-        options: {
-          zIndex: 10000,
-          arrowColor: "#fff",
-        },
-      }}
+      styles={{ options: { zIndex: 10000, arrowColor: "#fff" } } as any}
     />
   );
 }

@@ -48,7 +48,7 @@ export function generateTransactionNo(existingTreatments?: FaceTreatment[]): str
   // Try to find max across ALL cached profiles to ensure global uniqueness
   if (typeof window !== "undefined") {
     try {
-      const cachedData = localStorage.getItem(CACHE_KEYS.PROFILES);
+      const cachedData = sessionStorage.getItem(CACHE_KEYS.PROFILES);
       if (cachedData) {
         const allProfiles = JSON.parse(cachedData);
         for (const key in allProfiles) {
@@ -166,7 +166,7 @@ export const CACHE_KEYS = {
 export function getCacheSync<T>(key: string): T | null {
   if (typeof window === "undefined") return null;
   try {
-    const data = localStorage.getItem(key);
+    const data = sessionStorage.getItem(key);
     const parsed = data ? JSON.parse(data) : null;
     if (parsed && key === CACHE_KEYS.INVENTORY) {
       return normalizeInventory(parsed as any) as unknown as T;
@@ -184,7 +184,7 @@ function getCache<T>(key: string): T | null {
 
 function setCache(key: string, data: any) {
   try {
-    localStorage.setItem(key, JSON.stringify(data));
+    sessionStorage.setItem(key, JSON.stringify(data));
   } catch (e) {}
 }
 

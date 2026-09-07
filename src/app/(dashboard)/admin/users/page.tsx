@@ -39,7 +39,7 @@ export default function AdminUsersPage() {
       if (!profile || profile.role !== 'admin') {
         router.push('/dashboard');
       } else {
-        if (typeof window !== 'undefined' && localStorage.getItem('demo_mode') === 'true') {
+        if (typeof window !== 'undefined' && sessionStorage.getItem('demo_mode') === 'true') {
           setUsers([]);
           return;
         }
@@ -64,7 +64,7 @@ export default function AdminUsersPage() {
         setUsers(data as UserProfile[]);
         // Update cache
         if (typeof window !== 'undefined') {
-          localStorage.setItem(CACHE_KEYS.ADMIN_USERS, JSON.stringify(data));
+          sessionStorage.setItem(CACHE_KEYS.ADMIN_USERS, JSON.stringify(data));
         }
       }
     } catch (e) {
@@ -89,7 +89,7 @@ export default function AdminUsersPage() {
       const updatedUsers = users.map(u => u.id === id ? { ...u, ...updateData } : u);
       setUsers(updatedUsers);
       if (typeof window !== 'undefined') {
-        localStorage.setItem(CACHE_KEYS.ADMIN_USERS, JSON.stringify(updatedUsers));
+        sessionStorage.setItem(CACHE_KEYS.ADMIN_USERS, JSON.stringify(updatedUsers));
       }
       toast.success(currentStatus ? "Yetki alındı." : "Kullanıcı onaylandı.");
     } else {
@@ -107,7 +107,7 @@ export default function AdminUsersPage() {
       const updatedUsers = users.map(u => u.id === id ? { ...u, plan: newPlan as any } : u);
       setUsers(updatedUsers);
       if (typeof window !== 'undefined') {
-        localStorage.setItem(CACHE_KEYS.ADMIN_USERS, JSON.stringify(updatedUsers));
+        sessionStorage.setItem(CACHE_KEYS.ADMIN_USERS, JSON.stringify(updatedUsers));
       }
       toast.success("Hizmet paketi güncellendi.");
     } else {

@@ -30,7 +30,7 @@ export function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean; setIsOpen?: (
     { href: "/ayarlar", label: "Ayarlar", icon: Settings, minTier: "starter" },
   ];
 
-  const isDemo = typeof window !== 'undefined' && localStorage.getItem('demo_mode') === 'true';
+  const isDemo = typeof window !== 'undefined' && sessionStorage.getItem('demo_mode') === 'true';
 
   if (profile?.role === "admin" && !isDemo) {
     navItems.push({ href: "/admin/users", label: "Kullanıcılar", icon: Users, minTier: "starter" });

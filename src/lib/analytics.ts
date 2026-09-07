@@ -5,9 +5,9 @@ export const trackEvent = (eventName: string, properties?: Record<string, any>) 
   console.log(`📊 [Analytics] ${eventName}`, properties);
 
   // 2. Demo Modu ise LocalStorage'a kaydet (Süre bitiminde özet göstermek için)
-  const isDemo = localStorage.getItem('demo_mode') === 'true';
+  const isDemo = sessionStorage.getItem('demo_mode') === 'true';
   if (isDemo) {
-    const eventsStr = localStorage.getItem('demo_events') || '[]';
+    const eventsStr = sessionStorage.getItem('demo_events') || '[]';
     try {
       const events = JSON.parse(eventsStr);
       events.push({ 
@@ -15,7 +15,7 @@ export const trackEvent = (eventName: string, properties?: Record<string, any>) 
         timestamp: new Date().toISOString(), 
         ...properties 
       });
-      localStorage.setItem('demo_events', JSON.stringify(events));
+      sessionStorage.setItem('demo_events', JSON.stringify(events));
     } catch (e) {
       console.error('Demo event kaydedilemedi:', e);
     }
@@ -33,7 +33,7 @@ export const trackEvent = (eventName: string, properties?: Record<string, any>) 
 export const getDemoEventsSummary = () => {
   if (typeof window === 'undefined') return {};
   
-  const eventsStr = localStorage.getItem('demo_events') || '[]';
+  const eventsStr = sessionStorage.getItem('demo_events') || '[]';
   try {
     const events = JSON.parse(eventsStr);
     
@@ -65,8 +65,8 @@ export const getDemoEventsSummary = () => {
 
 export const clearAnalytics = () => {
   if (typeof window !== 'undefined') {
-    localStorage.removeItem('demo_events');
-    localStorage.removeItem('demo_analytics_sent');
+    sessionStorage.removeItem('demo_events');
+    sessionStorage.removeItem('demo_analytics_sent');
   }
 };
 
@@ -76,21 +76,21 @@ export const sendAnalyticsToWebhook = async () => {
   if (typeof window === 'undefined') return;
   
   // Prevent sending multiple times
-  if (localStorage.getItem('demo_analytics_sent') === 'true') return;
+  if (sessionStorage.getItem('demo_analytics_sent') === 'true') return;
   
   const summary = getDemoEventsSummary() as any;
   // Don't send if empty
   if (Object.keys(summary).length === 0 || summary.pageViews === 0) return;
 
   // Read lead info — try individual keys first, then fall back to JSON blob
-  let leadName = localStorage.getItem('demo_lead_name') || 'Anonim';
-  let leadPhone = localStorage.getItem('demo_lead_phone') || 'Bilinmiyor';
-  let leadClinic = localStorage.getItem('demo_lead_clinic') || 'Bilinmiyor';
+  let leadName = sessionStorage.getItem('demo_lead_name') || 'Anonim';
+  let leadPhone = sessionStorage.getItem('demo_lead_phone') || 'Bilinmiyor';
+  let leadClinic = sessionStorage.getItem('demo_lead_clinic') || 'Bilinmiyor';
   
   // Fallback: try parsing the demo_lead JSON blob
   if (leadName === 'Anonim') {
     try {
-      const leadBlob = localStorage.getItem('demo_lead');
+      const leadBlob = sessionStorage.getItem('demo_lead');
       if (leadBlob) {
         const parsed = JSON.parse(leadBlob);
         leadName = parsed.name || 'Anonim';
@@ -100,7 +100,7 @@ export const sendAnalyticsToWebhook = async () => {
     } catch {}
   }
 
-  const duration = localStorage.getItem('demo_duration_minutes') || 'Bilinmiyor';
+  const duration = sessionStorage.getItem('demo_duration_minutes') || 'Bilinmiyor';
 
   // Build detailed message
   const visitedPages = (summary.visitedPages || []).join(', ') || 'Yok';
@@ -132,7 +132,7 @@ export const sendAnalyticsToWebhook = async () => {
       }),
     });
     
-    localStorage.setItem('demo_analytics_sent', 'true');
+    sessionStorage.setItem('demo_analytics_sent', 'true');
     console.log("📊 [Analytics] Report sent to webhook successfully.");
   } catch (error) {
     console.error("📊 [Analytics] Failed to send report to webhook:", error);

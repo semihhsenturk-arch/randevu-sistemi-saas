@@ -3,7 +3,7 @@ export const DEFAULT_DEMO_DURATION_MS = 30 * 60 * 1000;
 
 export const getDemoDurationMs = (): number => {
   if (typeof window === "undefined") return DEFAULT_DEMO_DURATION_MS;
-  const overrideMinutes = localStorage.getItem("demo_duration_override");
+  const overrideMinutes = sessionStorage.getItem("demo_duration_override");
   if (overrideMinutes) {
     return parseInt(overrideMinutes) * 60 * 1000;
   }
@@ -13,15 +13,15 @@ export const getDemoDurationMs = (): number => {
 export const seedDemoData = () => {
   if (typeof window === "undefined") return;
 
-  localStorage.setItem("demo_mode", "true");
+  sessionStorage.setItem("demo_mode", "true");
   document.cookie = "demo_mode=true; path=/; max-age=" + (30 * 60) + "; SameSite=Lax";
 
   // Start the demo timer on first entry
-  if (!localStorage.getItem("demo_started_at")) {
-    localStorage.setItem("demo_started_at", Date.now().toString());
+  if (!sessionStorage.getItem("demo_started_at")) {
+    sessionStorage.setItem("demo_started_at", Date.now().toString());
   }
 
-  if (localStorage.getItem("demo_seeded") === "true") return;
+  if (sessionStorage.getItem("demo_seeded") === "true") return;
 
   const today = new Date();
   const formatTarih = (d: Date) => d.toISOString().split("T")[0];
@@ -36,7 +36,7 @@ export const seedDemoData = () => {
     { id: 7, ad: "Karbon Peeling", sure: 30, fiyat: 1800, renk: "#cbaacb" },
     { id: 8, ad: "Yüz Germe (İplik)", sure: 60, fiyat: 8000, renk: "#abdee6" },
   ];
-  localStorage.setItem("cache_services", JSON.stringify(demoServices));
+  sessionStorage.setItem("cache_services", JSON.stringify(demoServices));
 
   const demoAppointments = [
     {
@@ -190,7 +190,7 @@ export const seedDemoData = () => {
       notlar: "Koltuk altı lazer — 5. seans",
     },
   ];
-  localStorage.setItem("cache_appointments", JSON.stringify(demoAppointments));
+  sessionStorage.setItem("cache_appointments", JSON.stringify(demoAppointments));
 
   const demoProfiles: Record<string, any> = {
     "AYŞE YILMAZ": {
@@ -382,7 +382,7 @@ export const seedDemoData = () => {
       before_after_photos: [],
     },
   };
-  localStorage.setItem("cache_patient_profiles", JSON.stringify(demoProfiles));
+  sessionStorage.setItem("cache_patient_profiles", JSON.stringify(demoProfiles));
 
   const demoInventory = {
     stock: { inv_1: 50, inv_2: 20, inv_3: 5, inv_4: 30, inv_5: 12, inv_6: 8, inv_7: 3, inv_8: 100 },
@@ -411,15 +411,15 @@ export const seedDemoData = () => {
       { id: "inv_8", kod: "GLOVE-M", ad: "Tek Kullanımlık Eldiven (M)", birim: "Adet", fiyat: 2.5, kritik_stok: 20 },
     ],
   };
-  localStorage.setItem("cache_inventory", JSON.stringify(demoInventory));
+  sessionStorage.setItem("cache_inventory", JSON.stringify(demoInventory));
 
-  localStorage.setItem("demo_seeded", "true");
+  sessionStorage.setItem("demo_seeded", "true");
 };
 
 /** Returns remaining demo time in milliseconds, or null if not in demo mode */
 export const getDemoTimeRemaining = (): number | null => {
   if (typeof window === "undefined") return null;
-  const startedAt = localStorage.getItem("demo_started_at");
+  const startedAt = sessionStorage.getItem("demo_started_at");
   if (!startedAt) return null;
 
   const elapsed = Date.now() - parseInt(startedAt);
@@ -436,28 +436,28 @@ export const isDemoExpired = (): boolean => {
 /** Returns demo start timestamp or null */
 export const getDemoStartedAt = (): number | null => {
   if (typeof window === "undefined") return null;
-  const val = localStorage.getItem("demo_started_at");
+  const val = sessionStorage.getItem("demo_started_at");
   return val ? parseInt(val) : null;
 };
 
 export const clearDemoData = () => {
   if (typeof window === "undefined") return;
-  localStorage.removeItem("demo_mode");
+  sessionStorage.removeItem("demo_mode");
   document.cookie = "demo_mode=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-  localStorage.removeItem("demo_seeded");
-  localStorage.removeItem("demo_started_at");
-  localStorage.removeItem("demo_duration_override");
-  localStorage.removeItem("demo_duration_minutes");
-  localStorage.removeItem("demo_lead");
-  localStorage.removeItem("demo_lead_name");
-  localStorage.removeItem("demo_lead_phone");
-  localStorage.removeItem("demo_lead_clinic");
-  localStorage.removeItem("demo_tours_seen");
-  localStorage.removeItem("demo_tours_enabled");
-  localStorage.removeItem("demo_events");
-  localStorage.removeItem("demo_analytics_sent");
-  localStorage.removeItem("cache_services");
-  localStorage.removeItem("cache_appointments");
-  localStorage.removeItem("cache_patient_profiles");
-  localStorage.removeItem("cache_inventory");
+  sessionStorage.removeItem("demo_seeded");
+  sessionStorage.removeItem("demo_started_at");
+  sessionStorage.removeItem("demo_duration_override");
+  sessionStorage.removeItem("demo_duration_minutes");
+  sessionStorage.removeItem("demo_lead");
+  sessionStorage.removeItem("demo_lead_name");
+  sessionStorage.removeItem("demo_lead_phone");
+  sessionStorage.removeItem("demo_lead_clinic");
+  sessionStorage.removeItem("demo_tours_seen");
+  sessionStorage.removeItem("demo_tours_enabled");
+  sessionStorage.removeItem("demo_events");
+  sessionStorage.removeItem("demo_analytics_sent");
+  sessionStorage.removeItem("cache_services");
+  sessionStorage.removeItem("cache_appointments");
+  sessionStorage.removeItem("cache_patient_profiles");
+  sessionStorage.removeItem("cache_inventory");
 };

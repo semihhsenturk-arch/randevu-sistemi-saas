@@ -27,11 +27,11 @@ export function DemoBanner() {
       setSummary(getDemoEventsSummary());
     }
 
-    // Initialize tours enabled state from localStorage
-    const storedToursEnabled = localStorage.getItem("demo_tours_enabled");
+    // Initialize tours enabled state from sessionStorage
+    const storedToursEnabled = sessionStorage.getItem("demo_tours_enabled");
     // Default to true (enabled) on first visit
     if (storedToursEnabled === null) {
-      localStorage.setItem("demo_tours_enabled", "true");
+      sessionStorage.setItem("demo_tours_enabled", "true");
       setToursEnabled(true);
     } else {
       setToursEnabled(storedToursEnabled === "true");
@@ -54,7 +54,7 @@ export function DemoBanner() {
   const handleToggleTours = useCallback(() => {
     const newState = !toursEnabled;
     setToursEnabled(newState);
-    localStorage.setItem("demo_tours_enabled", newState.toString());
+    sessionStorage.setItem("demo_tours_enabled", newState.toString());
     
     // Dispatch custom event so DemoTour component reacts
     window.dispatchEvent(new CustomEvent("toggle_demo_tours", { 
