@@ -225,11 +225,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             return;
           }
 
-          if (session?.access_token) {
-            document.cookie = `sb-access-token=${session.access_token}; path=/; max-age=${session.expires_in}; SameSite=Lax; Secure`;
-          } else {
-            document.cookie = "sb-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-          }
+          // Cookie management is now handled natively by @supabase/ssr createBrowserClient
           setSession(session);
           setUser(session?.user ?? null);
           setProfile(currentProfile);
