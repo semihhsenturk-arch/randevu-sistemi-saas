@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { supabase } from "@/lib/supabase";
+import { encryptPatientProfile, decryptPatientProfilesBatch, encryptAppointment, decryptAppointmentsBatch, encryptConsentRecord, decryptConsentRecordsBatch } from "@/actions/secure-data";
 
 export type Appointment = {
   id: string;
@@ -225,7 +226,8 @@ export function useDatabase() {
       .order("saat", { ascending: true });
 
     if (!error && data) {
-      const mapped: Appointment[] = data.map((d: any) => ({
+      const decryptedData = await decryptAppointmentsBatch(data);
+      const mapped: Appointment[] = decryptedData.map((d: any) => ({
         id: d.id,
         musteriAdi: d.musteri_adi,
         telefon: d.telefon,
@@ -286,25 +288,28 @@ export function useDatabase() {
       payload.id = apt.id;
     }
 
+    const encryptedPayload = await encryptAppointment(payload);
+
     const { data, error } = await supabase
       .from("appointments")
-      .upsert(payload, { onConflict: "id" })
+      .upsert(encryptedPayload, { onConflict: "id" })
       .select();
 
     if (error) throw error;
+    const decryptedData = await decryptAppointmentsBatch(data);
 
     const updatedApt: Appointment = {
-      id: data[0].id,
-      musteriAdi: data[0].musteri_adi,
-      telefon: data[0].telefon,
-      hizmetId: data[0].hizmet_id,
-      tarih: data[0].tarih,
-      saat: data[0].saat,
-      durum: data[0].durum,
-      notlar: data[0].notlar,
-      whatsapp_status: data[0].whatsapp_status,
-      customPrice: data[0].custom_price,
-      created_at: data[0].created_at,
+      id: decryptedData[0].id,
+      musteriAdi: decryptedData[0].musteri_adi,
+      telefon: decryptedData[0].telefon,
+      hizmetId: decryptedData[0].hizmet_id,
+      tarih: decryptedData[0].tarih,
+      saat: decryptedData[0].saat,
+      durum: decryptedData[0].durum,
+      notlar: decryptedData[0].notlar,
+      whatsapp_status: decryptedData[0].whatsapp_status,
+      customPrice: decryptedData[0].custom_price,
+      created_at: decryptedData[0].created_at,
     };
 
     // Cache'i güncelle: hem yeni ID hem eski (temp_) ID ile eşleşenleri temizle
@@ -357,8 +362,9 @@ export function useDatabase() {
         .eq("user_id", userId);
 
       if (!error && data) {
+        const decryptedData = await decryptPatientProfilesBatch(data);
         const profiles: Record<string, Omit<PatientProfile, "patient_name">> = {};
-        data.forEach((p: any) => {
+        decryptedData.forEach((p: any) => {
           profiles[p.patient_name] = {
             phone: p.phone,
             tc_no: p.tc_no,
@@ -417,7 +423,9 @@ export function useDatabase() {
 
       if (existing) payload.id = existing.id;
 
-      const { error } = await supabase.from("patient_profiles").upsert(payload, { onConflict: "id" });
+      const encryptedPayload = await encryptPatientProfile(payload);
+
+      const { error } = await supabase.from("patient_profiles").upsert(encryptedPayload, { onConflict: "id" });
       if (error) {
         console.error("Supabase Save Patient Profile Error:", error);
         throw error;
@@ -726,22 +734,29 @@ export function useDatabase() {
       payload.id = record.id;
     }
 
+    const encryptedPayload = await encryptConsentRecord(payload);
+
     const { data, error } = await supabase
       .from("consent_records")
-      .upsert(payload, { onConflict: "id" })
+      .upsert(encryptedPayload, { onConflict: "id" })
       .select();
 
     if (error) throw error;
 
+    let decryptedData = data;
+    if (data && data.length > 0) {
+      decryptedData = await decryptConsentRecordsBatch(data);
+    }
+
     // Update cache
     let cached = getCache<ConsentRecord[]>(CACHE_KEYS.CONSENTS) || [];
-    if (data && data[0]) {
-      cached = cached.filter(c => c.id !== data[0].id);
-      cached.push(data[0]);
+    if (decryptedData && decryptedData[0]) {
+      cached = cached.filter(c => c.id !== decryptedData[0].id);
+      cached.push(decryptedData[0]);
     }
     setCache(CACHE_KEYS.CONSENTS, cached);
 
-    return data?.[0];
+    return decryptedData?.[0];
   }, [userId]);
 
   const deleteConsentRecord = useCallback(async (id: string) => {
@@ -777,8 +792,9 @@ export function useDatabase() {
       const { data, error } = await query;
 
       if (!error && data) {
-        if (!patientName) setCache(CACHE_KEYS.CONSENTS, data);
-        return data as ConsentRecord[];
+        const decryptedData = await decryptConsentRecordsBatch(data);
+        if (!patientName) setCache(CACHE_KEYS.CONSENTS, decryptedData);
+        return decryptedData as ConsentRecord[];
       }
     } catch (e) {
       console.warn("getConsentRecords failed, falling back to cache", e);
@@ -804,7 +820,10 @@ export function useDatabase() {
         .eq("appointment_id", appointmentId)
         .maybeSingle();
 
-      if (!error && data) return data as ConsentRecord;
+      if (!error && data) {
+        const decryptedData = await decryptConsentRecordsBatch([data]);
+        return decryptedData[0] as ConsentRecord;
+      }
     } catch (e) {
       console.warn("getConsentByAppointment failed", e);
     }
