@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { initializeCheckoutForm, PLAN_PRICES, PlanType, BillingCycle } from "@/lib/iyzico";
+import { getAuthenticatedUser } from "@/lib/supabase-server";
 
 export async function POST(req: NextRequest) {
   try {
+    const user = await getAuthenticatedUser(req);
+    if (!user) {
+      return NextResponse.json({ error: "Yetkisiz işlem (Oturum bulunamadı)" }, { status: 401 });
+    }
+
     const body = await req.json();
     const { userId, email, clinicName, plan, billingCycle } = body as {
       userId: string;
@@ -14,6 +20,10 @@ export async function POST(req: NextRequest) {
 
     if (!userId || !email || !plan || !billingCycle) {
       return NextResponse.json({ error: "Eksik bilgi" }, { status: 400 });
+    }
+
+    if (userId !== user.id) {
+      return NextResponse.json({ error: "Kullanıcı kimliği uyuşmuyor" }, { status: 403 });
     }
 
     const planData = PLAN_PRICES[plan];

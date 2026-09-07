@@ -3,6 +3,15 @@ import { createClient } from '@supabase/supabase-js';
 
 export async function POST(req: Request) {
   try {
+    // Webhook güvenlik kontrolü: X-Webhook-Secret başlığını doğrula
+    const webhookSecret = req.headers.get('X-Webhook-Secret');
+    const expectedSecret = process.env.WHATSAPP_WEBHOOK_SECRET;
+    
+    if (!expectedSecret || webhookSecret !== expectedSecret) {
+      console.warn('Yetkisiz webhook isteği denemesi');
+      return NextResponse.json({ success: false, error: 'Unauthorized webhook request' }, { status: 401 });
+    }
+
     const body = await req.json();
     
     // Format expected for simulator: { appointmentId: string, reply: 'Evet' | 'Hayır' }

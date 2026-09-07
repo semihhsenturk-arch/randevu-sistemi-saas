@@ -1,13 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getAuthenticatedUser } from "@/lib/supabase-server";
 
 export async function POST(req: NextRequest) {
   try {
+    const user = await getAuthenticatedUser(req);
+    if (!user) {
+      return NextResponse.json({ error: "Yetkisiz işlem (Oturum bulunamadı)" }, { status: 401 });
+    }
+
     const body = await req.json();
     const { userId } = body as { userId: string };
 
     if (!userId) {
       return NextResponse.json({ error: "Kullanıcı bilgisi eksik" }, { status: 400 });
+    }
+
+    if (userId !== user.id) {
+      return NextResponse.json({ error: "Kullanıcı kimliği uyuşmuyor" }, { status: 403 });
     }
 
     const supabaseAdmin = createClient(
