@@ -517,6 +517,13 @@ export default function CalendarPage() {
 
   const handleSaveSheetUrl = async () => {
     if (!profile?.id) return;
+    
+    // Faz 4.3: SSRF Önlemi: URL yalnızca script.google.com ile başlamalı
+    if (sheetUrl && !sheetUrl.startsWith("https://script.google.com/")) {
+      toast.error("Hatalı URL", { description: "Lütfen geçerli bir Google Apps Script URL'si girin. (https://script.google.com/... ile başlamalıdır)" });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('profiles')

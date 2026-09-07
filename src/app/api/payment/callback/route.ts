@@ -3,9 +3,14 @@ import { retrieveCheckoutForm } from "@/lib/iyzico";
 import { createClient } from "@supabase/supabase-js";
 
 // Client-side redirect helper to break out of POST context and avoid white screens
-function clientRedirect(url: string) {
+function clientRedirect(origin: string, path: string) {
+  // Faz 4.2: Whitelist/Origin check - only allow relative paths
+  if (!path.startsWith("/")) {
+    path = "/";
+  }
+  const fullUrl = `${origin}${path}`;
   // BUG-03 FIX: Sanitize URL to prevent XSS injection
-  const safeUrl = encodeURI(url).replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;');
+  const safeUrl = encodeURI(fullUrl).replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;');
   return new NextResponse(
     `<html>
       <body style="background: #f8fafc; display: flex; items-center; justify-content; min-height: 100vh; font-family: sans-serif;">
@@ -34,7 +39,7 @@ export async function POST(req: NextRequest) {
 
     if (!token) {
       console.error("Payment callback: Token not found in formData");
-      return clientRedirect("/odeme?status=error&message=Token bulunamadı");
+      return clientRedirect(origin, "/odeme?status=error&message=Token bulunamadı");
     }
 
     // İyzico'dan ödeme sonucunu al
@@ -52,7 +57,7 @@ export async function POST(req: NextRequest) {
 
       if (!userId) {
         console.error("Payment successful but userId is missing");
-        return clientRedirect("/odeme?status=error&message=Kullanıcı bilgisi alınamadı");
+        return clientRedirect(origin, "/odeme?status=error&message=Kullanıcı bilgisi alınamadı");
       }
 
       const supabaseAdmin = createClient(
@@ -67,15 +72,15 @@ export async function POST(req: NextRequest) {
 
       if (updateError) {
         console.error("Profile update FAILED:", updateError);
-        return clientRedirect(`/odeme?status=error&message=${encodeURIComponent("Profil güncellenemedi")}`);
+        return clientRedirect(origin, `/odeme?status=error&message=${encodeURIComponent("Profil güncellenemedi")}`);
       }
 
-      return clientRedirect("/odeme?status=success");
+      return clientRedirect(origin, "/odeme?status=success");
     } else {
-      return clientRedirect(`/odeme?status=error&message=${encodeURIComponent(result.errorMessage || "Ödeme başarısız")}`);
+      return clientRedirect(origin, `/odeme?status=error&message=${encodeURIComponent(result.errorMessage || "Ödeme başarısız")}`);
     }
   } catch (error: any) {
     console.error("Payment callback CRITICAL error:", error);
-    return clientRedirect(`/odeme?status=error&message=${encodeURIComponent("Sunucu hatası")}`);
+    return clientRedirect(origin, `/odeme?status=error&message=${encodeURIComponent("Sunucu hatası")}`);
   }
 }
