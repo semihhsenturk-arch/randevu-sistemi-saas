@@ -23,6 +23,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // ──── BUG-11 FIX: Basic Referer Check ────
+    // Ensure the request comes from our own frontend to prevent naive cross-site POSTs
+    const referer = req.headers.get("referer");
+    if (!referer || !referer.includes(process.env.NEXT_PUBLIC_SITE_URL || "localhost")) {
+      console.warn("demo-report: Invalid or missing referer", referer);
+      return NextResponse.json(
+        { status: "error", error: "Yetkisiz istek." },
+        { status: 403 }
+      );
+    }
+
     const body = await req.json();
 
     const params = new URLSearchParams({

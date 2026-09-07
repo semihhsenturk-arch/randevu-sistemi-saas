@@ -8,6 +8,18 @@ export async function GET(req: Request) {
   // Allow overriding the 24h check via a query param for testing purposes
   const url = new URL(req.url);
   const forceAll = url.searchParams.get('forceAll') === 'true';
+
+  // ──── BUG-11 FIX: Webhook/Cron Security ────
+  // Vercel Cron sends a Bearer token. Validate it.
+  const authHeader = req.headers.get('authorization');
+  if (
+    process.env.CRON_SECRET &&
+    authHeader !== `Bearer ${process.env.CRON_SECRET}`
+  ) {
+    console.warn("Yetkisiz Cron Job isteği denemesi");
+    return new Response('Unauthorized', { status: 401 });
+  }
+
   
   try {
     const supabaseAdmin = createClient(
