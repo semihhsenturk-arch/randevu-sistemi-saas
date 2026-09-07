@@ -190,7 +190,7 @@ export const seedDemoData = () => {
       notlar: "Koltuk altı lazer — 5. seans",
     },
   ];
-  sessionStorage.setItem("cache_appointments", JSON.stringify(demoAppointments));
+  sessionStorage.setItem("cache_appointments_v2", JSON.stringify(demoAppointments));
 
   const demoProfiles: Record<string, any> = {
     "AYŞE YILMAZ": {
@@ -382,7 +382,7 @@ export const seedDemoData = () => {
       before_after_photos: [],
     },
   };
-  sessionStorage.setItem("cache_patient_profiles", JSON.stringify(demoProfiles));
+  sessionStorage.setItem("cache_patient_profiles_v2", JSON.stringify(demoProfiles));
 
   const demoInventory = {
     stock: { inv_1: 50, inv_2: 20, inv_3: 5, inv_4: 30, inv_5: 12, inv_6: 8, inv_7: 3, inv_8: 100 },
@@ -457,7 +457,7 @@ export const clearDemoData = () => {
   sessionStorage.removeItem("demo_events");
   sessionStorage.removeItem("demo_analytics_sent");
   sessionStorage.removeItem("cache_services");
-  sessionStorage.removeItem("cache_appointments");
-  sessionStorage.removeItem("cache_patient_profiles");
+  sessionStorage.removeItem("cache_appointments_v2");
+  sessionStorage.removeItem("cache_patient_profiles_v2");
   sessionStorage.removeItem("cache_inventory");
 };
