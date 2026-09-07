@@ -1,7 +1,39 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { createServerClient } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
+  let supabaseResponse = NextResponse.next({
+    request,
+  });
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !anonKey) {
+    return supabaseResponse;
+  }
+
+  const supabase = createServerClient(supabaseUrl, anonKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value));
+        supabaseResponse = NextResponse.next({
+          request,
+        });
+        cookiesToSet.forEach(({ name, value, options }) =>
+          supabaseResponse.cookies.set(name, value, options)
+        );
+      },
+    },
+  });
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const { pathname } = request.nextUrl;
 
   // 1. API Protection
@@ -13,11 +45,7 @@ export async function middleware(request: NextRequest) {
     ];
 
     if (!publicApiRoutes.includes(pathname)) {
-      const authHeader = request.headers.get("authorization");
-      const hasAuthHeader = authHeader && authHeader.startsWith("Bearer ");
-      const hasCookieToken = hasSessionCookie(request);
-
-      if (!hasAuthHeader && !hasCookieToken) {
+      if (!user) {
         return new NextResponse(
           JSON.stringify({ error: "Yetkisiz erişim. Lütfen giriş yapın." }),
           {
@@ -27,7 +55,7 @@ export async function middleware(request: NextRequest) {
         );
       }
     }
-    return NextResponse.next();
+    return supabaseResponse;
   }
 
   // 2. Dashboard Route Protection
@@ -40,9 +68,7 @@ export async function middleware(request: NextRequest) {
     "/odeme",
   ];
 
-  const isProtected = protectedPaths.some((path) =>
-    pathname.startsWith(path)
-  );
+  const isProtected = protectedPaths.some((path) => pathname.startsWith(path));
 
   if (isProtected) {
     const isDemo = request.cookies.has("demo_mode") && request.cookies.get("demo_mode")?.value === "true";
@@ -53,110 +79,33 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(dashboardUrl);
     }
 
-    const hasToken = hasSessionCookie(request);
-
-    if (!hasToken && !isDemo) {
+    if (!user && !isDemo) {
       const loginUrl = new URL("/login", request.url);
       return NextResponse.redirect(loginUrl);
     }
 
-    // Ek Kontrol: /admin rotası için kullanıcının rolünü Supabase REST API üzerinden doğrula
-    if (pathname.startsWith("/admin")) {
-      const token = getAccessToken(request);
-      if (token) {
-        try {
-          const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-          const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-          
-          // Önce token'ı kullanarak kullanıcının id'sini al
-          const userRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              apikey: anonKey || "",
-            },
-          });
-          
-          if (userRes.ok) {
-            const userData = await userRes.json();
-            
-            // Kullanıcı id'si ile profiles tablosundan rolü çek
-            const profileRes = await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${userData.id}&select=role`, {
-              headers: {
-                Authorization: `Bearer ${token}`,
-                apikey: anonKey || "",
-              },
-            });
-            
-            if (profileRes.ok) {
-              const profiles = await profileRes.json();
-              const role = profiles[0]?.role;
-              
-              // Eğer rol admin değilse dashboard'a yönlendir
-              if (role !== "admin") {
-                const dashboardUrl = new URL("/takvim", request.url);
-                return NextResponse.redirect(dashboardUrl);
-              }
-            } else {
-              // Profil çekilemezse dashboard'a yönlendir
-              const dashboardUrl = new URL("/takvim", request.url);
-              return NextResponse.redirect(dashboardUrl);
-            }
-          } else {
-            // User doğrulanamazsa login'e at
-            const loginUrl = new URL("/login", request.url);
-            return NextResponse.redirect(loginUrl);
-          }
-        } catch (e) {
-          console.error("Middleware admin role check failed:", e);
-        }
-      } else {
-        const loginUrl = new URL("/login", request.url);
-        return NextResponse.redirect(loginUrl);
-      }
-    }
-  }
-
-  return NextResponse.next();
-}
-
-function getAccessToken(request: NextRequest): string | null {
-  const authHeader = request.headers.get("authorization");
-  if (authHeader && authHeader.startsWith("Bearer ")) {
-    return authHeader.slice(7);
-  }
-
-  if (request.cookies.has("sb-access-token")) {
-    return request.cookies.get("sb-access-token")?.value || null;
-  }
-
-  const allCookies = request.cookies.getAll();
-  for (const cookie of allCookies) {
-    if (cookie.name.startsWith("sb-") && cookie.name.endsWith("-auth-token")) {
+    // Ek Kontrol: /admin rotası için kullanıcının rolünü doğrula
+    if (pathname.startsWith("/admin") && user) {
       try {
-        const parsed = JSON.parse(decodeURIComponent(cookie.value));
-        if (parsed?.access_token) return parsed.access_token;
-      } catch {
-        // Skip
+        const { data: profiles, error } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .single();
+
+        if (error || profiles?.role !== "admin") {
+          const dashboardUrl = new URL("/takvim", request.url);
+          return NextResponse.redirect(dashboardUrl);
+        }
+      } catch (e) {
+        console.error("Middleware admin role check failed:", e);
+        const dashboardUrl = new URL("/takvim", request.url);
+        return NextResponse.redirect(dashboardUrl);
       }
     }
   }
 
-  return null;
-}
-
-function hasSessionCookie(request: NextRequest): boolean {
-  if (request.cookies.has("sb-access-token")) {
-    return true;
-  }
-
-  const allCookies = request.cookies.getAll();
-  for (const cookie of allCookies) {
-    if (cookie.name.startsWith("sb-") && cookie.name.endsWith("-auth-token")) {
-      return true;
-    }
-  }
-
-  return false;
+  return supabaseResponse;
 }
 
 export const config = {
