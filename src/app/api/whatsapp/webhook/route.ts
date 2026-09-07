@@ -1,8 +1,26 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
   try {
+    const ip = getClientIp(req);
+    const { success, limit, remaining, reset } = checkRateLimit(`whatsapp-webhook:${ip}`, 100, 60000); // 100 reqs/min per IP
+    
+    if (!success) {
+      return NextResponse.json(
+        { success: false, error: 'Rate limit exceeded' },
+        { 
+          status: 429,
+          headers: {
+            "X-RateLimit-Limit": limit.toString(),
+            "X-RateLimit-Remaining": remaining.toString(),
+            "X-RateLimit-Reset": reset.toString()
+          }
+        }
+      );
+    }
+
     // Webhook güvenlik kontrolü: X-Webhook-Secret başlığını doğrula
     const webhookSecret = req.headers.get('X-Webhook-Secret');
     const expectedSecret = process.env.WHATSAPP_WEBHOOK_SECRET;

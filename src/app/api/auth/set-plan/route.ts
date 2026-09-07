@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 /**
  * Server-side API to set the initial plan for a newly registered user.
@@ -9,6 +10,23 @@ import { createClient } from "@supabase/supabase-js";
  */
 export async function POST(req: NextRequest) {
   try {
+    const ip = getClientIp(req);
+    const { success, limit, remaining, reset } = checkRateLimit(`set-plan:${ip}`, 10, 60000); // 10 requests per minute per IP
+    
+    if (!success) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        { 
+          status: 429,
+          headers: {
+            "X-RateLimit-Limit": limit.toString(),
+            "X-RateLimit-Remaining": remaining.toString(),
+            "X-RateLimit-Reset": reset.toString()
+          }
+        }
+      );
+    }
+
     const body = await req.json();
     const { userId, plan, billingCycle, email } = body;
 

@@ -1,10 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 const SCRIPT_URL =
   "https://script.google.com/macros/s/AKfycbwfc8JSGlL4JetSTE4xwV4OMAONk1_GgYHyEKl2yrdADvDNENfAZxzdI7ycv9cctzmDeA/exec";
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = getClientIp(req);
+    const { success, limit, remaining, reset } = checkRateLimit(`demo-report:${ip}`, 3, 60000);
+    
+    if (!success) {
+      return NextResponse.json(
+        { status: "error", error: "Çok fazla istek gönderdiniz. Lütfen 1 dakika sonra tekrar deneyin." },
+        { 
+          status: 429,
+          headers: {
+            "X-RateLimit-Limit": limit.toString(),
+            "X-RateLimit-Remaining": remaining.toString(),
+            "X-RateLimit-Reset": reset.toString()
+          }
+        }
+      );
+    }
+
     const body = await req.json();
 
     const params = new URLSearchParams({
