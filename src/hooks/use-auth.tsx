@@ -181,6 +181,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               await supabase.auth.signOut().catch(() => {});
             }
             if (mounted) {
+              document.cookie = "sb-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
               setSession(null);
               setUser(null);
               setProfile(null);
@@ -224,6 +225,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             return;
           }
 
+          if (session?.access_token) {
+            document.cookie = `sb-access-token=${session.access_token}; path=/; max-age=${session.expires_in}; SameSite=Lax; Secure`;
+          } else {
+            document.cookie = "sb-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+          }
           setSession(session);
           setUser(session?.user ?? null);
           setProfile(currentProfile);
@@ -326,6 +332,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         } catch (e) {}
       });
     }
+
+    document.cookie = "sb-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
 
     // Redirect to login immediately — no waiting for Supabase
     window.location.href = "/login";
