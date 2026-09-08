@@ -10,7 +10,7 @@ export async function encryptPatientProfile(profile: any) {
   if (!user && profile.user_id !== "demo-user") throw new Error("Unauthorized");
   if (user && profile.user_id !== user.id && profile.user_id !== "demo-user") throw new Error("Unauthorized: Ownership mismatch");
 
-  return {
+  const result = {
     ...profile,
     tc_no: encryptData(profile.tc_no),
     phone: encryptData(profile.phone),
@@ -20,6 +20,7 @@ export async function encryptPatientProfile(profile: any) {
       content: encryptData(n.content)
     })) || []
   };
+  return JSON.parse(JSON.stringify(result));
 }
 
 export async function decryptPatientProfilesBatch(profiles: any[]) {
@@ -27,7 +28,7 @@ export async function decryptPatientProfilesBatch(profiles: any[]) {
   if (!user) throw new Error("Unauthorized");
   if (profiles.some(p => p.user_id !== user.id && p.user_id !== "demo-user")) throw new Error("Unauthorized: Ownership mismatch");
 
-  return profiles.map(p => ({
+  const result = profiles.map(p => ({
     ...p,
     tc_no: decryptData(p.tc_no),
     phone: decryptData(p.phone),
@@ -37,6 +38,7 @@ export async function decryptPatientProfilesBatch(profiles: any[]) {
       content: decryptData(n.content)
     })) || []
   }));
+  return JSON.parse(JSON.stringify(result));
 }
 
 
@@ -47,11 +49,12 @@ export async function encryptAppointment(apt: any) {
   if (!user && apt.user_id !== "demo-user") throw new Error("Unauthorized");
   if (user && apt.user_id !== user.id && apt.user_id !== "demo-user") throw new Error("Unauthorized: Ownership mismatch");
 
-  return {
+  const result = {
     ...apt,
     telefon: encryptData(apt.telefon),
     notlar: encryptData(apt.notlar),
   };
+  return JSON.parse(JSON.stringify(result));
 }
 
 export async function decryptAppointmentsBatch(apts: any[]) {
@@ -59,11 +62,12 @@ export async function decryptAppointmentsBatch(apts: any[]) {
   if (!user) throw new Error("Unauthorized");
   if (apts.some(apt => apt.user_id !== user.id && apt.user_id !== "demo-user")) throw new Error("Unauthorized: Ownership mismatch");
 
-  return apts.map(apt => ({
+  const result = apts.map(apt => ({
     ...apt,
     telefon: decryptData(apt.telefon),
     notlar: decryptData(apt.notlar),
   }));
+  return JSON.parse(JSON.stringify(result));
 }
 
 // === CONSENT RECORDS ===
@@ -73,11 +77,12 @@ export async function encryptConsentRecord(record: any) {
   if (!user && record.user_id !== "demo-user") throw new Error("Unauthorized");
   if (user && record.user_id !== user.id && record.user_id !== "demo-user") throw new Error("Unauthorized: Ownership mismatch");
 
-  return {
+  const result = {
     ...record,
     patient_tc: encryptData(record.patient_tc),
     patient_phone: encryptData(record.patient_phone),
   };
+  return JSON.parse(JSON.stringify(result));
 }
 
 export async function decryptConsentRecordsBatch(records: any[]) {
@@ -85,10 +90,11 @@ export async function decryptConsentRecordsBatch(records: any[]) {
   if (!user) throw new Error("Unauthorized");
   if (records.some(r => r.user_id !== user.id && r.user_id !== "demo-user")) throw new Error("Unauthorized: Ownership mismatch");
 
-  return records.map(r => ({
+  const result = records.map(r => ({
     ...r,
     patient_tc: decryptData(r.patient_tc),
     patient_phone: decryptData(r.patient_phone),
   }));
+  return JSON.parse(JSON.stringify(result));
 }
 
