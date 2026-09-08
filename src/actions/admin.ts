@@ -5,7 +5,10 @@ import { revalidatePath } from "next/cache";
 
 async function checkAdmin() {
   const user = await getAuthenticatedUser();
-  if (!user) throw new Error("Unauthorized");
+  if (!user) {
+    console.error("[checkAdmin] No authenticated user found");
+    throw new Error("Unauthorized");
+  }
   
   const supabaseAdmin = await createServiceClient();
   
@@ -14,6 +17,12 @@ async function checkAdmin() {
     .select('role')
     .eq('id', user.id)
     .single();
+
+  if (error) {
+    console.error("[checkAdmin] Error fetching profile for user", user.id, ":", error);
+  } else if (!profile || profile.role !== 'admin') {
+    console.error("[checkAdmin] Profile not found or not admin", profile);
+  }
 
   if (error || !profile || profile.role !== 'admin') {
     throw new Error("Unauthorized: Admin access required");
@@ -25,15 +34,23 @@ async function checkAdmin() {
 export async function getAdminUsers() {
   try {
     const supabaseAdmin = await checkAdmin();
+    console.log("[getAdminUsers] checkAdmin passed");
+    
     const { data, error } = await supabaseAdmin
       .from('profiles')
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (error) throw new Error(error.message);
-    return data;
+    if (error) {
+      console.error("[getAdminUsers] Error querying profiles:", error);
+      throw new Error(error.message);
+    }
+    
+    console.log("[getAdminUsers] Query successful, found", data?.length, "users");
+    // Ensure data is a plain object to prevent Next.js Server Action serialization errors
+    return data ? JSON.parse(JSON.stringify(data)) : [];
   } catch (error: any) {
-    console.error("Failed to fetch admin users:", error);
+    console.error("[getAdminUsers] Failed to fetch admin users:", error);
     throw new Error(error.message || "Bilinmeyen hata");
   }
 }

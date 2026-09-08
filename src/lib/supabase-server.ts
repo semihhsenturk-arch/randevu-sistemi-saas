@@ -21,7 +21,13 @@ export async function createServiceClient() {
   // Use the standard createClient for admin operations to truly bypass RLS.
   // We do NOT use createServerClient with cookies here, because doing so
   // attaches the user's JWT, which overrides the service_role and enforces RLS.
-  return createClient(url, key);
+  return createClient(url, key, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+      detectSessionInUrl: false
+    }
+  });
 }
 
 // ─── Authenticated user extraction ──────────────────────────────────────────
