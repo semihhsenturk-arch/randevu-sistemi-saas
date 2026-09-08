@@ -47,20 +47,11 @@ export async function POST(req: NextRequest) {
     }
 
     // ──── BUG-02 & SEC-05 FIX: Auth doğrulaması ────
-    // Ensure the user calling this endpoint is the user whose plan is being set
-    const { getAuthenticatedUser } = require("@/lib/supabase-server");
+    // Two-tier verification:
+    // 1) If session exists: caller must be the same user
+    // 2) If no session (registration flow): user must be recently created (<5 min) + email match
+    const { getAuthenticatedUser } = await import("@/lib/supabase-server");
     const authUserSession = await getAuthenticatedUser();
-    
-    if (!authUserSession || authUserSession.id !== userId) {
-      console.error("set-plan: Unauthorized or userId mismatch", { 
-        requestedId: userId, 
-        authId: authUserSession?.id 
-      });
-      return NextResponse.json(
-        { error: "Yetkisiz erişim" },
-        { status: 403 }
-      );
-    }
 
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -70,21 +61,46 @@ export async function POST(req: NextRequest) {
     // userId'nin gerçek bir kullanıcı olduğunu doğrula (service_role ile)
     const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.getUserById(userId);
     if (authError || !authUser?.user) {
-      console.error("set-plan: Invalid userId — user not found:", userId);
+      console.error("set-plan: Invalid userId — user not found");
       return NextResponse.json(
         { error: "Geçersiz kullanıcı ID" },
         { status: 403 }
       );
     }
 
-    // Ek güvenlik: Eğer email parametresi gönderildiyse, auth user'ın email'i ile eşleşmeli
-    if (email && authUser.user.email && email !== authUser.user.email) {
-      console.error("set-plan: Email mismatch", { provided: email, actual: authUser.user.email });
-      return NextResponse.json(
-        { error: "Email doğrulaması başarısız" },
-        { status: 403 }
-      );
+    if (authUserSession) {
+      // Tier 1: Session var — userId eşleşmesi zorunlu
+      if (authUserSession.id !== userId) {
+        console.error("set-plan: userId mismatch with session");
+        return NextResponse.json(
+          { error: "Yetkisiz erişim" },
+          { status: 403 }
+        );
+      }
+    } else {
+      // Tier 2: Session yok (kayıt akışı) — kullanıcı son 5 dk içinde oluşturulmuş olmalı + email eşleşmeli
+      const createdAt = new Date(authUser.user.created_at);
+      const now = new Date();
+      const diffMs = now.getTime() - createdAt.getTime();
+      const FIVE_MINUTES = 5 * 60 * 1000;
+
+      if (diffMs > FIVE_MINUTES) {
+        console.error("set-plan: No session and user is not recently created");
+        return NextResponse.json(
+          { error: "Yetkisiz erişim" },
+          { status: 403 }
+        );
+      }
+
+      if (!email || authUser.user.email !== email) {
+        console.error("set-plan: No session and email mismatch");
+        return NextResponse.json(
+          { error: "Yetkisiz erişim" },
+          { status: 403 }
+        );
+      }
     }
+
 
     // ──── BUG-09 FIX: Polling ile profil oluşmasını bekle ────
     let profileExists = false;

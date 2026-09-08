@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth, UserProfile } from "@/hooks/use-auth";
-import { supabase } from "@/lib/supabase";
 import { getAdminUsers, toggleUserApproval, updateUserPlanAction, deleteUserAction } from "@/actions/admin";
 import { getCacheSync, CACHE_KEYS } from "@/hooks/use-database";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
