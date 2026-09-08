@@ -1,3 +1,4 @@
+import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
@@ -8,7 +9,6 @@ import { cookies } from "next/headers";
  * This bypasses RLS — only use in trusted server-side code.
  */
 export async function createServiceClient() {
-  const cookieStore = await cookies();
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -18,22 +18,10 @@ export async function createServiceClient() {
     );
   }
 
-  return createServerClient(url, key, {
-    cookies: {
-      getAll() {
-        return cookieStore.getAll();
-      },
-      setAll(cookiesToSet) {
-        try {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          );
-        } catch {
-          // Ignored if called from a Server Component
-        }
-      },
-    },
-  });
+  // Use the standard createClient for admin operations to truly bypass RLS.
+  // We do NOT use createServerClient with cookies here, because doing so
+  // attaches the user's JWT, which overrides the service_role and enforces RLS.
+  return createClient(url, key);
 }
 
 // ─── Authenticated user extraction ──────────────────────────────────────────
