@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth, UserProfile } from "@/hooks/use-auth";
 import { supabase } from "@/lib/supabase";
+import { getAdminUsers, toggleUserApproval, updateUserPlanAction, deleteUserAction } from "@/actions/admin";
 import { getCacheSync, CACHE_KEYS } from "@/hooks/use-database";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -55,12 +56,9 @@ export default function AdminUsersPage() {
 
   const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const data = await getAdminUsers();
 
-      if (!error && data) {
+      if (data) {
         setUsers(data as UserProfile[]);
         // Update cache
         if (typeof window !== 'undefined') {
@@ -69,48 +67,38 @@ export default function AdminUsersPage() {
       }
     } catch (e) {
       console.error("Admin fetch users failed:", e);
+      toast.error("Kullanıcılar yüklenirken hata oluştu.");
     }
   };
 
   const toggleApproval = async (id: string, currentStatus: boolean) => {
-    const updateData: any = { is_approved: !currentStatus };
-    
-    // Eğer kullanıcı onaylanıyorsa (ve daha önce onaylanmamışsa veya tarih yoksa) onay tarihini set et
-    if (!currentStatus) {
-      updateData.approved_at = new Date().toISOString();
-    }
-
-    const { error } = await supabase
-      .from('profiles')
-      .update(updateData)
-      .eq('id', id);
-
-    if (!error) {
+    try {
+      await toggleUserApproval(id, currentStatus);
+      const updateData: any = { is_approved: !currentStatus };
+      if (!currentStatus) {
+        updateData.approved_at = new Date().toISOString();
+      }
       const updatedUsers = users.map(u => u.id === id ? { ...u, ...updateData } : u);
       setUsers(updatedUsers);
       if (typeof window !== 'undefined') {
         sessionStorage.setItem(CACHE_KEYS.ADMIN_USERS, JSON.stringify(updatedUsers));
       }
       toast.success(currentStatus ? "Yetki alındı." : "Kullanıcı onaylandı.");
-    } else {
+    } catch (error) {
       toast.error("Durum güncellenirken bir hata oluştu.");
     }
   };
 
   const updateUserPlan = async (id: string, newPlan: string) => {
-    const { error } = await supabase
-      .from('profiles')
-      .update({ plan: newPlan })
-      .eq('id', id);
-
-    if (!error) {
+    try {
+      await updateUserPlanAction(id, newPlan);
       const updatedUsers = users.map(u => u.id === id ? { ...u, plan: newPlan as any } : u);
       setUsers(updatedUsers);
       if (typeof window !== 'undefined') {
         sessionStorage.setItem(CACHE_KEYS.ADMIN_USERS, JSON.stringify(updatedUsers));
       }
       toast.success("Hizmet paketi güncellendi.");
-    } else {
+    } catch (error) {
       toast.error("Paket güncellenirken bir hata oluştu.");
     }
   };
@@ -119,17 +107,13 @@ export default function AdminUsersPage() {
     if (!userToReject) return;
     setIsDeleting(true);
     
-    // Profili sildiğimizde kişi bir daha asla giriş yapamaz.
-    const { error } = await supabase
-      .from('profiles')
-      .delete()
-      .eq('id', userToReject.id);
-
-    if (!error) {
+    try {
+      await deleteUserAction(userToReject.id);
       setUsers(users.filter(u => u.id !== userToReject.id));
       setUserToReject(null);
-    } else {
-      alert("Kullanıcı reddedilirken bir hata oluştu.");
+      toast.success("Kullanıcı başarıyla silindi.");
+    } catch (error) {
+      toast.error("Kullanıcı reddedilirken bir hata oluştu.");
     }
     setIsDeleting(false);
   };

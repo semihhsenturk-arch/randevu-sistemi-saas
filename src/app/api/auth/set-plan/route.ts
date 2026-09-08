@@ -46,10 +46,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ──── BUG-02 FIX: Auth doğrulaması ────
-    // Kayıt sırasında kullanıcı henüz signUp yapmış ve hemen set-plan çağırıyor.
-    // Bu noktada session token mevcut olabilir. Eğer Authorization header varsa doğrulayalım.
-    // Eğer yoksa, en azından userId'nin gerçek bir auth.users kaydı olduğunu doğrulayalım.
+    // ──── BUG-02 & SEC-05 FIX: Auth doğrulaması ────
+    // Ensure the user calling this endpoint is the user whose plan is being set
+    const { getAuthenticatedUser } = require("@/lib/supabase-server");
+    const authUserSession = await getAuthenticatedUser();
+    
+    if (!authUserSession || authUserSession.id !== userId) {
+      console.error("set-plan: Unauthorized or userId mismatch", { 
+        requestedId: userId, 
+        authId: authUserSession?.id 
+      });
+      return NextResponse.json(
+        { error: "Yetkisiz erişim" },
+        { status: 403 }
+      );
+    }
+
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!

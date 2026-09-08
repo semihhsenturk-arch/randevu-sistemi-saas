@@ -8,6 +8,7 @@ import { getAuthenticatedUser } from "@/lib/supabase-server";
 export async function encryptPatientProfile(profile: any) {
   const user = await getAuthenticatedUser();
   if (!user && profile.user_id !== "demo-user") throw new Error("Unauthorized");
+  if (user && profile.user_id !== user.id && profile.user_id !== "demo-user") throw new Error("Unauthorized: Ownership mismatch");
 
   return {
     ...profile,
@@ -24,6 +25,7 @@ export async function encryptPatientProfile(profile: any) {
 export async function decryptPatientProfilesBatch(profiles: any[]) {
   const user = await getAuthenticatedUser();
   if (!user) throw new Error("Unauthorized");
+  if (profiles.some(p => p.user_id !== user.id && p.user_id !== "demo-user")) throw new Error("Unauthorized: Ownership mismatch");
 
   return profiles.map(p => ({
     ...p,
@@ -43,6 +45,7 @@ export async function decryptPatientProfilesBatch(profiles: any[]) {
 export async function encryptAppointment(apt: any) {
   const user = await getAuthenticatedUser();
   if (!user && apt.user_id !== "demo-user") throw new Error("Unauthorized");
+  if (user && apt.user_id !== user.id && apt.user_id !== "demo-user") throw new Error("Unauthorized: Ownership mismatch");
 
   return {
     ...apt,
@@ -54,6 +57,7 @@ export async function encryptAppointment(apt: any) {
 export async function decryptAppointmentsBatch(apts: any[]) {
   const user = await getAuthenticatedUser();
   if (!user) throw new Error("Unauthorized");
+  if (apts.some(apt => apt.user_id !== user.id && apt.user_id !== "demo-user")) throw new Error("Unauthorized: Ownership mismatch");
 
   return apts.map(apt => ({
     ...apt,
@@ -67,6 +71,7 @@ export async function decryptAppointmentsBatch(apts: any[]) {
 export async function encryptConsentRecord(record: any) {
   const user = await getAuthenticatedUser();
   if (!user && record.user_id !== "demo-user") throw new Error("Unauthorized");
+  if (user && record.user_id !== user.id && record.user_id !== "demo-user") throw new Error("Unauthorized: Ownership mismatch");
 
   return {
     ...record,
@@ -78,6 +83,7 @@ export async function encryptConsentRecord(record: any) {
 export async function decryptConsentRecordsBatch(records: any[]) {
   const user = await getAuthenticatedUser();
   if (!user) throw new Error("Unauthorized");
+  if (records.some(r => r.user_id !== user.id && r.user_id !== "demo-user")) throw new Error("Unauthorized: Ownership mismatch");
 
   return records.map(r => ({
     ...r,

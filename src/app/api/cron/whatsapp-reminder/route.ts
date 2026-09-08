@@ -6,8 +6,9 @@ export async function GET(req: Request) {
   // This endpoint should be triggered periodically (e.g. via Vercel Cron or Simulator)
   
   // Allow overriding the 24h check via a query param for testing purposes
-  const url = new URL(req.url);
-  const forceAll = url.searchParams.get('forceAll') === 'true';
+  // SEC-08 FIX: Removed forceAll parameter to prevent mass notification spam if endpoint is hit
+  // const url = new URL(req.url);
+  // const forceAll = url.searchParams.get('forceAll') === 'true';
 
   // ──── BUG-11 FIX: Webhook/Cron Security ────
   // Vercel Cron sends a Bearer token. Validate it.
@@ -53,9 +54,9 @@ export async function GET(req: Request) {
       // Calculate how many minutes until the appointment
       const diffMins = differenceInMinutes(aptDate, now);
       
-      // If it is exactly 24 hours away (e.g. between 23.5 and 24.5 hours) or forceAll is true
+      // If it is exactly 24 hours away (e.g. between 23.5 and 24.5 hours)
       // 24 hours = 1440 minutes. Trigger if between 1410 and 1470 minutes.
-      if (forceAll || (diffMins > 1410 && diffMins <= 1470)) {
+      if (diffMins > 1410 && diffMins <= 1470) {
         // Here we would call the real Twilio/Meta API.
         // For the simulator, we just update the DB status to 'sent'
         console.log(`[WhatsApp API] Sending reminder to ${apt.telefon} for appointment ${apt.id}`);

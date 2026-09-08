@@ -32,12 +32,13 @@ export async function POST(req: Request) {
 
     const body = await req.json();
     
-    // Format expected for simulator: { appointmentId: string, reply: 'Evet' | 'Hayır' }
+    // Format expected for simulator: { appointmentId: string, reply: 'Evet' | 'Hayır', userId: string }
     // In real Twilio/Meta, you'd parse from `body.Entry[0].changes[0].value.messages[0]`
-    const { appointmentId, reply } = body;
+    const { appointmentId, reply, userId } = body;
     
-    if (!appointmentId || !reply) {
-      return NextResponse.json({ success: false, error: 'Missing appointmentId or reply' }, { status: 400 });
+    // SEC-06 FIX: userId is now required to ensure tenant isolation
+    if (!appointmentId || !reply || !userId) {
+      return NextResponse.json({ success: false, error: 'Missing appointmentId, reply, or userId' }, { status: 400 });
     }
 
     const supabaseAdmin = createClient(
@@ -53,6 +54,12 @@ export async function POST(req: Request) {
       
     if (fetchError || !appointment) {
       return NextResponse.json({ success: false, error: 'Appointment not found' }, { status: 404 });
+    }
+
+    // SEC-06 FIX: Verify that the appointment belongs to the tenant who is receiving the webhook
+    if (appointment.user_id !== userId) {
+      console.error(`Webhook tenant mismatch: appointment ${appointmentId} belongs to ${appointment.user_id}, but webhook claimed ${userId}`);
+      return NextResponse.json({ success: false, error: 'Unauthorized tenant for this appointment' }, { status: 403 });
     }
 
     let updatedDurum = appointment.durum;
