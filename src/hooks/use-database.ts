@@ -106,6 +106,12 @@ export type PatientProfile = {
   face_treatments?: FaceTreatment[];
   face_gender?: 'female' | 'male';
   before_after_photos?: BeforeAfterPhoto[];
+  // KVKK compliance fields
+  kvkk_consent_given?: boolean;
+  kvkk_consent_date?: string;
+  is_deleted?: boolean;
+  deleted_at?: string;
+  deletion_reason?: string;
 };
 
 export type StockMovement = {
@@ -153,6 +159,10 @@ export type ConsentRecord = {
   patient_tc?: string;
   patient_phone?: string;
   signed_at?: string;
+  consent_type?: 'medical' | 'kvkk_health_data' | 'kvkk_data_transfer';
+  is_withdrawn?: boolean;
+  withdrawn_at?: string;
+  withdrawn_reason?: string;
 };
 
 export const CACHE_KEYS = {
@@ -359,7 +369,8 @@ export function useDatabase() {
       const { data, error } = await supabase
         .from("patient_profiles")
         .select("*")
-        .eq("user_id", userId);
+        .eq("user_id", userId)
+        .or("is_deleted.is.null,is_deleted.eq.false");
 
       if (!error && data) {
         const decryptedData = await decryptPatientProfilesBatch(data);
@@ -376,6 +387,9 @@ export function useDatabase() {
             face_treatments: normalizeFaceTreatments(p.face_treatments || []),
             face_gender: p.face_gender || 'female',
             before_after_photos: p.before_after_photos || [],
+            kvkk_consent_given: p.kvkk_consent_given || false,
+            kvkk_consent_date: p.kvkk_consent_date,
+            id: p.id,
           };
         });
         setCache(CACHE_KEYS.PROFILES, profiles);

@@ -61,20 +61,50 @@ export default function KVKKPage() {
         </div>
 
         <div className="space-y-4">
-          <h2 className="text-xl font-bold text-slate-900">5. İlgili Kişinin Hakları (Madde 11)</h2>
+          <h2 className="text-xl font-bold text-slate-900">5. Veri Saklama Süreleri ve İmha Politikası</h2>
           <p className="text-slate-600 leading-relaxed">
-            KVKK’nın 11. maddesi uyarınca veri sahipleri şu haklara sahiptir:
+            Kişisel verileriniz, işlenme amacının gerektirdiği süre boyunca saklanmaktadır. Veri kategorilerine göre saklama süreleri şu şekildedir:
+          </p>
+          <ul className="list-disc pl-6 space-y-2 text-slate-600">
+            <li><strong>Hasta Sağlık Verileri:</strong> Son tedavi tarihinden itibaren 10 yıl (Tıbbi kayıt saklama yükümlülüğü — Hasta Hakları Yönetmeliği md. 21).</li>
+            <li><strong>Klinik Üyelik Verileri:</strong> Üyelik sonlandırılmasından itibaren 5 yıl (Türk Borçlar Kanunu genel zamanaşımı).</li>
+            <li><strong>Ödeme Kayıtları:</strong> İşlem tarihinden itibaren 10 yıl (Vergi Usul Kanunu md. 253).</li>
+            <li><strong>Erişim ve İz Kayıtları:</strong> 2 yıl (5651 sayılı Kanun md. 5).</li>
+          </ul>
+          <p className="text-slate-600 leading-relaxed">
+            Saklama süresi dolan veriler, periyodik imha süreçleri kapsamında silinmekte veya anonim hale getirilmektedir.
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          <h2 className="text-xl font-bold text-slate-900">6. Yurt Dışına Veri Aktarımı</h2>
+          <p className="text-slate-600 leading-relaxed">
+            Platformun altyapı hizmeti aldığı Supabase, Amazon Web Services (AWS) gibi hizmet sağlayıcılarının sunucuları yurt dışında (ABD ve AB bölgeleri) konumlanmaktadır. Bu aktarımlar aşağıdaki hukuki çerçevede gerçekleştirilmektedir:
+          </p>
+          <ul className="list-disc pl-6 space-y-2 text-slate-600">
+            <li><strong>Veri İşleyen Sözleşmesi (DPA):</strong> Her bir altyapı sağlayıcısıyla KVKK md. 12 ve GDPR uyumlu Veri İşleme Sözleşmesi (Data Processing Agreement) imzalanmıştır.</li>
+            <li><strong>KVKK Kurulu Taahhütname:</strong> KVKK md. 9/2-b kapsamında, yeterli koruma bulunmayan ülkelere aktarım için taahhütname başvurusu yapılmıştır.</li>
+            <li><strong>Teknik Güvenlik:</strong> Aktarılan veriler transit ve dinlenme halinde (in-transit ve at-rest) AES-256 standardında şifrelenmektedir.</li>
+          </ul>
+        </div>
+
+        <div className="space-y-4">
+          <h2 className="text-xl font-bold text-slate-900">7. İlgili Kişinin Hakları (Madde 11)</h2>
+          <p className="text-slate-600 leading-relaxed">
+            KVKK&apos;nın 11. maddesi uyarınca veri sahipleri şu haklara sahiptir:
           </p>
           <ul className="list-disc pl-6 space-y-2 text-slate-600">
             <li>Kişisel verilerinin işlenip işlenmediğini öğrenme, işlenmişse bilgi talep etme.</li>
             <li>İşlenme amacını ve amacına uygun kullanılıp kullanılmadığını öğrenme.</li>
             <li>Yurt içinde veya yurt dışında aktarıldığı üçüncü kişileri bilme.</li>
-            <li>Eksik veya yanlış işlenmişse düzeltilmesini isteme, silinmesini veya yok edilmesini talep etme.</li>
+            <li>Eksik veya yanlış işlenmişse düzeltilmesini isteme.</li>
+            <li><strong>Silinmesini, yok edilmesini veya anonim hale getirilmesini talep etme (Unutulma Hakkı — md. 7).</strong></li>
+            <li><strong>Açık rızasını geri çekme hakkı.</strong> Rıza geri çekilmesi halinde, geri çekilme öncesinde yapılan veri işleme faaliyetlerinin hukuka uygunluğu korunur.</li>
           </ul>
         </div>
 
         <div className="space-y-4">
-          <h2 className="text-xl font-bold text-slate-900">6. Başvuru ve İletişim</h2>
+          <h2 className="text-xl font-bold text-slate-900">8. Başvuru ve İletişim</h2>
           <p className="text-slate-600 leading-relaxed">
             Haklarınızı kullanmak için taleplerinizi kimliğinizi tevsik edici belgelerle birlikte <strong>kvkk@bicalendo.com</strong> adresine iletebilirsiniz. Başvurularınız kanuni süre olan en geç 30 gün içinde yanıtlanacaktır. (Not: Hastaların kendi verilerine ilişkin taleplerini doğrudan hizmet aldıkları kliniğe/hekime iletmeleri gerekmektedir).
           </p>
