@@ -1,6 +1,8 @@
 import { useCallback } from "react";
 import { supabase } from "@/lib/supabase";
-import { encryptPatientProfile, decryptPatientProfilesBatch, encryptAppointment, decryptAppointmentsBatch, encryptConsentRecord, decryptConsentRecordsBatch } from "@/actions/secure-data";
+import { get, set } from "idb-keyval";
+import { encryptAppointment, decryptAppointmentsBatch, encryptConsentRecord, decryptConsentRecordsBatch } from "@/actions/secure-data";
+import { PatientService } from "@/services/patient-service";
 
 export type Appointment = {
   id: string;
@@ -49,9 +51,8 @@ export function generateTransactionNo(existingTreatments?: FaceTreatment[]): str
   // Try to find max across ALL cached profiles to ensure global uniqueness
   if (typeof window !== "undefined") {
     try {
-      const cachedData = sessionStorage.getItem(CACHE_KEYS.PROFILES);
-      if (cachedData) {
-        const allProfiles = JSON.parse(cachedData);
+      const allProfiles = getCacheSync<Record<string, Omit<PatientProfile, "patient_name">>>(CACHE_KEYS.PROFILES);
+      if (allProfiles) {
         for (const key in allProfiles) {
           const profile = allProfiles[key];
           // Check face_treatments
@@ -174,18 +175,47 @@ export const CACHE_KEYS = {
   CONSENTS: "cache_consent_records_v2",
 };
 
+const memoryCache = new Map<string, any>();
+let isIdbLoaded = false;
+
+export const initIndexedDB = async () => {
+  if (typeof window === "undefined" || isIdbLoaded) return;
+  
+  const keys = Object.values(CACHE_KEYS);
+  
+  // Migrate from sessionStorage
+  for (const key of keys) {
+    try {
+      const ssData = sessionStorage.getItem(key);
+      if (ssData) {
+        const parsed = JSON.parse(ssData);
+        memoryCache.set(key, parsed);
+        set(key, parsed).catch(() => {});
+        sessionStorage.removeItem(key);
+      }
+    } catch (e) {}
+  }
+
+  // Load from IndexedDB
+  for (const key of keys) {
+    if (!memoryCache.has(key)) {
+      try {
+        const data = await get(key);
+        if (data) memoryCache.set(key, data);
+      } catch (e) {}
+    }
+  }
+  
+  isIdbLoaded = true;
+};
+
 export function getCacheSync<T>(key: string): T | null {
   if (typeof window === "undefined") return null;
-  try {
-    const data = sessionStorage.getItem(key);
-    const parsed = data ? JSON.parse(data) : null;
-    if (parsed && key === CACHE_KEYS.INVENTORY) {
-      return normalizeInventory(parsed as any) as unknown as T;
-    }
-    return parsed;
-  } catch (e) {
-    return null;
+  const parsed = memoryCache.get(key);
+  if (parsed && key === CACHE_KEYS.INVENTORY) {
+    return normalizeInventory(parsed as any) as unknown as T;
   }
+  return parsed || null;
 }
 
 // Internal version
@@ -193,10 +223,11 @@ function getCache<T>(key: string): T | null {
   return getCacheSync<T>(key);
 }
 
-function setCache(key: string, data: any) {
-  try {
-    sessionStorage.setItem(key, JSON.stringify(data));
-  } catch (e) {}
+export function setCache(key: string, data: any) {
+  memoryCache.set(key, data);
+  if (typeof window !== "undefined") {
+    set(key, data).catch(console.error);
+  }
 }
 
 const normalizeInventory = (inventory: { stock: Record<string, number>; items: InventoryItem[] }) => {
@@ -347,108 +378,12 @@ export function useDatabase() {
 
   // ─── Patient Profiles ──────────────────────────────────────────
 
-  // Eski "cc" birimini "ünite" olarak normalize et
-  const normalizeFaceTreatments = (treatments: FaceTreatment[]): FaceTreatment[] => {
-    if (!treatments || treatments.length === 0) return treatments;
-    return treatments.map(t => t.unit === "cc" ? { ...t, unit: "ünite" } : t);
-  };
-
   const getPatientProfiles = useCallback(async () => {
-    try {
-      if (!userId || userId === "demo-user") {
-        const cached = getCache<Record<string, Omit<PatientProfile, "patient_name">>>(CACHE_KEYS.PROFILES) || {};
-        // Normalize cached data
-        for (const key of Object.keys(cached)) {
-          if (cached[key].face_treatments) {
-            cached[key].face_treatments = normalizeFaceTreatments(cached[key].face_treatments!);
-          }
-        }
-        return cached;
-      }
-
-      const { data, error } = await supabase
-        .from("patient_profiles")
-        .select("*")
-        .eq("user_id", userId)
-        .or("is_deleted.is.null,is_deleted.eq.false");
-
-      if (!error && data) {
-        const decryptedData = await decryptPatientProfilesBatch(data);
-        const profiles: Record<string, Omit<PatientProfile, "patient_name">> = {};
-        decryptedData.forEach((p: any) => {
-          profiles[p.patient_name] = {
-            phone: p.phone,
-            tc_no: p.tc_no,
-            birth_date: p.birth_date,
-            address: p.address,
-            meds: p.meds,
-            notes_list: p.notes_list,
-            stock_history: p.stock_history,
-            face_treatments: normalizeFaceTreatments(p.face_treatments || []),
-            face_gender: p.face_gender || 'female',
-            before_after_photos: p.before_after_photos || [],
-            kvkk_consent_given: p.kvkk_consent_given || false,
-            kvkk_consent_date: p.kvkk_consent_date,
-            id: p.id,
-          };
-        });
-        setCache(CACHE_KEYS.PROFILES, profiles);
-        return profiles;
-      }
-    } catch (e) {
-      console.warn("fetchFreshProfiles failed, falling back to cache", e);
-    }
-
-    const fallback = getCache<Record<string, Omit<PatientProfile, "patient_name">>>(CACHE_KEYS.PROFILES) || {};
-    for (const key of Object.keys(fallback)) {
-      if (fallback[key].face_treatments) {
-        fallback[key].face_treatments = normalizeFaceTreatments(fallback[key].face_treatments!);
-      }
-    }
-    return fallback;
+    return await PatientService.getProfiles(userId);
   }, [userId]);
 
   const savePatientProfile = useCallback(async (rawName: string, profile: Omit<PatientProfile, "patient_name">) => {
-    if (!userId) return;
-    const name = rawName.toLocaleUpperCase("tr-TR");
-
-    if (userId !== "demo-user") {
-      const { data: existing } = await supabase
-        .from("patient_profiles")
-        .select("id")
-        .eq("patient_name", name)
-        .eq("user_id", userId)
-        .maybeSingle();
-
-      const payload: any = {
-        user_id: userId,
-        patient_name: name,
-        phone: profile.phone || "",
-        tc_no: profile.tc_no || "",
-        birth_date: profile.birth_date || "",
-        address: profile.address || "",
-        meds: profile.meds || [],
-        notes_list: profile.notes_list || [],
-        stock_history: profile.stock_history || [],
-        face_treatments: profile.face_treatments || [],
-        face_gender: profile.face_gender || 'female',
-        before_after_photos: profile.before_after_photos || [],
-      };
-
-      if (existing) payload.id = existing.id;
-
-      const encryptedPayload = await encryptPatientProfile(payload);
-
-      const { error } = await supabase.from("patient_profiles").upsert(encryptedPayload, { onConflict: "id" });
-      if (error) {
-        console.error("Supabase Save Patient Profile Error:", error);
-        throw error;
-      }
-    }
-    
-    const cached = getCache<Record<string, Omit<PatientProfile, "patient_name">>>(CACHE_KEYS.PROFILES) || {};
-    cached[name] = profile;
-    setCache(CACHE_KEYS.PROFILES, cached);
+    return await PatientService.saveProfile(userId, rawName, profile);
   }, [userId]);
 
   // ─── Inventory ─────────────────────────────────────────────────

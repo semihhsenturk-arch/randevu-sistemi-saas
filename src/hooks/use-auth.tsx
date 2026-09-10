@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, useRef, useCallback } f
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { useRouter, usePathname } from "next/navigation";
+import { initIndexedDB } from "@/hooks/use-database";
 
 export const PLAN_TIERS = {
   starter: 0,
@@ -82,6 +83,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Load profile from cache on mount (client-side only)
   useEffect(() => {
+    initIndexedDB();
     const cached = getCachedProfile();
     if (cached) setProfile(cached);
   }, []);
