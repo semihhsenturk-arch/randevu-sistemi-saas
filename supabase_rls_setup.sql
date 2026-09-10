@@ -16,10 +16,10 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 -- 2. ADIM: Var olan eski (varsa) güvensiz politikaları temizle
 DROP POLICY IF EXISTS "Enable read access for all users" ON public.patient_profiles;
 DROP POLICY IF EXISTS "Enable insert for authenticated users only" ON public.patient_profiles;
-DROP POLICY IF EXISTS "Users can only read their own patients" ON public.patient_profiles;
-DROP POLICY IF EXISTS "Users can only insert their own patients" ON public.patient_profiles;
-DROP POLICY IF EXISTS "Users can only update their own patients" ON public.patient_profiles;
-DROP POLICY IF EXISTS "Users can only delete their own patients" ON public.patient_profiles;
+DROP POLICY IF EXISTS "Users can read their own patients" ON public.patient_profiles;
+DROP POLICY IF EXISTS "Users can insert their own patients" ON public.patient_profiles;
+DROP POLICY IF EXISTS "Users can update their own patients" ON public.patient_profiles;
+DROP POLICY IF EXISTS "Users can delete their own patients" ON public.patient_profiles;
 
 DROP POLICY IF EXISTS "Users can read their own appointments" ON public.appointments;
 DROP POLICY IF EXISTS "Users can insert their own appointments" ON public.appointments;
@@ -35,6 +35,11 @@ DROP POLICY IF EXISTS "Users can read their own inventory" ON public.inventory;
 DROP POLICY IF EXISTS "Users can insert their own inventory" ON public.inventory;
 DROP POLICY IF EXISTS "Users can update their own inventory" ON public.inventory;
 DROP POLICY IF EXISTS "Users can delete their own inventory" ON public.inventory;
+
+DROP POLICY IF EXISTS "Users can read their own stock_definitions" ON public.stock_definitions;
+DROP POLICY IF EXISTS "Users can insert their own stock_definitions" ON public.stock_definitions;
+DROP POLICY IF EXISTS "Users can update their own stock_definitions" ON public.stock_definitions;
+DROP POLICY IF EXISTS "Users can delete their own stock_definitions" ON public.stock_definitions;
 
 DROP POLICY IF EXISTS "Users can read their own profile" ON public.profiles;
 DROP POLICY IF EXISTS "Users can update their own profile" ON public.profiles;
