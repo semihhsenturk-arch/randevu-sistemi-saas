@@ -15,7 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Contact, Search, Package, Users, Clock, CheckCircle2, History, Pill, FileText, Box, Trash2, Plus, X, Edit2, Notebook as Emerald, Loader2, Shield, MessageCircle, CalendarDays, Syringe, Camera } from "lucide-react";
+import { Contact, Search, Package, Users, Clock, CheckCircle2, History, Pill, FileText, Box, Trash2, Plus, X, Edit2, Notebook as Emerald, Loader2, Shield, MessageCircle, CalendarDays, Syringe, Camera, ArrowLeft } from "lucide-react";
 import { ConsentFormModal } from "@/components/ConsentFormModal";
 import { WhatsAppSimulator } from "@/components/WhatsAppSimulator";
 import { format, parseISO, isValid } from "date-fns";
@@ -664,7 +664,9 @@ export default function PatientListPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <header className="flex flex-col md:flex-row justify-between items-center bg-white/88 backdrop-blur-[20px] p-4 md:p-[14px_24px] rounded-[20px] border border-slate-200/60 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.07)] sticky top-3 z-[40] gap-4">
+      {!modalOpen && (
+        <>
+          <header className="flex flex-col md:flex-row justify-between items-center bg-white/88 backdrop-blur-[20px] p-4 md:p-[14px_24px] rounded-[20px] border border-slate-200/60 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.07)] sticky top-3 z-[40] gap-4">
         <div className="flex flex-col gap-[2px] text-center md:text-left w-full md:w-auto">
           <span className="text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[#0a3d34] opacity-80 mb-[1px]">{(profile?.clinic_name || "Klinik").toUpperCase()}</span>
           <div className="flex items-center justify-center md:justify-start gap-3">
@@ -809,64 +811,67 @@ export default function PatientListPage() {
         </Table>
         </div>
       </div>
+      </>
+      )}
       <WhatsAppSimulator />
 
-      {/* Patient Detail Modal */}
-      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className={`${activeTab === 'facemap' || activeTab === 'before-after' ? 'sm:max-w-[1050px] xl:ml-[140px]' : 'sm:max-w-[850px]'} max-w-[95vw] p-0 overflow-hidden bg-white border-slate-200 flex flex-col md:flex-row shadow-2xl transition-all`}>
+      {/* Patient Detail Full Screen View */}
+      {modalOpen && (
+        <div className={`w-full bg-white border border-slate-200 rounded-[20px] flex flex-col md:flex-row shadow-sm overflow-hidden min-h-[85vh]`}>
           
           {/* Left Sidebar */}
-          <div className="w-full md:w-[280px] bg-slate-50/50 border-r border-slate-200/60 p-6 flex flex-col items-center md:items-start shrink-0">
+          <div className="w-full md:w-[260px] bg-slate-50/50 border-r border-slate-200/60 flex flex-col shrink-0">
              
              {/* Avatar / Profile Header */}
-             <div className="flex items-center w-full gap-4 mb-10">
-               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#0c4a40] to-[#177567] text-white flex items-center justify-center text-2xl font-extrabold shadow-lg shadow-[#0a3d34]/20 ring-4 ring-[#0a3d34]/5 shrink-0">
+             <div className="p-6 pb-5 flex flex-col items-center border-b border-slate-200/50 relative">
+               <button 
+                 onClick={() => setModalOpen(false)}
+                 className="absolute left-4 top-4 text-slate-400 hover:text-[#0a3d34] flex items-center gap-1 text-xs font-bold transition-colors"
+               >
+                 <ArrowLeft className="w-3.5 h-3.5" /> Geri
+               </button>
+               <div className="w-20 h-20 mt-4 rounded-full bg-gradient-to-br from-[#0c4a40] to-[#177567] text-white flex items-center justify-center text-3xl font-extrabold shadow-lg shadow-[#0a3d34]/20 ring-4 ring-white shrink-0 mb-4">
                  {selectedPatientName ? selectedPatientName.substring(0, 2).toUpperCase() : "HA"}
                </div>
-               <div className="flex flex-col gap-1 min-w-0 flex-1">
-                 <DialogTitle className="text-xl font-extrabold text-[#1e293b] leading-tight break-words whitespace-normal">{selectedPatientName}</DialogTitle>
-                 <span className="text-xs font-bold text-slate-500 flex items-center gap-1.5 mt-1">
-                   <Contact className="w-4 h-4 text-[#0a3d34] opacity-70 shrink-0"/> <span className="truncate">{selectedPatientPhone || "Telefon Yok"}</span>
+               <div className="flex flex-col items-center text-center gap-1 w-full">
+                 <h2 className="text-[1.15rem] font-extrabold text-[#1e293b] leading-tight break-words">{selectedPatientName}</h2>
+                 <span className="text-xs font-semibold text-slate-500 flex items-center gap-1 mt-0.5">
+                   <Contact className="w-3.5 h-3.5 opacity-70"/> {selectedPatientPhone || "Telefon Yok"}
                  </span>
                </div>
+               
+               <Button 
+                 onClick={() => {
+                   setModalOpen(false);
+                   setTimeout(() => {
+                     router.push(`/takvim?newApt=true&name=${encodeURIComponent(selectedPatientName)}&phone=${encodeURIComponent(pPhone || selectedPatientPhone)}`);
+                   }, 150);
+                 }}
+                 className="w-full mt-6 bg-[#0a3d34] hover:bg-[#072b25] text-white font-bold h-10 rounded-xl shadow-md shadow-[#0a3d34]/20"
+               >
+                 <CalendarDays className="w-4 h-4 mr-2" /> Yeni Randevu
+               </Button>
              </div>
 
              {/* Navigation */}
-             <div className="flex flex-row md:flex-col gap-2 w-full overflow-x-auto md:overflow-visible pb-2 md:pb-0 custom-scrollbar-auto">
+             <div className="flex-1 overflow-y-auto custom-scrollbar-auto p-3 flex flex-col gap-1">
                 {[
-                  { id: 'info', label: 'Hasta Bilgileri', icon: Users, color: 'emerald' },
-                  { id: 'consent', label: 'Onam Formları', icon: Shield, color: 'indigo' },
-                  { id: 'timeline', label: 'Geçmiş İşlemler', icon: History, color: 'blue' },
-                  { id: 'facemap', label: 'Yüz Haritası', icon: Syringe, color: 'rose' },
-                  { id: 'before-after', label: 'Önce / Sonra', icon: Camera, color: 'violet' },
-                  { id: 'meds', label: 'İlaçlar / Reçete', icon: Pill, color: 'rose' },
-                  { id: 'notes', label: 'Muayene / Notlar', icon: Emerald, color: 'emerald' },
-                  { id: 'stock', label: 'Stok Geçmişi', icon: Box, color: 'amber' },
-                  { id: 'new-appointment', label: 'Yeni Randevu', icon: CalendarDays, color: 'emerald' }
+                  { id: 'info', label: 'Hasta Bilgileri', icon: Users },
+                  { id: 'timeline', label: 'Geçmiş İşlemler', icon: History },
+                  { id: 'facemap', label: 'Yüz Haritası', icon: Syringe },
+                  { id: 'before-after', label: 'Önce / Sonra', icon: Camera },
+                  { id: 'notes', label: 'Muayene & Notlar', icon: Emerald },
+                  { id: 'meds', label: 'İlaçlar & Reçete', icon: Pill },
+                  { id: 'consent', label: 'Onam Formları', icon: Shield },
+                  { id: 'stock', label: 'Stok Geçmişi', icon: Box },
                 ].map(tab => {
                   const isActive = activeTab === tab.id;
-                  const colors: Record<string, string> = {
-                    blue: isActive ? 'bg-blue-50 text-blue-700 border-blue-200' : 'text-slate-500 hover:bg-blue-50/50 hover:text-blue-600',
-                    rose: isActive ? 'bg-rose-50 text-rose-700 border-rose-200' : 'text-slate-500 hover:bg-rose-50/50 hover:text-rose-600',
-                    emerald: isActive ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'text-slate-500 hover:bg-emerald-50/50 hover:text-emerald-600',
-                    amber: isActive ? 'bg-amber-50 text-amber-700 border-amber-200' : 'text-slate-500 hover:bg-amber-50/50 hover:text-amber-600',
-                    indigo: isActive ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'text-slate-500 hover:bg-indigo-50/50 hover:text-indigo-600',
-                    violet: isActive ? 'bg-violet-50 text-violet-700 border-violet-200' : 'text-slate-500 hover:bg-violet-50/50 hover:text-violet-600',
-                  };
-                  const iconColors: Record<string, string> = {
-                    blue: isActive ? 'text-blue-600' : 'text-blue-400 group-hover:text-blue-600',
-                    rose: isActive ? 'text-rose-600' : 'text-rose-400 group-hover:text-rose-600',
-                    emerald: isActive ? 'text-emerald-600' : 'text-emerald-400 group-hover:text-emerald-600',
-                    amber: isActive ? 'text-amber-600' : 'text-amber-400 group-hover:text-amber-600',
-                    indigo: isActive ? 'text-indigo-600' : 'text-indigo-400 group-hover:text-indigo-600',
-                    violet: isActive ? 'text-violet-600' : 'text-violet-400 group-hover:text-violet-600',
-                  };
-
+                  
                   return (
                     <button 
                       key={tab.id}
-                      className={`flex items-center justify-center md:justify-start gap-3 px-4 py-4 rounded-2xl text-sm font-bold transition-all whitespace-nowrap md:whitespace-normal border group cursor-pointer
-                        ${colors[tab.color] || ''} ${isActive ? 'shadow-sm shadow-black/5' : 'border-transparent'}
+                      className={`flex items-center gap-3 px-4 py-3 rounded-xl text-[0.85rem] font-semibold transition-all cursor-pointer text-left
+                        ${isActive ? 'bg-white text-[#0a3d34] shadow-sm border border-slate-200/60' : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 border border-transparent'}
                       `}
                       onPointerDown={(e) => {
                         if (e.pointerType === 'pen') {
@@ -874,26 +879,22 @@ export default function PatientListPage() {
                         }
                       }}
                       onClick={() => {
-                        if (tab.id === 'new-appointment') {
-                          router.push(`/takvim?newApt=true&name=${encodeURIComponent(selectedPatientName)}&phone=${encodeURIComponent(pPhone || selectedPatientPhone)}`);
-                        } else {
-                          setActiveTab(tab.id as any);
-                          if (tab.id === 'facemap') trackEvent("FaceMap_Used", { patient: selectedPatientName });
-                          if (tab.id === 'before-after') trackEvent("BeforeAfter_Viewed", { patient: selectedPatientName });
-                        }
+                        setActiveTab(tab.id as any);
+                        if (tab.id === 'facemap') trackEvent("FaceMap_Used", { patient: selectedPatientName });
+                        if (tab.id === 'before-after') trackEvent("BeforeAfter_Viewed", { patient: selectedPatientName });
                       }}
                     >
-                      <tab.icon className={`w-5 h-5 transition-colors ${iconColors[tab.color] || ''}`} /> {tab.label}
+                      <tab.icon className={`w-[18px] h-[18px] ${isActive ? 'text-[#0a3d34]' : 'text-slate-400'}`} /> 
+                      {tab.label}
                     </button>
                   );
                 })}
              </div>
 
               {/* Delete Patient Button */}
-              <div className="mt-auto w-full pt-6">
-                <Button 
-                  variant="outline" 
-                  className="w-full border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 font-bold justify-start"
+              <div className="p-4 border-t border-slate-200/50 bg-slate-50/80">
+                <button 
+                  className="flex items-center justify-center gap-2 w-full py-2.5 px-3 text-xs font-bold text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl border border-transparent hover:border-red-100 transition-colors"
                   onClick={() => {
                     if(confirm("Bu hastayı silmek istediğinize emin misiniz? Bu işlem hastayı gizler, kalıcı olarak silmez.")) {
                       deletePatientProfile(selectedPatientName).then(() => {
@@ -907,10 +908,9 @@ export default function PatientListPage() {
                     }
                   }}
                 >
-                  <Trash2 className="w-4 h-4 mr-2" /> Hastayı Sil
-                </Button>
+                  <Trash2 className="w-3.5 h-3.5" /> Hastayı Sil
+                </button>
               </div>
-
           </div>
 
           {/* Right Content Area */}
@@ -1508,8 +1508,8 @@ export default function PatientListPage() {
             allTreatments={selProfile?.face_treatments || []}
           />
 
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
 
       {/* Material Modal */}
       <Dialog open={materialModalOpen} onOpenChange={setMaterialModalOpen}>
