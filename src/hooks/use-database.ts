@@ -386,6 +386,10 @@ export function useDatabase() {
     return await PatientService.saveProfile(userId, rawName, profile);
   }, [userId]);
 
+  const deletePatientProfile = useCallback(async (rawName: string) => {
+    return await PatientService.softDeleteProfile(userId, rawName);
+  }, [userId]);
+
   // ─── Inventory ─────────────────────────────────────────────────
 
   const getInventory = useCallback(async () => {
@@ -786,6 +790,7 @@ export function useDatabase() {
     deleteAppointment,
     getPatientProfiles,
     savePatientProfile,
+    deletePatientProfile,
     getInventory,
     saveInventoryItem,
     deleteInventoryItem,

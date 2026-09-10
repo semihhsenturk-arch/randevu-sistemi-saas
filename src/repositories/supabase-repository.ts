@@ -21,4 +21,15 @@ export class SupabaseRepository {
     if (error) throw error;
     return data;
   }
+
+  static async softDeletePatientProfile(userId: string, patientName: string) {
+    const { data, error } = await supabase
+      .from("patient_profiles")
+      .update({ is_deleted: true })
+      .eq("user_id", userId)
+      .eq("patient_name", patientName);
+
+    if (error) throw error;
+    return data;
+  }
 }

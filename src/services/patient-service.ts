@@ -82,4 +82,19 @@ export class PatientService {
     cached[name] = profile;
     setCache(CACHE_KEYS.PROFILES, cached);
   }
+
+  static async softDeleteProfile(userId: string | undefined, rawName: string): Promise<void> {
+    if (!userId) return;
+    const name = rawName.toLocaleUpperCase("tr-TR");
+
+    if (userId !== "demo-user") {
+      await SupabaseRepository.softDeletePatientProfile(userId, name);
+    }
+
+    const cached = getCacheSync<Record<string, Omit<PatientProfile, "patient_name">>>(CACHE_KEYS.PROFILES) || {};
+    if (cached[name]) {
+      delete cached[name];
+      setCache(CACHE_KEYS.PROFILES, cached);
+    }
+  }
 }

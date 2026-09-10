@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
 
 /**
  * Server-side API to set the initial plan for a newly registered user.
@@ -50,18 +50,15 @@ export async function POST(req: NextRequest) {
     // Two-tier verification:
     // 1) If session exists: caller must be the same user
     // 2) If no session (registration flow): user must be recently created (<5 min) + email match
-    const { getAuthenticatedUser } = await import("@/lib/supabase-server");
+    const { getAuthenticatedUser, createServiceClient } = await import("@/lib/supabase-server");
     const authUserSession = await getAuthenticatedUser();
 
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const supabaseAdmin = createServiceClient();
 
     // userId'nin gerçek bir kullanıcı olduğunu doğrula (service_role ile)
     const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.getUserById(userId);
     if (authError || !authUser?.user) {
-      console.error("set-plan: Invalid userId — user not found");
+      logger.error("set-plan: Invalid userId — user not found", authError, { userId });
       return NextResponse.json(
         { error: "Geçersiz kullanıcı ID" },
         { status: 403 }
@@ -71,7 +68,7 @@ export async function POST(req: NextRequest) {
     if (authUserSession) {
       // Tier 1: Session var — userId eşleşmesi zorunlu
       if (authUserSession.id !== userId) {
-        console.error("set-plan: userId mismatch with session");
+        logger.warn("set-plan: userId mismatch with session", { expected: authUserSession.id, actual: userId });
         return NextResponse.json(
           { error: "Yetkisiz erişim" },
           { status: 403 }
@@ -85,7 +82,7 @@ export async function POST(req: NextRequest) {
       const FIVE_MINUTES = 5 * 60 * 1000;
 
       if (diffMs > FIVE_MINUTES) {
-        console.error("set-plan: No session and user is not recently created");
+        logger.warn("set-plan: No session and user is not recently created", { diffMs, userId });
         return NextResponse.json(
           { error: "Yetkisiz erişim" },
           { status: 403 }
@@ -93,7 +90,7 @@ export async function POST(req: NextRequest) {
       }
 
       if (!email || authUser.user.email !== email) {
-        console.error("set-plan: No session and email mismatch");
+        logger.warn("set-plan: No session and email mismatch", { userId });
         return NextResponse.json(
           { error: "Yetkisiz erişim" },
           { status: 403 }
@@ -120,7 +117,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!profileExists) {
-      console.error("set-plan: Profile not found after polling for user:", userId);
+      logger.warn("set-plan: Profile not found after polling for user", { userId });
       // Profil henüz oluşmadıysa upsert ile oluştur
       const { error: upsertError } = await supabaseAdmin
         .from("profiles")
@@ -136,7 +133,7 @@ export async function POST(req: NextRequest) {
         );
 
       if (upsertError) {
-        console.error("set-plan upsert error:", upsertError);
+        logger.error("set-plan upsert error:", upsertError, { userId });
         return NextResponse.json(
           { error: "Profil oluşturulamadı: " + upsertError.message },
           { status: 500 }
@@ -155,7 +152,7 @@ export async function POST(req: NextRequest) {
         .eq("id", userId);
 
       if (updateError) {
-        console.error("set-plan update error:", updateError);
+        logger.error("set-plan update error:", updateError, { userId });
         return NextResponse.json(
           { error: "Profil güncellenemedi: " + updateError.message },
           { status: 500 }
@@ -171,19 +168,17 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (verify && verify.plan !== plan) {
-      console.warn(
-        `Plan verification failed! Expected: ${plan}, Got: ${verify.plan}. Force updating...`
-      );
+      logger.warn(`Plan verification failed! Expected: ${plan}, Got: ${verify.plan}. Force updating...`, { userId });
       await supabaseAdmin
         .from("profiles")
         .update({ plan: plan })
         .eq("id", userId);
     }
 
-    console.log(`Plan set successfully for user ${userId}: ${plan}`);
+    logger.info(`Plan set successfully for user`, { userId, plan });
     return NextResponse.json({ success: true, plan: plan });
   } catch (error: any) {
-    console.error("set-plan critical error:", error);
+    logger.error("set-plan critical error:", error);
     return NextResponse.json(
       { error: "Sunucu hatası: " + (error.message || "Bilinmeyen hata") },
       { status: 500 }

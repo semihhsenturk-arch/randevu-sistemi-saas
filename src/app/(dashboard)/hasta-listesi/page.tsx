@@ -34,7 +34,7 @@ export default function PatientListPage() {
   const isLocked = !checkAccess("professional");
   const canUseInventory = checkAccess("advanced");
   
-  const { getAppointments, getPatientProfiles, savePatientProfile, getInventory, saveInventoryItem, getServices, getConsentRecords, deleteConsentRecord } = useDatabase();
+  const { getAppointments, getPatientProfiles, savePatientProfile, deletePatientProfile, getInventory, saveInventoryItem, getServices, getConsentRecords, deleteConsentRecord } = useDatabase();
   
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [profiles, setProfiles] = useState<Record<string, Omit<PatientProfile, "patient_name">>>({});
@@ -888,6 +888,29 @@ export default function PatientListPage() {
                   );
                 })}
              </div>
+
+              {/* Delete Patient Button */}
+              <div className="mt-auto w-full pt-6">
+                <Button 
+                  variant="outline" 
+                  className="w-full border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 font-bold justify-start"
+                  onClick={() => {
+                    if(confirm("Bu hastayı silmek istediğinize emin misiniz? Bu işlem hastayı gizler, kalıcı olarak silmez.")) {
+                      deletePatientProfile(selectedPatientName).then(() => {
+                        setProfiles(prev => {
+                          const next = { ...prev };
+                          delete next[selectedPatientName];
+                          return next;
+                        });
+                        setModalOpen(false);
+                      });
+                    }
+                  }}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" /> Hastayı Sil
+                </Button>
+              </div>
+
           </div>
 
           {/* Right Content Area */}

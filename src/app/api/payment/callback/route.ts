@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { retrieveCheckoutForm } from "@/lib/iyzico";
-import { createClient } from "@supabase/supabase-js";
+import { logger } from "@/lib/logger";
+import { createServiceClient } from "@/lib/supabase-server";
 
 // Client-side redirect helper to break out of POST context and avoid white screens
 function clientRedirect(origin: string, path: string) {
@@ -37,8 +38,14 @@ export async function POST(req: NextRequest) {
     const token = formData.get("token") as string;
 
     if (!token) {
-      console.error("Payment callback: Token not found in formData");
+      logger.error("Payment callback: Token not found in formData");
       return clientRedirect(origin, "/odeme?status=error&message=Token bulunamadı");
+    }
+
+    // SEC-09 FIX: Token format validation to prevent injection or invalid requests
+    if (typeof token !== "string" || !/^[a-zA-Z0-9_-]{10,100}$/.test(token)) {
+      logger.warn("Payment callback: Invalid token format", { token });
+      return clientRedirect(origin, "/odeme?status=error&message=Geçersiz istek formatı");
     }
 
     // İyzico'dan ödeme sonucunu al
@@ -55,14 +62,11 @@ export async function POST(req: NextRequest) {
       }
 
       if (!userId) {
-        console.error("Payment successful but userId is missing");
+        logger.error("Payment successful but userId is missing", { result });
         return clientRedirect(origin, "/odeme?status=error&message=Kullanıcı bilgisi alınamadı");
       }
 
-      const supabaseAdmin = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-      );
+      const supabaseAdmin = createServiceClient();
 
       const { error: updateError } = await supabaseAdmin
         .from("profiles")
@@ -70,16 +74,17 @@ export async function POST(req: NextRequest) {
         .eq("id", userId);
 
       if (updateError) {
-        console.error("Profile update FAILED:", updateError);
+        logger.error("Profile update FAILED:", updateError, { userId });
         return clientRedirect(origin, `/odeme?status=error&message=${encodeURIComponent("Profil güncellenemedi")}`);
       }
 
       return clientRedirect(origin, "/odeme?status=success");
     } else {
+      logger.warn("Payment failed or invalid status", { result });
       return clientRedirect(origin, `/odeme?status=error&message=${encodeURIComponent(result.errorMessage || "Ödeme başarısız")}`);
     }
   } catch (error: any) {
-    console.error("Payment callback CRITICAL error:", error);
+    logger.error("Payment callback CRITICAL error:", error);
     return clientRedirect(origin, `/odeme?status=error&message=${encodeURIComponent("Sunucu hatası")}`);
   }
 }
