@@ -24,9 +24,31 @@ export default function LoginPage() {
     setLoading(true);
     setErrorMsg("");
 
+    const lockKey = `lock_${email}`;
+    const attemptsKey = `attempts_${email}`;
+    
+    // SEC-12 FIX: Login rate limiting and account lockout
+    const lockUntil = localStorage.getItem(lockKey);
+    if (lockUntil && Date.now() < parseInt(lockUntil)) {
+      const remainingMinutes = Math.ceil((parseInt(lockUntil) - Date.now()) / 60000);
+      setErrorMsg(`Çok fazla başarısız deneme. Lütfen ${remainingMinutes} dakika sonra tekrar deneyin.`);
+      setLoading(false);
+      return;
+    }
+
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      setErrorMsg("Hata: " + error.message);
+      // SEC-12 FIX: Track failed attempts
+      const currentAttempts = parseInt(localStorage.getItem(attemptsKey) || "0") + 1;
+      if (currentAttempts >= 5) {
+        // Lock for 15 minutes
+        localStorage.setItem(lockKey, (Date.now() + 15 * 60000).toString());
+        localStorage.setItem(attemptsKey, "0");
+        setErrorMsg("Çok fazla başarısız deneme. Hesabınız 15 dakika boyunca kilitlenmiştir.");
+      } else {
+        localStorage.setItem(attemptsKey, currentAttempts.toString());
+        setErrorMsg(`Hata: ${error.message} (Kalan deneme hakkı: ${5 - currentAttempts})`);
+      }
       setLoading(false);
     } else {
       // Profil onayı kontrolü

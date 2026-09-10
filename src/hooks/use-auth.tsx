@@ -117,7 +117,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           filter: `id=eq.${user.id}`,
         },
         (payload) => {
-          console.log("Profile updated in real-time:", payload.new);
+          // SEC-10 FIX: Removed sensitive logging of real-time profile updates
           const updated = applyProfile(payload.new, user.email || profile?.email);
           setProfile(updated);
         }
@@ -146,7 +146,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // During sign-out, skip all auth processing to prevent intermediate screens
       if (signingOutRef.current) return;
       
-      console.log(`Auth Event: ${event}`, session?.user?.id ? `User: ${session.user.id}` : "No Session");
+      // SEC-10 FIX: Removed session user id logging
       
       const currentPath = pathnameRef.current;
       let currentProfile: UserProfile | null = null;

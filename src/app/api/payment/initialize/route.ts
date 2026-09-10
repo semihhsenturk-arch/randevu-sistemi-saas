@@ -10,12 +10,13 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { userId, email, clinicName, plan, billingCycle } = body as {
+    const { userId, email, clinicName, plan, billingCycle, identityNumber } = body as {
       userId: string;
       email: string;
       clinicName: string;
       plan: PlanType;
       billingCycle: BillingCycle;
+      identityNumber?: string;
     };
 
     if (!userId || !email || !plan || !billingCycle) {
@@ -49,7 +50,8 @@ export async function POST(req: NextRequest) {
         name: firstName,
         surname: lastName,
         email,
-        identityNumber: "11111111111",
+        // SEC-13 FIX: Gerçek TCKN/VKN kullanıcından alınabilir, fallback olarak 11111111111 kalır.
+        identityNumber: identityNumber || "11111111111",
         registrationAddress: "İstanbul, Türkiye",
         city: "Istanbul",
         country: "Turkey",

@@ -59,7 +59,8 @@ export async function GET(req: Request) {
       if (diffMins > 1410 && diffMins <= 1470) {
         // Here we would call the real Twilio/Meta API.
         // For the simulator, we just update the DB status to 'sent'
-        console.log(`[WhatsApp API] Sending reminder to ${apt.telefon} for appointment ${apt.id}`);
+        // SEC-10 FIX: Masked or removed sensitive patient phone number from logs
+        console.log(`[WhatsApp API] Sending reminder for appointment ${apt.id}`);
         
         const { error: updateError } = await supabaseAdmin
           .from('appointments')

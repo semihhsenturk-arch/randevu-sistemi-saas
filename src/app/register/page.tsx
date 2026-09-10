@@ -66,9 +66,10 @@ function RegisterContent() {
       setErrorMsg("Lütfen tüm alanları doldurunuz.");
       return;
     }
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+    // SEC-12 FIX: Stricter password policy (min 12 chars, upper, lower, number, special)
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,}$/;
     if (!passwordRegex.test(password)) {
-      setErrorMsg("Şifre en az 8 karakter olmalı, ayrıca en az 1 harf ve 1 rakam içermelidir.");
+      setErrorMsg("Şifreniz en az 12 karakter uzunluğunda olmalı, büyük/küçük harf, rakam ve özel karakter (@$!%*?&) içermelidir.");
       return;
     }
     setErrorMsg("");
@@ -129,14 +130,14 @@ function RegisterContent() {
     }
 
     // Çıkış yapalım ki otomatik login olup sisteme düşmesin
-    await supabase.auth.signOut().catch(() => {});
+    await supabase.auth.signOut().catch(() => { });
     setSuccess(true);
     setLoading(false);
   };
 
   const currentPrice = PLAN_PRICES[selectedPlan][billingCycle];
-  const monthlyEquivalent = billingCycle === "yearly" 
-    ? Math.round(currentPrice / 12) 
+  const monthlyEquivalent = billingCycle === "yearly"
+    ? Math.round(currentPrice / 12)
     : currentPrice;
 
   return (
@@ -188,16 +189,14 @@ function RegisterContent() {
 
             {/* Stepper */}
             <div className="flex items-center justify-center gap-3 pt-4">
-              <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all ${
-                step === 1 ? "bg-[#0a3d34] text-white" : "bg-emerald-100 text-emerald-700"
-              }`}>
+              <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all ${step === 1 ? "bg-[#0a3d34] text-white" : "bg-emerald-100 text-emerald-700"
+                }`}>
                 {step > 1 ? <CheckCircle className="w-3.5 h-3.5" /> : <span className="w-4 h-4 rounded-full bg-white/30 flex items-center justify-center text-[10px]">1</span>}
                 Bilgiler
               </div>
               <div className="w-8 h-[2px] bg-slate-200 rounded-full" />
-              <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all ${
-                step === 2 ? "bg-[#0a3d34] text-white" : "bg-slate-100 text-slate-400"
-              }`}>
+              <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all ${step === 2 ? "bg-[#0a3d34] text-white" : "bg-slate-100 text-slate-400"
+                }`}>
                 <span className="w-4 h-4 rounded-full bg-white/30 flex items-center justify-center text-[10px]">2</span>
                 Paket Seçimi
               </div>
@@ -264,22 +263,20 @@ function RegisterContent() {
                   <button
                     type="button"
                     onClick={() => setBillingCycle("monthly")}
-                    className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all ${
-                      billingCycle === "monthly"
+                    className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all ${billingCycle === "monthly"
                         ? "bg-[#0a3d34] text-white shadow-lg"
                         : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-                    }`}
+                      }`}
                   >
                     Aylık
                   </button>
                   <button
                     type="button"
                     onClick={() => setBillingCycle("yearly")}
-                    className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${
-                      billingCycle === "yearly"
+                    className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${billingCycle === "yearly"
                         ? "bg-[#0a3d34] text-white shadow-lg"
                         : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-                    }`}
+                      }`}
                   >
                     Yıllık
                     <span className="bg-emerald-400/30 text-emerald-100 px-2 py-0.5 rounded-full text-[10px] font-extrabold">
@@ -303,13 +300,12 @@ function RegisterContent() {
                         key={planKey}
                         type="button"
                         onClick={() => setSelectedPlan(planKey)}
-                        className={`relative text-left p-5 rounded-2xl border-2 transition-all duration-300 ${
-                          isSelected
+                        className={`relative text-left p-5 rounded-2xl border-2 transition-all duration-300 ${isSelected
                             ? planKey === "advanced"
                               ? "border-[#0a3d34] bg-[#0a3d34] text-white shadow-xl shadow-[#0a3d34]/20 scale-[1.02]"
                               : "border-[#0a3d34] bg-emerald-50 shadow-xl shadow-emerald-500/10 scale-[1.02]"
                             : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-md"
-                        }`}
+                          }`}
                       >
                         {planKey === "advanced" && (
                           <div className="absolute -top-3 right-4 bg-emerald-500 text-white px-3 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider">
@@ -318,52 +314,45 @@ function RegisterContent() {
                         )}
 
                         {/* Seçim indicator */}
-                        <div className={`absolute top-4 right-4 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                          isSelected
+                        <div className={`absolute top-4 right-4 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${isSelected
                             ? planKey === "advanced"
                               ? "border-emerald-400 bg-emerald-400"
                               : "border-[#0a3d34] bg-[#0a3d34]"
                             : "border-slate-300"
-                        }`}>
+                          }`}>
                           {isSelected && <CheckCircle className="w-3 h-3 text-white" />}
                         </div>
 
                         <div className="flex items-center gap-2 mb-2">
-                          <Icon className={`w-4 h-4 ${
-                            isSelected && planKey === "advanced" ? "text-emerald-400" :
-                            planKey === "starter" ? "text-amber-500" :
-                            planKey === "professional" ? "text-emerald-500" : "text-purple-500"
-                          }`} />
-                          <h3 className={`text-sm font-extrabold ${
-                            isSelected && planKey === "advanced" ? "text-white" : "text-slate-900"
-                          }`}>
+                          <Icon className={`w-4 h-4 ${isSelected && planKey === "advanced" ? "text-emerald-400" :
+                              planKey === "starter" ? "text-amber-500" :
+                                planKey === "professional" ? "text-emerald-500" : "text-purple-500"
+                            }`} />
+                          <h3 className={`text-sm font-extrabold ${isSelected && planKey === "advanced" ? "text-white" : "text-slate-900"
+                            }`}>
                             {plan.name}
                           </h3>
                         </div>
 
-                        <p className={`text-xs mb-3 ${
-                          isSelected && planKey === "advanced" ? "text-slate-300" : "text-slate-500"
-                        }`}>
+                        <p className={`text-xs mb-3 ${isSelected && planKey === "advanced" ? "text-slate-300" : "text-slate-500"
+                          }`}>
                           {features.desc}
                         </p>
 
                         <div className="flex items-baseline gap-1 mb-3">
-                          <span className={`text-2xl font-black ${
-                            isSelected && planKey === "advanced" ? "text-white" : "text-slate-900"
-                          }`}>
+                          <span className={`text-2xl font-black ${isSelected && planKey === "advanced" ? "text-white" : "text-slate-900"
+                            }`}>
                             {monthlyEq.toLocaleString("tr-TR")} ₺
                           </span>
-                          <span className={`text-xs font-bold ${
-                            isSelected && planKey === "advanced" ? "text-slate-400" : "text-slate-400"
-                          }`}>
+                          <span className={`text-xs font-bold ${isSelected && planKey === "advanced" ? "text-slate-400" : "text-slate-400"
+                            }`}>
                             / ay
                           </span>
                         </div>
 
                         {billingCycle === "yearly" && (
-                          <p className={`text-[10px] font-bold mb-3 ${
-                            isSelected && planKey === "advanced" ? "text-emerald-400" : "text-emerald-600"
-                          }`}>
+                          <p className={`text-[10px] font-bold mb-3 ${isSelected && planKey === "advanced" ? "text-emerald-400" : "text-emerald-600"
+                            }`}>
                             Yıllık toplam: {price.toLocaleString("tr-TR")} ₺
                           </p>
                         )}
@@ -371,20 +360,17 @@ function RegisterContent() {
                         <div className="space-y-1.5">
                           {features.included.slice(0, 4).map((f, i) => (
                             <div key={i} className="flex items-center gap-2">
-                              <CheckCircle2 className={`w-3.5 h-3.5 shrink-0 ${
-                                isSelected && planKey === "advanced" ? "text-emerald-400" : "text-emerald-500"
-                              }`} />
-                              <span className={`text-[11px] font-semibold ${
-                                isSelected && planKey === "advanced" ? "text-white/90" : "text-slate-700"
-                              }`}>
+                              <CheckCircle2 className={`w-3.5 h-3.5 shrink-0 ${isSelected && planKey === "advanced" ? "text-emerald-400" : "text-emerald-500"
+                                }`} />
+                              <span className={`text-[11px] font-semibold ${isSelected && planKey === "advanced" ? "text-white/90" : "text-slate-700"
+                                }`}>
                                 {f}
                               </span>
                             </div>
                           ))}
                           {features.included.length > 4 && (
-                            <p className={`text-[10px] font-bold pl-5 ${
-                              isSelected && planKey === "advanced" ? "text-emerald-400" : "text-emerald-600"
-                            }`}>
+                            <p className={`text-[10px] font-bold pl-5 ${isSelected && planKey === "advanced" ? "text-emerald-400" : "text-emerald-600"
+                              }`}>
                               +{features.included.length - 4} özellik daha
                             </p>
                           )}
@@ -402,48 +388,47 @@ function RegisterContent() {
                 )}
 
                 {/* Alt Butonlar */}
-                  <div className="space-y-6">
-                    <div className="flex items-start gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-200 transition-all hover:border-emerald-200 group">
-                      <div className="relative flex items-center h-5">
-                        <input
-                          id="legal-agree"
-                          type="checkbox"
-                          checked={agreed}
-                          onChange={(e) => setAgreed(e.target.checked)}
-                          className="w-5 h-5 rounded border-slate-300 text-[#0a3d34] focus:ring-[#0a3d34] transition-all cursor-pointer"
-                        />
-                      </div>
-                      <label htmlFor="legal-agree" className="text-[11px] leading-relaxed text-slate-600 cursor-pointer select-none">
-                        <Link href="/legal/kullanim-sartlari" className="text-[#0a3d34] font-bold hover:underline" target="_blank">Kullanım Şartlarını</Link>,{" "}
-                        <Link href="/legal/gizlilik-sozlesmesi" className="text-[#0a3d34] font-bold hover:underline" target="_blank">Gizlilik Sözleşmesini</Link> ve{" "}
-                        <Link href="/legal/kvkk" className="text-[#0a3d34] font-bold hover:underline" target="_blank">KVKK Aydınlatma Metnini</Link> okudum, özel nitelikli verilerimin yurtdışı sunucularında işlenmesini ve aktarılmasını kabul ediyorum.
-                      </label>
+                <div className="space-y-6">
+                  <div className="flex items-start gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-200 transition-all hover:border-emerald-200 group">
+                    <div className="relative flex items-center h-5">
+                      <input
+                        id="legal-agree"
+                        type="checkbox"
+                        checked={agreed}
+                        onChange={(e) => setAgreed(e.target.checked)}
+                        className="w-5 h-5 rounded border-slate-300 text-[#0a3d34] focus:ring-[#0a3d34] transition-all cursor-pointer"
+                      />
                     </div>
-
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => { setStep(1); setErrorMsg(""); }}
-                        className="h-12 px-6 font-bold w-full sm:w-auto order-2 sm:order-1"
-                      >
-                        <ArrowLeft className="mr-2 w-4 h-4" />
-                        Geri
-                      </Button>
-                      <Button
-                        type="button"
-                        disabled={loading || !agreed}
-                        onClick={handleRegister}
-                        className={`flex-1 h-12 text-base font-bold order-1 sm:order-2 transition-all ${
-                          agreed 
-                            ? "bg-[#0a3d34] hover:bg-[#072b25] text-white" 
-                            : "bg-slate-200 text-slate-400 cursor-not-allowed"
-                        }`}
-                      >
-                        {loading ? "Hesap Oluşturuluyor..." : "Kayıt Ol"}
-                      </Button>
-                    </div>
+                    <label htmlFor="legal-agree" className="text-[11px] leading-relaxed text-slate-600 cursor-pointer select-none">
+                      <Link href="/legal/kullanim-sartlari" className="text-[#0a3d34] font-bold hover:underline" target="_blank">Kullanım Şartlarını</Link>,{" "}
+                      <Link href="/legal/gizlilik-sozlesmesi" className="text-[#0a3d34] font-bold hover:underline" target="_blank">Gizlilik Sözleşmesini</Link> ve{" "}
+                      <Link href="/legal/kvkk" className="text-[#0a3d34] font-bold hover:underline" target="_blank">KVKK Aydınlatma Metnini</Link> okudum, özel nitelikli verilerimin yurtdışı sunucularında işlenmesini ve aktarılmasını kabul ediyorum.
+                    </label>
                   </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => { setStep(1); setErrorMsg(""); }}
+                      className="h-12 px-6 font-bold w-full sm:w-auto order-2 sm:order-1"
+                    >
+                      <ArrowLeft className="mr-2 w-4 h-4" />
+                      Geri
+                    </Button>
+                    <Button
+                      type="button"
+                      disabled={loading || !agreed}
+                      onClick={handleRegister}
+                      className={`flex-1 h-12 text-base font-bold order-1 sm:order-2 transition-all ${agreed
+                          ? "bg-[#0a3d34] hover:bg-[#072b25] text-white"
+                          : "bg-slate-200 text-slate-400 cursor-not-allowed"
+                        }`}
+                    >
+                      {loading ? "Hesap Oluşturuluyor..." : "Kayıt Ol"}
+                    </Button>
+                  </div>
+                </div>
               </div>
             )}
           </CardContent>
