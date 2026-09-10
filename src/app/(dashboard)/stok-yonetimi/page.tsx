@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Warehouse, Search, Plus, Minus, Package, CheckCircle, AlertTriangle, Trash2, ArrowUpRight, SearchIcon, ChevronDown, Sparkles, Hash, Tag, DollarSign, ShieldAlert, Layers, History } from "lucide-react";
+import { Warehouse, Search, Plus, Minus, Package, CheckCircle, AlertTriangle, Trash2, ArrowUpRight, SearchIcon, ChevronDown, Sparkles, Hash, Tag, DollarSign, ShieldAlert, Layers, History, ArrowLeft } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
@@ -287,7 +287,9 @@ export default function StockManagementPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <header className="flex flex-col md:flex-row justify-between items-center bg-white/88 backdrop-blur-[20px] p-4 md:p-[14px_24px] rounded-[20px] border border-slate-200/60 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.07)] sticky top-20 lg:top-3 z-[40] gap-4">
+      {!modalOpen && (
+        <>
+          <header className="flex flex-col md:flex-row justify-between items-center bg-white/88 backdrop-blur-[20px] p-4 md:p-[14px_24px] rounded-[20px] border border-slate-200/60 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.07)] sticky top-20 lg:top-3 z-[40] gap-4">
         <div className="flex flex-col gap-[2px] text-center md:text-left w-full md:w-auto">
           <span className="text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[#0a3d34] opacity-80 mb-[1px]">{(profile?.clinic_name || "Klinik").toUpperCase()}</span>
           <h1 className="text-[1.25rem] font-extrabold text-[#1e293b]">Stok Yönetimi</h1>
@@ -557,23 +559,37 @@ export default function StockManagementPage() {
         </Table>
         </div>
       </div>
+        </>
+      )}
 
-      <Dialog open={modalOpen} onOpenChange={(open) => { setModalOpen(open); if (!open) resetEntryForm(); }}>
-        <DialogContent className="sm:max-w-[520px] p-0 overflow-hidden rounded-2xl border-0 shadow-2xl">
-          {/* Premium Header */}
-          <div className="bg-gradient-to-br from-[#0a3d34] via-[#0d4f43] to-[#0a3d34] p-6 pb-5">
+      {/* Full Page Stock Entry */}
+      {modalOpen && (
+        <div className="w-full bg-white border border-slate-200 rounded-[20px] flex flex-col shadow-sm overflow-hidden min-h-[80vh] relative">
+          
+          <div className="bg-gradient-to-br from-[#0a3d34] via-[#0d4f43] to-[#0a3d34] p-6 pb-6 flex items-center gap-4 shrink-0 relative">
+            <button 
+              onClick={() => {
+                setModalOpen(false);
+                resetEntryForm();
+              }}
+              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors text-white backdrop-blur-sm"
+              title="Geri Dön"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
             <div className="flex items-center gap-3">
               <div className="w-11 h-11 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center">
                 <Layers className="w-5 h-5 text-white" />
               </div>
               <div>
-                <DialogHeader><DialogTitle className="text-[1.15rem] font-extrabold text-white tracking-tight">Stok Girişi</DialogTitle></DialogHeader>
-                <p className="text-emerald-200/80 text-[0.75rem] font-medium mt-0.5">Yeni malzeme ekleyin veya mevcut stoku güncelleyin</p>
+                <h2 className="text-[1.25rem] font-extrabold text-white tracking-tight">Stok Girişi</h2>
               </div>
             </div>
           </div>
 
-          <form className="p-6 space-y-5" onSubmit={handleStockEntry}>
+          <div className="flex-1 overflow-y-auto bg-slate-50 p-6 md:p-8 flex justify-center">
+            <div className="w-full max-w-3xl">
+              <form className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 md:p-8 space-y-6" onSubmit={handleStockEntry}>
             {/* Item Selector — New or Existing */}
             <div className="space-y-2">
               <Label className="text-[0.72rem] font-bold text-slate-500 uppercase tracking-wider">Malzeme Seçimi</Label>
@@ -771,17 +787,30 @@ export default function StockManagementPage() {
             )}
 
             {/* Action Buttons */}
-            <div className="flex gap-3 pt-2">
-              <Button type="button" variant="outline" className="flex-1 h-11 rounded-xl font-bold border-slate-200 hover:bg-slate-50" onClick={() => setModalOpen(false)}>
+            <div className="flex gap-4 pt-4 border-t border-slate-100">
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="flex-1 h-12 text-base rounded-xl font-bold border-slate-200 hover:bg-slate-50 text-slate-600" 
+                onClick={() => {
+                  setModalOpen(false);
+                  resetEntryForm();
+                }}
+              >
                 Vazgeç
               </Button>
-              <Button type="submit" className="flex-1 h-11 rounded-xl font-bold bg-gradient-to-r from-[#0a3d34] to-[#0d4f43] hover:from-[#072b25] hover:to-[#0a3d34] shadow-lg shadow-[#0a3d34]/20 transition-all duration-200">
+              <Button 
+                type="submit" 
+                className="flex-1 h-12 text-base rounded-xl font-bold bg-[#0a3d34] hover:bg-[#072b25] text-white shadow-lg shadow-[#0a3d34]/20 transition-all duration-200"
+              >
                 {entryMode === "existing" ? "Stok Ekle" : "Kaydet"}
               </Button>
             </div>
           </form>
-        </DialogContent>
-      </Dialog>
+          </div>
+          </div>
+        </div>
+      )}
       
       <Dialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
         <DialogContent className="sm:max-w-[400px] text-center p-8">
