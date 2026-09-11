@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useState, useRef, useCallback } f
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { useRouter, usePathname } from "next/navigation";
-import { initIndexedDB } from "@/hooks/use-database";
+import { initIndexedDB, clearAllCaches } from "@/hooks/use-database";
 
 export const PLAN_TIERS = {
   starter: 0,
@@ -330,6 +330,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         } catch (e) {}
       });
     }
+
+    // Clear indexedDB and memory caches from use-database
+    await clearAllCaches();
 
     document.cookie = "sb-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
 

@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { supabase } from "@/lib/supabase";
-import { get, set } from "idb-keyval";
+import { get, set, del } from "idb-keyval";
 import { encryptAppointment, decryptAppointmentsBatch, encryptConsentRecord, decryptConsentRecordsBatch } from "@/actions/secure-data";
 import { PatientService } from "@/services/patient-service";
 
@@ -227,6 +227,18 @@ export function setCache(key: string, data: any) {
   memoryCache.set(key, data);
   if (typeof window !== "undefined") {
     set(key, data).catch(console.error);
+  }
+}
+
+export async function clearAllCaches() {
+  memoryCache.clear();
+  if (typeof window !== "undefined") {
+    const keys = Object.values(CACHE_KEYS);
+    for (const key of keys) {
+      try {
+        await del(key);
+      } catch (e) {}
+    }
   }
 }
 
