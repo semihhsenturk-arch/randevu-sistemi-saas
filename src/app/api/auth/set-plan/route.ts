@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
     const { getAuthenticatedUser, createServiceClient } = await import("@/lib/supabase-server");
     const authUserSession = await getAuthenticatedUser();
 
-    const supabaseAdmin = createServiceClient();
+    const supabaseAdmin = await createServiceClient();
 
     // userId'nin gerçek bir kullanıcı olduğunu doğrula (service_role ile)
     const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.getUserById(userId);

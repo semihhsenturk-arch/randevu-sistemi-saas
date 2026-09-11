@@ -140,9 +140,12 @@ export default function AyarlarPage() {
         setUpgradeDialogOpen(false);
         // Ödeme sayfasına yönlendir
         router.push("/odeme");
+      } else {
+        alert(data.error || "Plan güncellenirken bir hata oluştu. Lütfen tekrar deneyin.");
       }
     } catch (e) {
       console.error("Plan change error:", e);
+      alert("Plan güncellenirken bir hata oluştu. Lütfen tekrar deneyin.");
     } finally {
       setChangingPlan(false);
     }
