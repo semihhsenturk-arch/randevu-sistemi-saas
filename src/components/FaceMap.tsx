@@ -72,13 +72,13 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
       groups[key].push(t);
     });
     return Object.entries(groups).sort((a, b) => {
-       const dateA = a[1][0].date.split(" ")[0];
-       const dateB = b[1][0].date.split(" ")[0];
-       const dateCmp = dateB.localeCompare(dateA);
-       if (dateCmp !== 0) return dateCmp;
-       const txA = a[1][0].transactionNo || '';
-       const txB = b[1][0].transactionNo || '';
-       return txB.localeCompare(txA);
+      const dateA = a[1][0].date.split(" ")[0];
+      const dateB = b[1][0].date.split(" ")[0];
+      const dateCmp = dateB.localeCompare(dateA);
+      if (dateCmp !== 0) return dateCmp;
+      const txA = a[1][0].transactionNo || '';
+      const txB = b[1][0].transactionNo || '';
+      return txB.localeCompare(txA);
     });
   }, [treatments]);
 
@@ -140,7 +140,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
     if (!canvasRef.current) {
       return yPercent >= 5 && yPercent <= 95 && xPercent >= 10 && xPercent <= 90;
     }
-    
+
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     if (!ctx) return false;
@@ -179,7 +179,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
     if (readonly) return;
     const clientX = 'changedTouches' in e ? (e as any).changedTouches[0].clientX : (e as any).clientX;
     const clientY = 'changedTouches' in e ? (e as any).changedTouches[0].clientY : (e as any).clientY;
-    
+
     const coords = getPointerCoords(clientX, clientY);
     if (!coords || !isInsideHeadOrNeck(coords.percentX, coords.percentY)) return;
 
@@ -224,9 +224,9 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
 
   const handleSubmit = () => {
     if (!formAmount) return;
-    
-    const formattedApptDate = appointmentDate 
-      ? (isValid(parseISO(appointmentDate)) ? format(parseISO(appointmentDate), "dd.MM.yyyy") : appointmentDate) 
+
+    const formattedApptDate = appointmentDate
+      ? (isValid(parseISO(appointmentDate)) ? format(parseISO(appointmentDate), "dd.MM.yyyy") : appointmentDate)
       : format(new Date(), "dd.MM.yyyy");
     const formattedApptTime = appointmentTime || format(new Date(), "HH:mm");
 
@@ -338,7 +338,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
     const clientY = 'changedTouches' in e ? (e as any).changedTouches[0].clientY : (e as any).clientY;
     const dx = Math.abs(clientX - dragStartRef.current.x);
     const dy = Math.abs(clientY - dragStartRef.current.y);
-    
+
     if (isDrawing) {
       setIsDrawing(false);
       if (currentPath.length > 2 && (dx >= 5 || dy >= 5)) {
@@ -346,7 +346,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
         currentPath.forEach(p => { sumX += p.percentX; sumY += p.percentY; });
         const avgX = sumX / currentPath.length;
         const avgY = sumY / currentPath.length;
-        
+
         if (isInsideHeadOrNeck(avgX, avgY)) {
           setClickPos({ x: avgX, y: avgY });
           setEditingId(null);
@@ -389,15 +389,14 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
   };
 
   return (
-    <div 
-      className={`space-y-4 ${
-        isFullscreen 
-          ? `fixed inset-0 z-[9999] flex flex-col overflow-hidden ${isAnimatingOut ? 'animate-out fade-out zoom-out-95 duration-200 fill-mode-forwards opacity-0' : 'animate-in fade-in zoom-in-95 duration-200'}` 
+    <div
+      className={`space-y-4 ${isFullscreen
+          ? `fixed inset-0 z-[9999] flex flex-col overflow-hidden ${isAnimatingOut ? 'animate-out fade-out zoom-out-95 duration-200 fill-mode-forwards opacity-0' : 'animate-in fade-in zoom-in-95 duration-200'}`
           : ""
-      }`}
+        }`}
       style={isFullscreen ? { backgroundColor: fullscreenBgColor } : undefined}
     >
-      
+
       {/* Fullscreen Header Controls (Legend & Exit) */}
       {isFullscreen && (
         <div className="absolute top-3 left-2 right-2 z-[100] flex justify-between items-start pointer-events-none">
@@ -447,7 +446,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
               </div>
             )}
           </div>
-          
+
           {/* Exit Button */}
           <button
             onClick={handleExitFullscreen}
@@ -459,10 +458,10 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
       )}
 
       <div className={`flex flex-col lg:flex-row gap-6 min-h-0 flex-1 ${isFullscreen ? "relative items-center justify-center w-full" : ""}`}>
-        
+
         {/* Face Image Container */}
         <div className={`relative flex flex-col items-center ${isFullscreen ? "w-full flex-1 justify-center" : "shrink-0 mx-auto lg:mx-0"}`}>
-          
+
           {/* Top Controls (Fullscreen & Gender) */}
           {!isFullscreen && (
             <div className="flex flex-col items-center gap-3 mb-4 w-full">
@@ -492,11 +491,10 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
 
           <div
             ref={containerRef}
-            className={`select-none transition-all flex items-center justify-center touch-none ${
-              isFullscreen 
-                ? "bg-transparent" 
+            className={`select-none transition-all flex items-center justify-center touch-none ${isFullscreen
+                ? "bg-transparent"
                 : "border-2 rounded-2xl overflow-hidden shadow-inner bg-gradient-to-br from-slate-50 to-white border-slate-200/60"
-            }`}
+              }`}
             style={
               isFullscreen
                 ? { width: "100%", height: "100%", maxHeight: "100%", maxWidth: "100%" }
@@ -514,14 +512,14 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
             <div
               ref={innerRef}
               className={`relative aspect-square shrink-0 touch-none ${isFullscreen ? "bg-transparent" : "bg-white rounded-2xl shadow-lg overflow-hidden"}`}
-              style={{ 
+              style={{
                 width: "100%",
                 height: isFullscreen ? "auto" : "100%",
                 maxHeight: "100%",
                 maxWidth: isFullscreen ? "100vh" : "100%",
-                transform: `scale(${zoom}) translate(${pan.x / zoom}px, ${pan.y / zoom}px)`, 
-                transformOrigin: "center center", 
-                transition: isPanning ? "none" : "transform 0.2s ease" 
+                transform: `scale(${zoom}) translate(${pan.x / zoom}px, ${pan.y / zoom}px)`,
+                transformOrigin: "center center",
+                transition: isPanning ? "none" : "transform 0.2s ease"
               }}
             >
               {/* Face Image */}
@@ -586,7 +584,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                           <span className="text-slate-900">-</span>
                           <span>{t.amount} {t.unit}</span>
                         </div>
-                        
+
                         <div className="text-[0.65rem] font-bold text-slate-500">
                           {t.date.split(" ")[0]}
                         </div>
@@ -683,23 +681,23 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                 <Label className="text-[0.6rem] font-bold text-slate-500 uppercase">Not</Label>
                 <Textarea placeholder="Ek bilgi..." value={formNote} onChange={e => setFormNote(e.target.value)} className="min-h-[40px] text-xs bg-slate-50 resize-none text-slate-800" />
               </div>
-              
+
               <div className="col-span-2 flex items-center gap-2 mt-1">
-                <input 
-                  type="checkbox" 
-                  id="fsIsControlCb" 
-                  checked={formIsControl} 
+                <input
+                  type="checkbox"
+                  id="fsIsControlCb"
+                  checked={formIsControl}
                   onChange={e => {
                     setFormIsControl(e.target.checked);
                     if (!e.target.checked) setFormParentTxNo("");
-                  }} 
-                  className="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer" 
+                  }}
+                  className="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer"
                 />
                 <label htmlFor="fsIsControlCb" className="text-xs font-bold text-slate-700 cursor-pointer select-none">
                   Bu bir kontrol seansıdır
                 </label>
               </div>
-              
+
               {formIsControl && (
                 <div className="col-span-2 space-y-1 bg-emerald-50/50 p-2 rounded-lg border border-emerald-100">
                   <Label className="text-[0.6rem] font-bold text-emerald-700 uppercase">Hangi İşlemin Kontrolü?</Label>
@@ -789,21 +787,21 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                     </div>
 
                     <div className="col-span-2 flex items-center gap-2 mt-1">
-                      <input 
-                        type="checkbox" 
-                        id="nmIsControlCb" 
-                        checked={formIsControl} 
+                      <input
+                        type="checkbox"
+                        id="nmIsControlCb"
+                        checked={formIsControl}
                         onChange={e => {
                           setFormIsControl(e.target.checked);
                           if (!e.target.checked) setFormParentTxNo("");
-                        }} 
-                        className="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer" 
+                        }}
+                        className="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer"
                       />
                       <label htmlFor="nmIsControlCb" className="text-xs font-bold text-slate-700 cursor-pointer select-none">
                         Bu bir kontrol seansıdır
                       </label>
                     </div>
-                    
+
                     {formIsControl && (
                       <div className="col-span-2 space-y-1 bg-emerald-50/50 p-2 rounded-lg border border-emerald-100">
                         <Label className="text-[0.6rem] font-bold text-emerald-700 uppercase">Hangi İşlemin Kontrolü?</Label>
@@ -843,7 +841,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                       const date = items[0].date;
                       const types = Array.from(new Set(items.map(t => t.type === "botoks" ? "Botoks" : t.type === "dolgu" ? "Dolgu" : "Mezoterapi"))).join(", ");
                       const totalUnits = items.reduce((sum, t) => sum + (t.amount || 0), 0);
-                      
+
                       let primaryTxNo = "";
                       let displayTxNo = "";
                       let targetDate = date.split(" ")[0];
@@ -915,7 +913,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
-                            
+
                             <span className={`text-[0.55rem] font-bold px-1.5 py-0.5 rounded-full`} style={{ background: colors.light, color: colors.ring }}>
                               {t.type === "botoks" ? "Botoks" : t.type === "dolgu" ? "Dolgu" : "Mezoterapi"}
                             </span>
@@ -931,7 +929,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
                           <span className="text-[0.5rem] font-bold text-slate-400 mr-1">{t.date.split(" ")[0]}</span>
-                          
+
                           {!readonly && onUpdateTreatment && (
                             <button
                               onClick={(e) => handleEditClick(t, e)}

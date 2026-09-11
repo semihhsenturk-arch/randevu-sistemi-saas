@@ -290,6 +290,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signOut = useCallback(async () => {
     // Immediately block auth listener from processing any more events
     signingOutRef.current = true;
+    setIsLoading(true);
 
     // Clear React state immediately to prevent any intermediate UI renders
     setSession(null);
