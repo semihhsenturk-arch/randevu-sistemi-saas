@@ -1,6 +1,6 @@
 export const metadata = {
-  title: "KVKK Aydınlatma Metni | BiCalendo",
-  description: "BiCalendo Kişisel Verilerin Korunması Kanunu (KVKK) Hakkında Aydınlatma Metni",
+  title: "KVKK Aydınlatma Metni | Dermofis",
+  description: "Dermofis Kişisel Verilerin Korunması Kanunu (KVKK) Hakkında Aydınlatma Metni",
 };
 
 export default function KVKKPage() {
@@ -19,11 +19,11 @@ export default function KVKKPage() {
         <div className="space-y-4">
           <h2 className="text-xl font-bold text-slate-900">1. Veri Sorumlusu ve Veri İşleyen Ayrımı</h2>
           <p className="text-slate-600 leading-relaxed">
-            BiCalendo olarak, 6698 sayılı Kişisel Verilerin Korunması Kanunu (“KVKK”) uyarınca iki farklı hukuki statüde faaliyet göstermekteyiz:
+            Dermofis olarak, 6698 sayılı Kişisel Verilerin Korunması Kanunu (“KVKK”) uyarınca iki farklı hukuki statüde faaliyet göstermekteyiz:
           </p>
           <ul className="list-disc pl-6 space-y-2 text-slate-600">
-            <li><strong>Klinik/Hekim Verileri İçin (Veri Sorumlusu):</strong> Platformumuza üye olan hekimlerin ve klinik yetkililerinin üyelik, iletişim ve fatura bilgilerinin işlenmesinde BiCalendo "Veri Sorumlusu"dur.</li>
-            <li><strong>Hasta Verileri İçin (Veri İşleyen):</strong> Kliniklerin platforma kaydettiği hastalarına ait kişisel ve özel nitelikli (sağlık) kişisel verilerin işlenmesinde ve saklanmasında BiCalendo, ilgili kliniğin/hekimin talimatları doğrultusunda hareket eden "Veri İşleyen" konumundadır. Bu verilerin KVKK'ya uygun olarak toplanması ve hastalardan <strong>Açık Rıza</strong> alınması sorumluluğu tamamen platformu kullanan Kliniğe/Hekime aittir.</li>
+            <li><strong>Klinik/Hekim Verileri İçin (Veri Sorumlusu):</strong> Platformumuza üye olan hekimlerin ve klinik yetkililerinin üyelik, iletişim ve fatura bilgilerinin işlenmesinde Dermofis "Veri Sorumlusu"dur.</li>
+            <li><strong>Hasta Verileri İçin (Veri İşleyen):</strong> Kliniklerin platforma kaydettiği hastalarına ait kişisel ve özel nitelikli (sağlık) kişisel verilerin işlenmesinde ve saklanmasında Dermofis, ilgili kliniğin/hekimin talimatları doğrultusunda hareket eden "Veri İşleyen" konumundadır. Bu verilerin KVKK'ya uygun olarak toplanması ve hastalardan <strong>Açık Rıza</strong> alınması sorumluluğu tamamen platformu kullanan Kliniğe/Hekime aittir.</li>
           </ul>
         </div>
 
@@ -106,7 +106,7 @@ export default function KVKKPage() {
         <div className="space-y-4">
           <h2 className="text-xl font-bold text-slate-900">8. Başvuru ve İletişim</h2>
           <p className="text-slate-600 leading-relaxed">
-            Haklarınızı kullanmak için taleplerinizi kimliğinizi tevsik edici belgelerle birlikte <strong>kvkk@bicalendo.com</strong> adresine iletebilirsiniz. Başvurularınız kanuni süre olan en geç 30 gün içinde yanıtlanacaktır. (Not: Hastaların kendi verilerine ilişkin taleplerini doğrudan hizmet aldıkları kliniğe/hekime iletmeleri gerekmektedir).
+            Haklarınızı kullanmak için taleplerinizi kimliğinizi tevsik edici belgelerle birlikte <strong>kvkk@dermofis.com</strong> adresine iletebilirsiniz. Başvurularınız kanuni süre olan en geç 30 gün içinde yanıtlanacaktır. (Not: Hastaların kendi verilerine ilişkin taleplerini doğrudan hizmet aldıkları kliniğe/hekime iletmeleri gerekmektedir).
           </p>
         </div>
       </section>

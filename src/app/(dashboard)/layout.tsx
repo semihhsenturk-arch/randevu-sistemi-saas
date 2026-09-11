@@ -59,7 +59,7 @@ export default function DashboardLayout({
           <div className="w-8 h-8 bg-[#0a3d34] rounded-lg flex items-center justify-center">
             <span className="text-white font-black text-sm">B</span>
           </div>
-          <span className="text-white font-bold text-sm tracking-tight uppercase">BiCalendo</span>
+          <span className="text-white font-bold text-sm tracking-tight uppercase">Dermofis</span>
         </div>
       </div>
 

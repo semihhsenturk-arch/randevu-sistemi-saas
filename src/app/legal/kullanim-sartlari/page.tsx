@@ -1,6 +1,6 @@
 export const metadata = {
-  title: "Kullanım Şartları | BiCalendo",
-  description: "BiCalendo Klinik Yönetim Sistemi Kullanım Şartları ve Hizmet Koşulları",
+  title: "Kullanım Şartları | Dermofis",
+  description: "Dermofis Klinik Yönetim Sistemi Kullanım Şartları ve Hizmet Koşulları",
 };
 
 export default function TermsPage() {
@@ -11,7 +11,7 @@ export default function TermsPage() {
           Kullanım Şartları
         </h1>
         <p className="text-slate-500 font-medium">
-          BiCalendo Hizmet Koşulları ve B2B Sözleşmesi (Son Güncelleme: Eylül 2026)
+          Dermofis Hizmet Koşulları ve B2B Sözleşmesi (Son Güncelleme: Eylül 2026)
         </p>
       </div>
 
@@ -19,19 +19,19 @@ export default function TermsPage() {
         <div className="space-y-4">
           <h2 className="text-xl font-bold text-slate-900">1. Kabul ve Kapsam</h2>
           <p className="text-slate-600 leading-relaxed">
-            BiCalendo ("Platform") web sitesine erişerek veya hizmetlerini kullanarak, bu Kullanım Şartları'nı, Gizlilik Politikamızı ve KVKK Aydınlatma Metni'ni kabul etmiş sayılırsınız. Platform, münhasıran sağlık profesyonelleri, doktorlar ve kliniklerin ("Kullanıcı") ticari/mesleki kullanımı için (B2B) tasarlanmıştır.
+            Dermofis ("Platform") web sitesine erişerek veya hizmetlerini kullanarak, bu Kullanım Şartları'nı, Gizlilik Politikamızı ve KVKK Aydınlatma Metni'ni kabul etmiş sayılırsınız. Platform, münhasıran sağlık profesyonelleri, doktorlar ve kliniklerin ("Kullanıcı") ticari/mesleki kullanımı için (B2B) tasarlanmıştır.
           </p>
         </div>
 
         <div className="space-y-4">
           <h2 className="text-xl font-bold text-slate-900">2. Hizmet Tanımı ve Tıbbi Sorumluluk Reddi (Disclaimer)</h2>
           <p className="text-slate-600 leading-relaxed">
-            BiCalendo, randevu takibi, dijital onam, hasta kayıtları ve klinik finansal yönetimini kolaylaştıran bir "yazılım aracıdır". 
+            Dermofis, randevu takibi, dijital onam, hasta kayıtları ve klinik finansal yönetimini kolaylaştıran bir "yazılım aracıdır". 
           </p>
           <ul className="list-disc pl-6 space-y-2 text-slate-600">
-            <li>BiCalendo bir tıbbi cihaz veya teşhis aracı değildir.</li>
+            <li>Dermofis bir tıbbi cihaz veya teşhis aracı değildir.</li>
             <li>Platform üzerinden sağlanan analizler, uyarılar veya veriler hiçbir şekilde tıbbi tavsiye yerine geçmez.</li>
-            <li>Tıbbi teşhis, tedavi planlaması ve hastalara yönelik her türlü tıbbi eylem tamamen Kullanıcı'nın (Hekim/Klinik) kendi mesleki sorumluluğundadır. BiCalendo olası yanlış teşhis veya malpraktis vakalarından hiçbir koşulda sorumlu tutulamaz.</li>
+            <li>Tıbbi teşhis, tedavi planlaması ve hastalara yönelik her türlü tıbbi eylem tamamen Kullanıcı'nın (Hekim/Klinik) kendi mesleki sorumluluğundadır. Dermofis olası yanlış teşhis veya malpraktis vakalarından hiçbir koşulda sorumlu tutulamaz.</li>
           </ul>
         </div>
 
@@ -39,7 +39,7 @@ export default function TermsPage() {
           <h2 className="text-xl font-bold text-slate-900">3. Kullanıcı (Klinik) Sorumlulukları ve KVKK Yükümlülüğü</h2>
           <ul className="list-disc pl-6 space-y-2 text-slate-600">
             <li>Kullanıcı, hesap şifrelerinin güvenliğinden ve sistemdeki personel yetkilendirmelerinden kendisi sorumludur.</li>
-            <li><strong>KVKK Kapsamında:</strong> Platforma girilen hastaların "Özel Nitelikli Kişisel Verileri" (sağlık verileri) için ilgili hastalardan Aydınlatma Metni sunulması ve Kanun'a uygun şekilde <strong>Açık Rıza</strong> alınması tamamen Kullanıcının yükümlülüğündedir. BiCalendo yalnızca altyapı sağlayıcısı (Veri İşleyen) konumundadır.</li>
+            <li><strong>KVKK Kapsamında:</strong> Platforma girilen hastaların "Özel Nitelikli Kişisel Verileri" (sağlık verileri) için ilgili hastalardan Aydınlatma Metni sunulması ve Kanun'a uygun şekilde <strong>Açık Rıza</strong> alınması tamamen Kullanıcının yükümlülüğündedir. Dermofis yalnızca altyapı sağlayıcısı (Veri İşleyen) konumundadır.</li>
             <li>Platformun reverse-engineering (tersine mühendislik) yapılması, kaynak kodlarının kopyalanması veya sisteme zarar verecek siber faaliyetlerde bulunulması kesinlikle yasaktır ve yasal işlem sebebidir.</li>
           </ul>
         </div>
@@ -47,7 +47,7 @@ export default function TermsPage() {
         <div className="space-y-4">
           <h2 className="text-xl font-bold text-slate-900">4. Abonelik, Ödemeler ve Ticari Şartlar</h2>
           <p className="text-slate-600 leading-relaxed">
-            BiCalendo, seçilen pakete göre aylık veya yıllık abonelik modeliyle çalışır. Hizmet ticari (B2B) bir yazılım hizmeti (SaaS) olduğundan:
+            Dermofis, seçilen pakete göre aylık veya yıllık abonelik modeliyle çalışır. Hizmet ticari (B2B) bir yazılım hizmeti (SaaS) olduğundan:
           </p>
           <ul className="list-disc pl-6 space-y-2 text-slate-600">
             <li>Abonelik yenilemeleri iptal edilmediği sürece otomatik gerçekleşir.</li>
@@ -59,7 +59,7 @@ export default function TermsPage() {
         <div className="space-y-4">
           <h2 className="text-xl font-bold text-slate-900">5. Fikri Mülkiyet Hakları</h2>
           <p className="text-slate-600 leading-relaxed">
-            Platformun arayüz tasarımı, algoritmaları, yazılım kodları, "FaceMap" dahil tüm konseptleri ve BiCalendo markası telif hakları ve sınai mülkiyet kanunları ile korunmaktadır. Önceden yazılı izin alınmaksızın kopyalanamaz, çoğaltılamaz veya rakip bir ürün oluşturmak amacıyla kullanılamaz.
+            Platformun arayüz tasarımı, algoritmaları, yazılım kodları, "FaceMap" dahil tüm konseptleri ve Dermofis markası telif hakları ve sınai mülkiyet kanunları ile korunmaktadır. Önceden yazılı izin alınmaksızın kopyalanamaz, çoğaltılamaz veya rakip bir ürün oluşturmak amacıyla kullanılamaz.
           </p>
         </div>
 
@@ -70,15 +70,15 @@ export default function TermsPage() {
           </p>
           <ul className="list-disc pl-6 space-y-2 text-slate-600">
             <li>Platform; AES-256 Şifreleme, Satır Bazlı Güvenlik (RLS), İz Kayıtları (Audit Logs) ve Hız Sınırlandırması (Rate Limiting) gibi ileri düzey güvenlik mimarileriyle korunmaktadır.</li>
-            <li>BiCalendo, kullanıcı verilerini korumak için azami özeni gösterir, ancak Kullanıcının hesap şifrelerini çaldırması, personeline yetkisiz erişim hakkı vermesi veya kendi cihazlarındaki zafiyetlerden kaynaklanan veri sızıntılarından BiCalendo sorumlu tutulamaz.</li>
-            <li>Planlı bakımlar veya mücbir sebeplerden (ör. global sunucu çökmeleri) kaynaklı veri erişim kesintilerinden veya olası ticari/gelir kayıplarından BiCalendo sorumlu tutulamaz.</li>
+            <li>Dermofis, kullanıcı verilerini korumak için azami özeni gösterir, ancak Kullanıcının hesap şifrelerini çaldırması, personeline yetkisiz erişim hakkı vermesi veya kendi cihazlarındaki zafiyetlerden kaynaklanan veri sızıntılarından Dermofis sorumlu tutulamaz.</li>
+            <li>Planlı bakımlar veya mücbir sebeplerden (ör. global sunucu çökmeleri) kaynaklı veri erişim kesintilerinden veya olası ticari/gelir kayıplarından Dermofis sorumlu tutulamaz.</li>
           </ul>
         </div>
 
         <div className="space-y-4">
           <h2 className="text-xl font-bold text-slate-900">7. Yürürlük ve Değişiklikler</h2>
           <p className="text-slate-600 leading-relaxed">
-            BiCalendo, bu kullanım şartlarını yasal düzenlemeler veya ürün güncellemeleri doğrultusunda dilediği zaman değiştirme hakkını saklı tutar. Değişiklikler platform üzerinde yayınlandığı andan itibaren yürürlüğe girer. İhtilaf halinde Türkiye Cumhuriyeti Kanunları ve İstanbul Mahkemeleri yetkilidir.
+            Dermofis, bu kullanım şartlarını yasal düzenlemeler veya ürün güncellemeleri doğrultusunda dilediği zaman değiştirme hakkını saklı tutar. Değişiklikler platform üzerinde yayınlandığı andan itibaren yürürlüğe girer. İhtilaf halinde Türkiye Cumhuriyeti Kanunları ve İstanbul Mahkemeleri yetkilidir.
           </p>
         </div>
       </section>

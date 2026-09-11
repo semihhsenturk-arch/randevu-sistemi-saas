@@ -1,6 +1,6 @@
 export const metadata = {
-  title: "Gizlilik Sözleşmesi | BiCalendo",
-  description: "BiCalendo Klinik Yönetim Sistemi Gizlilik Sözleşmesi ve Veri Güvenliği Politikası",
+  title: "Gizlilik Sözleşmesi | Dermofis",
+  description: "Dermofis Klinik Yönetim Sistemi Gizlilik Sözleşmesi ve Veri Güvenliği Politikası",
 };
 
 export default function PrivacyPage() {
@@ -19,7 +19,7 @@ export default function PrivacyPage() {
         <div className="space-y-4">
           <h2 className="text-xl font-bold text-slate-900">1. Giriş ve Taraflar</h2>
           <p className="text-slate-600 leading-relaxed">
-            BiCalendo ("biz", "tarafımızca"), kliniklerin ve sağlık profesyonellerinin ("Kullanıcı") kullanımına sunulan bulut tabanlı bir yönetim platformudur. Bu Gizlilik Sözleşmesi, platform üzerinden toplanan bilgilerin nasıl kullanıldığını, saklandığını ve korunduğunu açıklamaktadır.
+            Dermofis ("biz", "tarafımızca"), kliniklerin ve sağlık profesyonellerinin ("Kullanıcı") kullanımına sunulan bulut tabanlı bir yönetim platformudur. Bu Gizlilik Sözleşmesi, platform üzerinden toplanan bilgilerin nasıl kullanıldığını, saklandığını ve korunduğunu açıklamaktadır.
           </p>
         </div>
 
@@ -30,7 +30,7 @@ export default function PrivacyPage() {
           </p>
           <ul className="list-disc pl-6 space-y-2 text-slate-600">
             <li><strong>Kullanıcı (Klinik) Bilgileri:</strong> İsim, e-posta adresi, klinik adı, vergi numarası/TCKN ve fatura bilgileri.</li>
-            <li><strong>Hasta Verileri:</strong> Platforma Kullanıcı tarafından girilen hasta kayıtları, randevu bilgileri, dijital onamlar ve tıbbi notlar. (BiCalendo bu veriler için yalnızca Veri İşleyen'dir.)</li>
+            <li><strong>Hasta Verileri:</strong> Platforma Kullanıcı tarafından girilen hasta kayıtları, randevu bilgileri, dijital onamlar ve tıbbi notlar. (Dermofis bu veriler için yalnızca Veri İşleyen'dir.)</li>
             <li><strong>Ödeme Bilgileri:</strong> Kredi kartı bilgileri tarafımızca saklanmaz; bu veriler BDDK lisanslı güvenli ödeme aracımız (örn. İyzico) tarafından işlenir.</li>
             <li><strong>Trafik ve Log Verileri:</strong> 5651 sayılı Kanun gereğince tutulması zorunlu olan IP adresleri, erişim tarih/saat bilgileri ve platform içi sistem logları.</li>
           </ul>
@@ -66,21 +66,21 @@ export default function PrivacyPage() {
         <div className="space-y-4">
           <h2 className="text-xl font-bold text-slate-900">5. Veri Paylaşımı ve Yurtdışına Aktarım</h2>
           <p className="text-slate-600 leading-relaxed">
-            BiCalendo, kullanıcı ve hasta verilerini üçüncü taraflara kesinlikle satmaz ve pazarlama amacıyla kullanmaz. Ancak altyapı mimarimizin (bulut sunucu sağlayıcıları, veritabanı servisleri) doğası gereği, veriler gerekli güvenlik standartlarını sağlayan yurt dışı merkezli sunucularda (örn. AB bölgesi) tutulabilmektedir. Kullanıcı, platformu kullanarak bu aktarımı kabul eder. Ayrıca mali yükümlülükler için e-fatura entegratörleri ve ödeme kuruluşları ile zorunlu veri paylaşımı yapılmaktadır.
+            Dermofis, kullanıcı ve hasta verilerini üçüncü taraflara kesinlikle satmaz ve pazarlama amacıyla kullanmaz. Ancak altyapı mimarimizin (bulut sunucu sağlayıcıları, veritabanı servisleri) doğası gereği, veriler gerekli güvenlik standartlarını sağlayan yurt dışı merkezli sunucularda (örn. AB bölgesi) tutulabilmektedir. Kullanıcı, platformu kullanarak bu aktarımı kabul eder. Ayrıca mali yükümlülükler için e-fatura entegratörleri ve ödeme kuruluşları ile zorunlu veri paylaşımı yapılmaktadır.
           </p>
         </div>
 
         <div className="space-y-4">
           <h2 className="text-xl font-bold text-slate-900">6. Hasta Açık Rızası Sorumluluğu</h2>
           <p className="text-slate-600 leading-relaxed">
-            BiCalendo sistemine girilen hastalara ait kişisel ve sağlık verilerinin, ilgili hastalardan hukuka uygun biçimde Aydınlatılmış Onam ve Açık Rıza alınarak toplanması sorumluluğu tamamen Kullanıcı'ya (Kliniğe/Hekime) aittir. BiCalendo, bu verilerin hukuka aykırı toplanmasından doğacak ihlallerden sorumlu tutulamaz.
+            Dermofis sistemine girilen hastalara ait kişisel ve sağlık verilerinin, ilgili hastalardan hukuka uygun biçimde Aydınlatılmış Onam ve Açık Rıza alınarak toplanması sorumluluğu tamamen Kullanıcı'ya (Kliniğe/Hekime) aittir. Dermofis, bu verilerin hukuka aykırı toplanmasından doğacak ihlallerden sorumlu tutulamaz.
           </p>
         </div>
 
         <div className="space-y-4">
           <h2 className="text-xl font-bold text-slate-900">7. İletişim</h2>
           <p className="text-slate-600 leading-relaxed">
-            Gizlilik politikamız ve veri güvenliği uygulamalarımız hakkında detaylı bilgi veya talepleriniz için bizimle iletişime geçebilirsiniz: <strong>destek@bicalendo.com</strong>
+            Gizlilik politikamız ve veri güvenliği uygulamalarımız hakkında detaylı bilgi veya talepleriniz için bizimle iletişime geçebilirsiniz: <strong>destek@dermofis.com</strong>
           </p>
         </div>
       </section>

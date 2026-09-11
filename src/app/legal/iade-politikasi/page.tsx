@@ -1,6 +1,6 @@
 export const metadata = {
-  title: "İptal ve İade Koşulları | BiCalendo",
-  description: "BiCalendo İptal ve İade Politikası",
+  title: "İptal ve İade Koşulları | Dermofis",
+  description: "Dermofis İptal ve İade Politikası",
 };
 
 export default function IadePolitikasiPage() {
@@ -19,14 +19,14 @@ export default function IadePolitikasiPage() {
         <div className="space-y-4">
           <h2 className="text-xl font-bold text-slate-900">1. Cayma Hakkının İstisnaları</h2>
           <p className="text-slate-600 leading-relaxed">
-            BiCalendo tarafından sunulan Klinik Yönetim Sistemi hizmeti, 6502 Sayılı Tüketicinin Korunması Hakkında Kanun ve Mesafeli Sözleşmeler Yönetmeliği madde 15/1-ğ bendi uyarınca "Elektronik ortamda anında ifa edilen hizmetler veya tüketiciye anında teslim edilen gayrimaddi mallar" kapsamındadır. Bu sebeple, abonelik başlatıldıktan ve hizmet kullanımı açıldıktan sonra kullanıcıların cayma hakkı bulunmamaktadır ve ücret iadesi yapılamaz.
+            Dermofis tarafından sunulan Klinik Yönetim Sistemi hizmeti, 6502 Sayılı Tüketicinin Korunması Hakkında Kanun ve Mesafeli Sözleşmeler Yönetmeliği madde 15/1-ğ bendi uyarınca "Elektronik ortamda anında ifa edilen hizmetler veya tüketiciye anında teslim edilen gayrimaddi mallar" kapsamındadır. Bu sebeple, abonelik başlatıldıktan ve hizmet kullanımı açıldıktan sonra kullanıcıların cayma hakkı bulunmamaktadır ve ücret iadesi yapılamaz.
           </p>
         </div>
 
         <div className="space-y-4">
           <h2 className="text-xl font-bold text-slate-900">2. Abonelik İptali</h2>
           <p className="text-slate-600 leading-relaxed">
-            Kullanıcılar (Alıcılar), BiCalendo aboneliklerini diledikleri zaman hesap ayarları menüsünden veya destek ekibine e-posta göndererek iptal edebilirler. Abonelik iptal talebi alındığında, kullanıcının hesabı mevcut fatura döneminin sonuna kadar (aylık veya yıllık ödenmiş süre boyunca) aktif kalmaya devam eder. Dönem sonunda ise hesap pasif hale getirilir ve bir sonraki dönem için otomatik yenileme (tahsilat) yapılmaz.
+            Kullanıcılar (Alıcılar), Dermofis aboneliklerini diledikleri zaman hesap ayarları menüsünden veya destek ekibine e-posta göndererek iptal edebilirler. Abonelik iptal talebi alındığında, kullanıcının hesabı mevcut fatura döneminin sonuna kadar (aylık veya yıllık ödenmiş süre boyunca) aktif kalmaya devam eder. Dönem sonunda ise hesap pasif hale getirilir ve bir sonraki dönem için otomatik yenileme (tahsilat) yapılmaz.
           </p>
         </div>
 
@@ -47,7 +47,7 @@ export default function IadePolitikasiPage() {
         <div className="space-y-4">
           <h2 className="text-xl font-bold text-slate-900">5. İletişim</h2>
           <p className="text-slate-600 leading-relaxed">
-            İptal ve iade süreçleriyle ilgili her türlü sorunuz için destek@bicalendo.com adresinden bizimle iletişime geçebilirsiniz.
+            İptal ve iade süreçleriyle ilgili her türlü sorunuz için destek@dermofis.com adresinden bizimle iletişime geçebilirsiniz.
           </p>
         </div>
       </section>

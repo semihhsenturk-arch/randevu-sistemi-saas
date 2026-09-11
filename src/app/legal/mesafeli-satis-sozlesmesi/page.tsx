@@ -1,6 +1,6 @@
 export const metadata = {
-  title: "Mesafeli Satış Sözleşmesi | BiCalendo",
-  description: "BiCalendo Mesafeli Satış Sözleşmesi ve Ön Bilgilendirme Formu",
+  title: "Mesafeli Satış Sözleşmesi | Dermofis",
+  description: "Dermofis Mesafeli Satış Sözleşmesi ve Ön Bilgilendirme Formu",
 };
 
 export default function MesafeliSatisSozlesmesiPage() {
@@ -26,7 +26,7 @@ export default function MesafeliSatisSozlesmesiPage() {
         <div className="space-y-4">
           <h2 className="text-xl font-bold text-slate-900">2. Sözleşmenin Konusu</h2>
           <p className="text-slate-600 leading-relaxed">
-            İşbu sözleşmenin konusu, Alıcı'nın Satıcı'ya ait elektronik ortamda faaliyet gösteren BiCalendo SaaS platformu üzerinden elektronik ortamda siparişini yaptığı ve ödemesini gerçekleştirdiği dijital hizmetin (Klinik Yönetim Yazılımı Aboneliği) satışı ve ifası ile ilgili olarak 6502 sayılı Tüketicinin Korunması Hakkında Kanun ve Mesafeli Sözleşmeler Yönetmeliği hükümleri gereğince tarafların hak ve yükümlülüklerinin saptanmasıdır.
+            İşbu sözleşmenin konusu, Alıcı'nın Satıcı'ya ait elektronik ortamda faaliyet gösteren Dermofis SaaS platformu üzerinden elektronik ortamda siparişini yaptığı ve ödemesini gerçekleştirdiği dijital hizmetin (Klinik Yönetim Yazılımı Aboneliği) satışı ve ifası ile ilgili olarak 6502 sayılı Tüketicinin Korunması Hakkında Kanun ve Mesafeli Sözleşmeler Yönetmeliği hükümleri gereğince tarafların hak ve yükümlülüklerinin saptanmasıdır.
           </p>
         </div>
 
@@ -40,7 +40,7 @@ export default function MesafeliSatisSozlesmesiPage() {
         <div className="space-y-4">
           <h2 className="text-xl font-bold text-slate-900">4. Cayma Hakkı ve İade İstisnaları</h2>
           <p className="text-slate-600 leading-relaxed">
-            Mesafeli Sözleşmeler Yönetmeliği uyarınca; <strong>elektronik ortamda anında ifa edilen hizmetler ve tüketiciye anında teslim edilen gayrimaddi mallar cayma hakkının istisnaları arasındadır.</strong> İşbu sözleşmeye konu olan "BiCalendo SaaS Aboneliği", dijital ortamda anında erişim sağlanan bir hizmet olduğundan yasal cayma hakkı bulunmamaktadır. Alıcı, ödeme işlemini gerçekleştirdiğinde hizmete anında erişim sağlayacağını ve cayma hakkını kaybedeceğini kabul, beyan ve taahhüt eder. Ancak Alıcı aboneliğini dilediği zaman iptal edebilir, bu durumda iptal bir sonraki fatura döneminden itibaren geçerli olur.
+            Mesafeli Sözleşmeler Yönetmeliği uyarınca; <strong>elektronik ortamda anında ifa edilen hizmetler ve tüketiciye anında teslim edilen gayrimaddi mallar cayma hakkının istisnaları arasındadır.</strong> İşbu sözleşmeye konu olan "Dermofis SaaS Aboneliği", dijital ortamda anında erişim sağlanan bir hizmet olduğundan yasal cayma hakkı bulunmamaktadır. Alıcı, ödeme işlemini gerçekleştirdiğinde hizmete anında erişim sağlayacağını ve cayma hakkını kaybedeceğini kabul, beyan ve taahhüt eder. Ancak Alıcı aboneliğini dilediği zaman iptal edebilir, bu durumda iptal bir sonraki fatura döneminden itibaren geçerli olur.
           </p>
         </div>
 

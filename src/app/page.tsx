@@ -54,7 +54,7 @@ export default function LandingPage() {
             <div className="w-10 h-10 md:w-12 md:h-12 bg-[#0a3d34] rounded-xl md:rounded-2xl flex items-center justify-center shadow-xl shadow-[#0a3d34]/20">
               <CalendarDays className="text-white w-6 h-6 md:w-7 md:h-7" />
             </div>
-            <span className="font-black text-xl md:text-2xl tracking-tighter text-[#0a3d34]">BiCalendo</span>
+            <span className="font-black text-xl md:text-2xl tracking-tighter text-[#0a3d34]">Dermofis</span>
           </div>
           
           <div className="flex-1 flex justify-end md:justify-center">
@@ -66,7 +66,7 @@ export default function LandingPage() {
                 <div className="w-10 h-10 bg-[#0a3d34] rounded-xl flex items-center justify-center shadow-xl shadow-[#0a3d34]/20">
                   <CalendarDays className="text-white w-6 h-6" />
                 </div>
-                <span className="font-black text-xl tracking-tighter text-[#0a3d34]">BiCalendo</span>
+                <span className="font-black text-xl tracking-tighter text-[#0a3d34]">Dermofis</span>
               </div>
 
               <a href="#ozellikler" className="hover:text-[#0a3d34] transition-colors relative group whitespace-nowrap">
@@ -383,7 +383,7 @@ export default function LandingPage() {
                 <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
                 <CalendarDays className="text-white w-5 h-5" />
                 </div>
-                <span className="font-extrabold text-xl tracking-tight text-white">BiCalendo</span>
+                <span className="font-extrabold text-xl tracking-tight text-white">Dermofis</span>
             </div>
             <p className="max-w-sm text-sm leading-relaxed">Modern kliniklerin iş akışını dijitalleştiren ve hasta deneyimini iyileştiren bulut tabanlı bir yönetim sistemi.</p>
           </div>
@@ -408,7 +408,7 @@ export default function LandingPage() {
         </div>
         
         <div className="max-w-7xl mx-auto pt-10 text-xs flex flex-col md:flex-row items-center justify-between gap-4">
-          <p>© 2026 BiCalendo | Klinik Yönetim Sistemi. Tüm hakları saklıdır.</p>
+          <p>© 2026 Dermofis | Klinik Yönetim Sistemi. Tüm hakları saklıdır.</p>
           <div className="flex gap-6">
             <a href="#" className="hover:text-white transition-colors">Twitter</a>
             <a href="#" className="hover:text-white transition-colors">LinkedIn</a>
