@@ -1,6 +1,11 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+// Simple in-memory rate limiting map for Edge isolates
+const rateLimitMap = new Map<string, { count: number; timestamp: number }>();
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
+const MAX_REQUESTS_PER_WINDOW = 100; // Max 100 API requests per minute per IP
+
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -35,9 +40,34 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
+  const ip = request.headers.get("x-forwarded-for") || request.ip || "127.0.0.1";
 
-  // 1. API Protection
+  // 1. API Protection & Rate Limiting
   if (pathname.startsWith("/api/")) {
+    // Rate Limiting Logic
+    const currentTime = Date.now();
+    const rateLimitData = rateLimitMap.get(ip);
+
+    if (rateLimitData) {
+      if (currentTime - rateLimitData.timestamp < RATE_LIMIT_WINDOW_MS) {
+        if (rateLimitData.count >= MAX_REQUESTS_PER_WINDOW) {
+          return new NextResponse(
+            JSON.stringify({ error: "Çok fazla istek gönderdiniz. Lütfen daha sonra tekrar deneyin." }),
+            { status: 429, headers: { "Content-Type": "application/json", "Retry-After": "60" } }
+          );
+        }
+        rateLimitData.count++;
+      } else {
+        rateLimitMap.set(ip, { count: 1, timestamp: currentTime });
+      }
+    } else {
+      rateLimitMap.set(ip, { count: 1, timestamp: currentTime });
+    }
+    
+    // Prevent memory leaks in Edge isolate
+    if (rateLimitMap.size > 1000) {
+      rateLimitMap.clear();
+    }
     const publicApiRoutes = [
       "/api/payment/callback",
       "/api/whatsapp/webhook",
