@@ -58,6 +58,7 @@ function OdemeContent() {
   const [callbackMessage, setCallbackMessage] = useState<string | null>(null);
   const [changePlanDialogOpen, setChangePlanDialogOpen] = useState(false);
   const [changingPlan, setChangingPlan] = useState(false);
+  const [contractAccepted, setContractAccepted] = useState(false);
 
   const handleChangePlan = async (newPlan: PlanType) => {
     setChangingPlan(true);
@@ -465,10 +466,31 @@ function OdemeContent() {
               </div>
             )}
 
+            <div className="flex items-start space-x-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+              <input
+                type="checkbox"
+                id="contract"
+                checked={contractAccepted}
+                onChange={(e) => setContractAccepted(e.target.checked)}
+                className="mt-1 w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+              />
+              <label htmlFor="contract" className="text-xs text-slate-600 leading-relaxed">
+                <a 
+                  href="/legal/mesafeli-satis-sozlesmesi" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="font-bold text-emerald-700 hover:underline"
+                >
+                  Mesafeli Satış Sözleşmesi ve Ön Bilgilendirme Formu
+                </a>
+                'nu okudum, anladım ve onaylıyorum.
+              </label>
+            </div>
+
             <Button
               onClick={initializePayment}
-              disabled={loadingPayment}
-              className="w-full h-14 text-base font-bold bg-[#0a3d34] hover:bg-[#072b25] shadow-xl shadow-[#0a3d34]/20 hover:-translate-y-0.5 transition-all group"
+              disabled={loadingPayment || !contractAccepted}
+              className="w-full h-14 text-base font-bold bg-[#0a3d34] hover:bg-[#072b25] shadow-xl shadow-[#0a3d34]/20 hover:-translate-y-0.5 transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loadingPayment ? (
                 <>
