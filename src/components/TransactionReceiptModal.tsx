@@ -54,7 +54,7 @@ export function TransactionReceiptModal({ receiptDateGroup, onClose, patientName
           <div className="flex flex-col items-center justify-center gap-1">
             <Receipt className="w-4 h-4 text-emerald-400" />
             <span className="text-[0.55rem] font-bold uppercase tracking-[0.2em] text-emerald-400">
-              GÜNLÜK İŞLEM FİŞİ
+              İŞLEM FİŞİ
             </span>
           </div>
         </div>
