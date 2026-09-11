@@ -91,6 +91,8 @@ function RegisterContent() {
           plan: selectedPlan,
           payment_status: "pending",
           billing_cycle: billingCycle,
+          kvkk_consent_given: agreed,
+          kvkk_consent_date: new Date().toISOString(),
         },
       },
     });

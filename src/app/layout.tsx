@@ -5,6 +5,7 @@ import "./react-calendar-custom.css";
 import { AuthProvider } from "@/hooks/use-auth";
 import { AnalyticsProvider } from "@/components/AnalyticsProvider";
 import { ApplePencilFix } from "@/components/ApplePencilFix";
+import { CookieBanner } from "@/components/CookieBanner";
 
 const outfit = Outfit({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700", "800"] });
 
@@ -29,6 +30,7 @@ export default function RootLayout({
             {children}
           </AnalyticsProvider>
         </AuthProvider>
+        <CookieBanner />
         <Toaster position="top-right" expand={true} richColors />
       </body>
     </html>
