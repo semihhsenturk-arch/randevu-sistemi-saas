@@ -549,12 +549,8 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                 const isHovered = hoveredMarker === t.id;
                 return (
                   <div key={t.id} style={{ position: "absolute", left: `${pos.x}%`, top: `${pos.y}%`, transform: "translate(-50%, -50%)", zIndex: isHovered || isDragging ? 30 : 10 }}>
-                    {/* Pulse ring */}
-                    <div className={`absolute inset-0 rounded-full ${isDragging ? "" : "animate-ping"}`} style={{ background: colors.light, width: 32, height: 32, margin: "-6px" }} />
-                    {/* Marker dot with number */}
-                    <div
-                      className={`relative rounded-full border-2 border-white shadow-lg flex items-center justify-center transition-transform hover:scale-125 ${isDragging ? "scale-125 cursor-grabbing" : "cursor-grab"}`}
-                      style={{ background: colors.bg, width: 20, height: 20 }}
+                    <div 
+                      className="p-3 -m-3 cursor-grab"
                       onMouseEnter={(e) => { e.stopPropagation(); setHoveredMarker(t.id); }}
                       onMouseLeave={() => setHoveredMarker(null)}
                       onMouseDown={(e) => {
@@ -572,9 +568,17 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                         setDragPos(parsePos(t.zone));
                       }}
                     >
-                      <span style={{ fontSize: 9, fontWeight: 800, color: "#fff", lineHeight: 1, userSelect: "none", pointerEvents: "none" }}>
-                        {treatmentNumberMap.get(t.id) ?? ""}
-                      </span>
+                      {/* Pulse ring */}
+                      <div className={`absolute rounded-full pointer-events-none ${isDragging ? "" : "animate-ping"}`} style={{ background: colors.light, width: 32, height: 32, left: "50%", top: "50%", transform: "translate(-50%, -50%)" }} />
+                      {/* Marker dot with number */}
+                      <div
+                        className={`relative rounded-full border-2 border-white shadow-lg flex items-center justify-center transition-transform hover:scale-110 ${isDragging ? "scale-110 cursor-grabbing" : ""}`}
+                        style={{ background: colors.bg, width: 22, height: 22 }}
+                      >
+                        <span style={{ fontSize: 10, fontWeight: 800, color: "#fff", lineHeight: 1, userSelect: "none", pointerEvents: "none" }}>
+                          {treatmentNumberMap.get(t.id) ?? ""}
+                        </span>
+                      </div>
                     </div>
                     {/* Tooltip */}
                     {isHovered && (
@@ -628,7 +632,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
         {/* Treatment Form Overlay (Fullscreen Mode) */}
         {isFullscreen && showForm && clickPos && !readonly && (
           <div className={`absolute bottom-10 ${clickPos.x > 50 ? "left-10" : "right-10"} z-50 w-[340px] bg-white border-2 border-emerald-100 rounded-2xl p-4 shadow-2xl shadow-emerald-500/10 animate-in slide-in-from-bottom-5 duration-200`}>
-            <button onClick={handleCloseForm} className="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><X className="w-4 h-4" /></button>
+            <button onClick={handleCloseForm} className="absolute top-2 right-2 text-slate-400 hover:text-slate-600 p-2 active:scale-90 transition-transform"><X className="w-5 h-5" /></button>
             <div className="flex items-center gap-2 mb-3">
               <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600"><Syringe className="w-3.5 h-3.5" /></div>
               <div className="text-sm font-extrabold text-slate-800">{editingId ? "Tedaviyi Düzenle" : "Yeni Tedavi Noktası"}</div>
@@ -637,7 +641,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
               <div className="col-span-2 space-y-1 bg-emerald-50/50 p-2 rounded-lg border border-emerald-100">
                 <Label className="text-[0.65rem] font-bold text-emerald-700 uppercase tracking-wider">İşlem Fişi Seçimi</Label>
                 <Select value={formTransactionNo} onValueChange={setFormTransactionNo}>
-                  <SelectTrigger className="h-9 text-xs bg-white text-slate-800 border-emerald-200">
+                  <SelectTrigger className="h-9 text-base bg-white text-slate-800 border-emerald-200">
                     <SelectValue placeholder="İşlem Fişi Seçin..." />
                   </SelectTrigger>
                   <SelectContent className="bg-white border-slate-200 z-[99999]">
@@ -658,7 +662,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
               <div className="space-y-1">
                 <Label className="text-[0.6rem] font-bold text-slate-500 uppercase">Tür</Label>
                 <Select value={formType} onValueChange={(v) => { setFormType(v as any); setFormUnit("ünite"); }}>
-                  <SelectTrigger className="h-8 text-xs bg-slate-50 text-slate-800"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-8 text-base bg-slate-50 text-slate-800"><SelectValue /></SelectTrigger>
                   <SelectContent className="bg-white border-slate-200 z-[99999]">
                     <SelectItem value="botoks" className="text-slate-800 cursor-pointer">💉 Botoks</SelectItem>
                     <SelectItem value="dolgu" className="text-slate-800 cursor-pointer">✨ Dolgu</SelectItem>
@@ -669,17 +673,17 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
               <div className="space-y-1">
                 <Label className="text-[0.6rem] font-bold text-slate-500 uppercase">Miktar</Label>
                 <div className="flex gap-1">
-                  <Input type="number" step="0.1" min="0" placeholder="0" value={formAmount} onChange={e => setFormAmount(e.target.value)} className="h-8 text-xs bg-slate-50 flex-1 text-slate-800" />
+                  <Input type="number" step="0.1" min="0" placeholder="0" value={formAmount} onChange={e => setFormAmount(e.target.value)} className="h-8 text-base bg-slate-50 flex-1 text-slate-800" />
                   <span className="h-8 px-1.5 flex items-center text-[0.6rem] font-bold text-slate-400 bg-slate-100 rounded-md border border-slate-200 shrink-0">{formUnit}</span>
                 </div>
               </div>
               <div className="col-span-2 space-y-1">
                 <Label className="text-[0.6rem] font-bold text-slate-500 uppercase">Ürün Adı</Label>
-                <Input placeholder="Juvederm, Botox, Dysport..." value={formProduct} onChange={e => setFormProduct(e.target.value)} className="h-8 text-xs bg-slate-50 text-slate-800" />
+                <Input placeholder="Juvederm, Botox, Dysport..." value={formProduct} onChange={e => setFormProduct(e.target.value)} className="h-8 text-base bg-slate-50 text-slate-800" />
               </div>
               <div className="col-span-2 space-y-1">
                 <Label className="text-[0.6rem] font-bold text-slate-500 uppercase">Not</Label>
-                <Textarea placeholder="Ek bilgi..." value={formNote} onChange={e => setFormNote(e.target.value)} className="min-h-[40px] text-xs bg-slate-50 resize-none text-slate-800" />
+                <Textarea placeholder="Ek bilgi..." value={formNote} onChange={e => setFormNote(e.target.value)} className="min-h-[40px] text-base bg-slate-50 resize-none text-slate-800" />
               </div>
 
               <div className="col-span-2 flex items-center gap-2 mt-1">
@@ -702,7 +706,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                 <div className="col-span-2 space-y-1 bg-emerald-50/50 p-2 rounded-lg border border-emerald-100">
                   <Label className="text-[0.6rem] font-bold text-emerald-700 uppercase">Hangi İşlemin Kontrolü?</Label>
                   <Select value={formParentTxNo} onValueChange={setFormParentTxNo}>
-                    <SelectTrigger className="h-8 text-xs bg-white text-slate-800 border-emerald-200">
+                    <SelectTrigger className="h-8 text-base bg-white text-slate-800 border-emerald-200">
                       <SelectValue placeholder="İşlem seçin..." />
                     </SelectTrigger>
                     <SelectContent className="bg-white border-slate-200 z-[99999]">
@@ -719,7 +723,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                 </div>
               )}
             </div>
-            <Button onClick={handleSubmit} disabled={!formAmount || (formIsControl && !formParentTxNo)} className="w-full mt-3 h-8 bg-emerald-600 hover:bg-emerald-700 text-xs font-bold shadow-md shadow-emerald-500/20 text-white">
+            <Button onClick={handleSubmit} disabled={!formAmount || (formIsControl && !formParentTxNo)} className="w-full mt-3 h-9 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] active:bg-emerald-800 transition-all text-sm font-bold shadow-md shadow-emerald-500/20 text-white">
               <Plus className="w-3.5 h-3.5 mr-1" /> Kaydet
             </Button>
           </div>
@@ -732,7 +736,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
               {/* Treatment Form */}
               {showForm && clickPos && !readonly && (
                 <div className="bg-white border-2 border-emerald-100 rounded-2xl p-4 shadow-lg shadow-emerald-500/5 relative">
-                  <button onClick={handleCloseForm} className="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><X className="w-4 h-4" /></button>
+                  <button onClick={handleCloseForm} className="absolute top-2 right-2 text-slate-400 hover:text-slate-600 p-2 active:scale-90 transition-transform"><X className="w-5 h-5" /></button>
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600"><Syringe className="w-3.5 h-3.5" /></div>
                     <div className="text-sm font-extrabold text-slate-800">{editingId ? "Tedaviyi Düzenle" : "Yeni Tedavi Noktası"}</div>
@@ -741,7 +745,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                     <div className="col-span-2 space-y-1 bg-emerald-50/50 p-2 rounded-lg border border-emerald-100">
                       <Label className="text-[0.65rem] font-bold text-emerald-700 uppercase tracking-wider">İşlem Fişi Seçimi</Label>
                       <Select value={formTransactionNo} onValueChange={setFormTransactionNo}>
-                        <SelectTrigger className="h-9 text-xs bg-white text-slate-800 border-emerald-200">
+                        <SelectTrigger className="h-9 text-base bg-white text-slate-800 border-emerald-200">
                           <SelectValue placeholder="İşlem Fişi Seçin..." />
                         </SelectTrigger>
                         <SelectContent className="bg-white border-slate-200 z-[99999]">
@@ -762,7 +766,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                     <div className="space-y-1">
                       <Label className="text-[0.6rem] font-bold text-slate-500 uppercase">Tür</Label>
                       <Select value={formType} onValueChange={(v) => { setFormType(v as any); setFormUnit("ünite"); }}>
-                        <SelectTrigger className="h-8 text-xs bg-slate-50 text-slate-800"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="h-8 text-base bg-slate-50 text-slate-800"><SelectValue /></SelectTrigger>
                         <SelectContent className="bg-white border-slate-200 z-[99999]">
                           <SelectItem value="botoks" className="text-slate-800 cursor-pointer">💉 Botoks</SelectItem>
                           <SelectItem value="dolgu" className="text-slate-800 cursor-pointer">✨ Dolgu</SelectItem>
@@ -773,17 +777,17 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                     <div className="space-y-1">
                       <Label className="text-[0.6rem] font-bold text-slate-500 uppercase">Miktar</Label>
                       <div className="flex gap-1">
-                        <Input type="number" step="0.1" min="0" placeholder="0" value={formAmount} onChange={e => setFormAmount(e.target.value)} className="h-8 text-xs bg-slate-50 flex-1" />
+                        <Input type="number" step="0.1" min="0" placeholder="0" value={formAmount} onChange={e => setFormAmount(e.target.value)} className="h-8 text-base bg-slate-50 flex-1 text-slate-800" />
                         <span className="h-8 px-1.5 flex items-center text-[0.6rem] font-bold text-slate-400 bg-slate-100 rounded-md border border-slate-200 shrink-0">{formUnit}</span>
                       </div>
                     </div>
                     <div className="col-span-2 space-y-1">
                       <Label className="text-[0.6rem] font-bold text-slate-500 uppercase">Ürün Adı</Label>
-                      <Input placeholder="Juvederm, Botox, Dysport..." value={formProduct} onChange={e => setFormProduct(e.target.value)} className="h-8 text-xs bg-slate-50" />
+                      <Input placeholder="Juvederm, Botox, Dysport..." value={formProduct} onChange={e => setFormProduct(e.target.value)} className="h-8 text-base bg-slate-50 text-slate-800" />
                     </div>
                     <div className="col-span-2 space-y-1">
                       <Label className="text-[0.6rem] font-bold text-slate-500 uppercase">Not</Label>
-                      <Textarea placeholder="Ek bilgi..." value={formNote} onChange={e => setFormNote(e.target.value)} className="min-h-[40px] text-xs bg-slate-50 resize-none" />
+                      <Textarea placeholder="Ek bilgi..." value={formNote} onChange={e => setFormNote(e.target.value)} className="min-h-[40px] text-base bg-slate-50 resize-none text-slate-800" />
                     </div>
 
                     <div className="col-span-2 flex items-center gap-2 mt-1">
@@ -806,7 +810,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                       <div className="col-span-2 space-y-1 bg-emerald-50/50 p-2 rounded-lg border border-emerald-100">
                         <Label className="text-[0.6rem] font-bold text-emerald-700 uppercase">Hangi İşlemin Kontrolü?</Label>
                         <Select value={formParentTxNo} onValueChange={setFormParentTxNo}>
-                          <SelectTrigger className="h-8 text-xs bg-white text-slate-800 border-emerald-200">
+                          <SelectTrigger className="h-8 text-base bg-white text-slate-800 border-emerald-200">
                             <SelectValue placeholder="İşlem seçin..." />
                           </SelectTrigger>
                           <SelectContent className="bg-white border-slate-200 z-[99999]">
@@ -823,7 +827,7 @@ export function FaceMap({ gender, treatments = [], onAddTreatment, onUpdateTreat
                       </div>
                     )}
                   </div>
-                  <Button onClick={handleSubmit} disabled={!formAmount || (formIsControl && !formParentTxNo)} className="w-full mt-3 h-8 bg-emerald-600 hover:bg-emerald-700 text-xs font-bold shadow-md shadow-emerald-500/20 text-white">
+                  <Button onClick={handleSubmit} disabled={!formAmount || (formIsControl && !formParentTxNo)} className="w-full mt-3 h-9 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] active:bg-emerald-800 transition-all text-sm font-bold shadow-md shadow-emerald-500/20 text-white">
                     <Plus className="w-3.5 h-3.5 mr-1" /> Kaydet
                   </Button>
                 </div>

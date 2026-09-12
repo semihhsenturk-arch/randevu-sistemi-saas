@@ -46,7 +46,7 @@ export default function ClientLayout({
       {showTrialBanner && <TrialBanner />}
 
       {/* Mobile Header */}
-      <div className={`xl:hidden fixed left-0 right-0 h-16 bg-[#1e293b] border-b border-white/5 flex items-center px-5 z-40 shadow-lg gap-4 ${hasTopBanner ? "top-[52px]" : "top-0"}`}>
+      <div className={`lg:hidden fixed left-0 right-0 h-16 bg-[#1e293b] border-b border-white/5 flex items-center px-5 z-40 shadow-lg gap-4 ${hasTopBanner ? "top-[52px]" : "top-0"}`}>
         <Button 
           variant="ghost" 
           size="icon" 
@@ -65,7 +65,7 @@ export default function ClientLayout({
 
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
       
-      <main className={`flex-1 xl:ml-[280px] p-4 md:p-6 lg:p-8 w-full max-w-[1600px] mx-auto min-h-screen transition-all ${hasTopBanner ? "pt-[100px] md:pt-[100px] lg:pt-[100px] xl:pt-[60px]" : "pt-24 md:pt-24 lg:pt-24 xl:pt-8"}`}>
+      <main className={`flex-1 lg:ml-[280px] p-4 md:p-6 lg:p-8 w-full max-w-[1600px] mx-auto min-h-screen transition-all ${hasTopBanner ? "pt-[100px] md:pt-[100px] lg:pt-[100px] xl:pt-[60px]" : "pt-24 md:pt-24 lg:pt-24 xl:pt-8"}`}>
         {children}
       </main>
     </div>
