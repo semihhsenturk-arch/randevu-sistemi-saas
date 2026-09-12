@@ -54,9 +54,9 @@ export default function LandingPage() {
             <Image
               src="/logo.png"
               alt="Dermofis"
-              width={160}
-              height={45}
-              className="h-9 md:h-11 w-auto"
+              width={240}
+              height={64}
+              className="h-12 md:h-16 w-auto mix-blend-multiply"
               priority
             />
           </Link>
@@ -70,9 +70,9 @@ export default function LandingPage() {
                 <Image
                   src="/logo.png"
                   alt="Dermofis"
-                  width={140}
-                  height={40}
-                  className="h-10 w-auto"
+                  width={200}
+                  height={56}
+                  className="h-14 w-auto mix-blend-multiply"
                   priority
                 />
               </Link>
