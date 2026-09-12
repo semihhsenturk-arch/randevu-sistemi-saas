@@ -240,14 +240,16 @@ export default function AyarlarPage() {
                   </p>
                 </div>
               </div>
-              <div className="text-right">
-                <p className="text-2xl font-black text-slate-900">
-                  {price.toLocaleString("tr-TR")} ₺
-                </p>
-                <p className="text-xs font-bold text-slate-400">
-                  / {cycle === "monthly" ? "ay" : "yıl"}
-                </p>
-              </div>
+              {!isDemo && (
+                <div className="text-right">
+                  <p className="text-2xl font-black text-slate-900">
+                    {price.toLocaleString("tr-TR")} ₺
+                  </p>
+                  <p className="text-xs font-bold text-slate-400">
+                    / {cycle === "monthly" ? "ay" : "yıl"}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
