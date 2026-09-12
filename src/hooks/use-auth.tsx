@@ -292,10 +292,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     signingOutRef.current = true;
     setIsLoading(true);
 
-    // Clear React state immediately to prevent any intermediate UI renders
-    setSession(null);
-    setUser(null);
-    setProfile(null);
+    // React state is NOT cleared here to prevent the UI from re-rendering with null values
+    // (which causes the 'KLINİK' flash). The state will be destroyed by the hard redirect anyway.
 
     // Clear all cached data from sessionStorage
     const keysToClear = [
