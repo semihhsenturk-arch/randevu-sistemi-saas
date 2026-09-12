@@ -49,11 +49,23 @@ export function WasteDistributionModal({ open, onOpenChange, inventoryItems, inv
     }
   }, [open, user?.id]);
 
+  const parseSafeDate = (dStr: string) => {
+    if (!dStr) return new Date(0);
+    if (dStr.includes('.')) {
+      const parts = dStr.split('.');
+      if (parts.length >= 3 && parts[2].length === 4) {
+        return new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+      }
+    }
+    const d = new Date(dStr);
+    return isNaN(d.getTime()) ? new Date(0) : d;
+  };
+
   const allTransactions = useMemo(() => {
     return collectAllTxNos(patientProfiles).sort((a, b) => {
       // Sort by date descending
-      const dateA = new Date(a.dateStr).getTime();
-      const dateB = new Date(b.dateStr).getTime();
+      const dateA = parseSafeDate(a.dateStr).getTime();
+      const dateB = parseSafeDate(b.dateStr).getTime();
       if (dateA !== dateB) return dateB - dateA;
       // Then by txNo descending
       return b.txNo.localeCompare(a.txNo, 'tr', { numeric: true });
@@ -309,11 +321,13 @@ export function WasteDistributionModal({ open, onOpenChange, inventoryItems, inv
                         <div className="flex-1 min-w-0">
                           <div className="flex justify-between items-center mb-0.5">
                             <span className="text-sm font-bold text-slate-800 truncate">{tx.patientName}</span>
-                            <span className="text-[0.65rem] font-bold text-slate-400">{format(new Date(tx.dateStr), "d MMM", {locale: tr})}</span>
+                            <span className="text-[0.65rem] font-bold text-slate-400">
+                              {tx.dateStr ? format(parseSafeDate(tx.dateStr), "d MMM", {locale: tr}) : ""}
+                            </span>
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="text-[0.65rem] font-black text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">{tx.txNo}</span>
-                            {tx.type && <span className="text-[0.65rem] font-semibold text-slate-400 capitalize">{tx.type.replace('_', ' ')}</span>}
+                            {tx.type && typeof tx.type === 'string' && <span className="text-[0.65rem] font-semibold text-slate-400 capitalize">{tx.type.replace('_', ' ')}</span>}
                             {tx.isControl && <span className="text-[0.65rem] font-semibold text-orange-500">Kontrol</span>}
                           </div>
                         </div>
