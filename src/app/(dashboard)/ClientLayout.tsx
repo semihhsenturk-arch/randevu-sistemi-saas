@@ -65,7 +65,7 @@ export default function ClientLayout({
 
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
       
-      <main className={`block lg:ml-[280px] w-full lg:w-[calc(100%-280px)] h-screen overflow-hidden transition-all ${hasTopBanner ? "pt-[100px] lg:pt-[52px]" : "pt-16 lg:pt-0"}`}>
+      <main className={`block lg:ml-[280px] w-full lg:w-[calc(100%-280px)] h-[100dvh] lg:h-screen overflow-hidden transition-all ${hasTopBanner ? "pt-[100px] lg:pt-[52px]" : "pt-16 lg:pt-0"}`}>
         {children}
       </main>
     </div>

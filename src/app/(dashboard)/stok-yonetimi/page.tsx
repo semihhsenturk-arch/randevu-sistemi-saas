@@ -318,8 +318,8 @@ export default function StockManagementPage() {
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 custom-scrollbar-auto flex flex-col gap-4">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 md:gap-4">
+      <div className="flex-1 flex flex-col p-4 md:p-6 lg:p-8 gap-4 min-h-0 overflow-hidden">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 md:gap-4 shrink-0">
         <Card className="rounded-xl border-slate-200 shadow-sm flex items-center p-3 md:p-4 gap-2 md:gap-3">
             <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
                <Package className="w-4 h-4 md:w-5 md:h-5" />
@@ -361,7 +361,7 @@ export default function StockManagementPage() {
       </div>
 
       {stats.criticalItems.length > 0 && (
-        <div className="bg-gradient-to-br from-red-50 to-rose-50 border border-red-200 border-l-4 border-l-red-500 p-4 rounded-xl shadow-sm animate-alert-pulse">
+        <div className="bg-gradient-to-br from-red-50 to-rose-50 border border-red-200 border-l-4 border-l-red-500 p-4 rounded-xl shadow-sm animate-alert-pulse shrink-0">
            <div className="flex items-center gap-2 mb-1.5">
               <AlertTriangle className="w-4 h-4 text-red-600" />
               <span className="text-[0.85rem] font-extrabold text-red-600 uppercase tracking-wider">Dikkat: Kritik Seviyedeki Stoklar</span>
@@ -376,7 +376,7 @@ export default function StockManagementPage() {
         </div>
       )}
 
-      <div className="block md:hidden space-y-3 pb-28">
+      <div className="block md:hidden flex-1 overflow-y-auto custom-scrollbar-auto space-y-3 pb-28">
         {filteredItems.length === 0 ? (
           <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-500 italic">Kayıt bulunamadı.</div>
         ) : filteredItems.map(item => {
@@ -450,10 +450,10 @@ export default function StockManagementPage() {
         })}
       </div>
 
-      <div className="hidden md:block bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden relative min-h-[400px]">
-        <div className="overflow-x-auto w-full custom-scrollbar-auto">
-        <Table className="min-w-[800px] w-full">
-          <TableHeader className="bg-gradient-to-r from-slate-700 to-slate-800 hover:bg-transparent">
+      <div className="hidden md:flex flex-col flex-1 bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden relative min-h-[250px]">
+        <div className="overflow-auto w-full h-full custom-scrollbar-auto">
+        <Table className="min-w-[800px] w-full relative">
+          <TableHeader className="bg-gradient-to-r from-slate-700 to-slate-800 hover:bg-transparent sticky top-0 z-10 shadow-sm">
             <TableRow className="hover:bg-transparent border-none">
               <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">Kod</TableHead>
               <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">Malzeme Adı</TableHead>

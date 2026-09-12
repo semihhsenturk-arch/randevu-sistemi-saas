@@ -151,9 +151,9 @@ export default function HizmetYonetimiPage() {
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 custom-scrollbar-auto flex flex-col gap-4">
+      <div className="flex-1 flex flex-col p-4 md:p-6 lg:p-8 gap-4 min-h-0 overflow-hidden">
       {/* Mobile view - Card layout */}
-      <div className="block md:hidden space-y-3 pb-24">
+      <div className="block md:hidden flex-1 overflow-y-auto custom-scrollbar-auto space-y-3 pb-24">
         {loading ? (
           <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-500 italic">Yükleniyor...</div>
         ) : services.length === 0 ? (
@@ -185,10 +185,10 @@ export default function HizmetYonetimiPage() {
       </div>
 
       {/* Desktop view - Table layout */}
-      <div className="hidden md:block bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden relative">
-        <div className="overflow-x-auto w-full custom-scrollbar-auto">
-        <Table className="min-w-[600px] w-full">
-          <TableHeader className="bg-gradient-to-r from-slate-700 to-slate-800 hover:bg-transparent">
+      <div className="hidden md:flex flex-col flex-1 bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden relative min-h-0">
+        <div className="overflow-auto w-full h-full custom-scrollbar-auto">
+        <Table className="min-w-[600px] w-full relative">
+          <TableHeader className="bg-gradient-to-r from-slate-700 to-slate-800 hover:bg-transparent sticky top-0 z-10 shadow-sm">
             <TableRow className="hover:bg-transparent border-none">
               <TableHead className="font-bold text-white uppercase tracking-wider text-[0.72rem] py-4 text-center">Renk</TableHead>
               <TableHead className="font-bold text-white uppercase tracking-wider text-[0.72rem] py-4 text-center">Hizmet Adı</TableHead>
