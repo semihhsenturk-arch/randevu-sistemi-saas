@@ -309,7 +309,7 @@ export default function StockManagementPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
              />
            </div>
-           <Button variant="outline" onClick={() => setWasteModalOpen(true)} className="border-orange-500 text-orange-600 hover:bg-orange-50 h-11 px-4 rounded-xl font-bold w-full sm:w-auto">
+           <Button variant="outline" onClick={() => setWasteModalOpen(true)} className="border-orange-500 text-orange-600 hover:bg-orange-50 hover:text-orange-700 h-11 px-4 rounded-xl font-bold w-full sm:w-auto">
              <AlertTriangle className="w-4 h-4 mr-2" /> Fire Dağıt
            </Button>
            <Button onClick={() => { resetEntryForm(); setModalOpen(true); }} className="bg-[#0a3d34] hover:bg-[#072b25] h-11 px-6 rounded-xl font-bold w-full sm:w-auto">

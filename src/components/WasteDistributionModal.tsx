@@ -207,7 +207,7 @@ export function WasteDistributionModal({ open, onOpenChange, inventoryItems, inv
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden bg-slate-50 border-slate-200 gap-0">
-        <div className="bg-gradient-to-r from-orange-500 to-rose-500 p-6 flex items-center gap-4">
+        <div className="bg-gradient-to-r from-orange-600 to-red-600 p-6 flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center shrink-0">
             <Calculator className="w-6 h-6 text-white" />
           </div>
