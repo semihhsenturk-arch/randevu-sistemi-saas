@@ -1,0 +1,74 @@
+"use client";
+
+import { Sidebar } from "@/components/Sidebar";
+import { DemoBanner } from "@/components/DemoBanner";
+import { DemoTour } from "@/components/DemoTour";
+import { TrialBanner } from "@/components/TrialBanner";
+import { useAuth } from "@/hooks/use-auth";
+import { useState, useEffect } from "react";
+import { Menu } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+export default function ClientLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState(false);
+  const { profile, isTrialActive, isLoading } = useAuth();
+
+  useEffect(() => {
+    setIsDemoMode(
+      typeof window !== "undefined" && sessionStorage.getItem("demo_mode") === "true"
+    );
+  }, []);
+
+  // Determine if trial banner should show (not demo, in trial, not paid, not admin)
+  const showTrialBanner =
+    !isDemoMode &&
+    !isLoading &&
+    isTrialActive &&
+    profile?.payment_status !== "paid" &&
+    profile?.payment_status !== "cancelled" &&
+    profile?.role !== "admin";
+
+  // Any top banner showing?
+  const hasTopBanner = isDemoMode || showTrialBanner;
+
+  return (
+    <div className="flex min-h-screen w-full bg-slate-50 overflow-x-hidden">
+      {/* Demo Banner — fixed top bar with countdown */}
+      {isDemoMode && <DemoBanner />}
+      {isDemoMode && <DemoTour />}
+
+      {/* Trial Banner — fixed top bar with 7-day countdown */}
+      {showTrialBanner && <TrialBanner />}
+
+      {/* Mobile Header */}
+      <div className={`xl:hidden fixed left-0 right-0 h-16 bg-[#1e293b] border-b border-white/5 flex items-center px-5 z-40 shadow-lg gap-4 ${hasTopBanner ? "top-[52px]" : "top-0"}`}>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="text-white hover:bg-white/10 shrink-0 -ml-2"
+          onClick={() => setIsSidebarOpen(true)}
+        >
+          <Menu className="w-6 h-6" />
+        </Button>
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-[#0a3d34] rounded-lg flex items-center justify-center">
+            <span className="text-white font-black text-sm">B</span>
+          </div>
+          <span className="text-white font-bold text-sm tracking-tight uppercase">Dermofis</span>
+        </div>
+      </div>
+
+      <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+      
+      <main className={`flex-1 xl:ml-[280px] p-4 md:p-6 lg:p-8 w-full max-w-[1600px] mx-auto min-h-screen transition-all ${hasTopBanner ? "pt-[100px] md:pt-[100px] lg:pt-[100px] xl:pt-[60px]" : "pt-24 md:pt-24 lg:pt-24 xl:pt-8"}`}>
+        {children}
+      </main>
+    </div>
+  );
+}
+
