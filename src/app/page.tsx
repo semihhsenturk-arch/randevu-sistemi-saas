@@ -27,7 +27,7 @@ import { useState, useEffect } from "react";
 export default function LandingPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const promoImages = ["/promo-2.png", "/promo-3.png", "/Promo-7.png", "/promo-6.png", "/facemap-promo.png"];
+  const promoImages = ["/promo-9.png", "/promo-10.png", "/promo-11.png", "/promo-12.png", "/promo-13.png"];
   const router = useRouter();
 
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
