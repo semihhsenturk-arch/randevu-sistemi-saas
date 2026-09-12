@@ -46,7 +46,7 @@ export function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean; setIsOpen?: (
         />
       )}
 
-      <nav className={`fixed top-0 left-0 h-screen w-[280px] bg-[#1e293b] text-[#f8fafc] p-6 flex flex-col z-[2000] shadow-[4px_0_20px_rgba(0,0,0,0.15)] transition-transform duration-300 lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <nav className={`fixed top-0 left-0 h-[100dvh] w-[280px] bg-[#1e293b] text-[#f8fafc] p-6 flex flex-col z-[2000] shadow-[4px_0_20px_rgba(0,0,0,0.15)] transition-transform duration-300 lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex items-center justify-between lg:block pb-10">
           <div>
             <div className="text-[0.65rem] tracking-[0.12rem] text-[#94a3b8] font-bold mb-1 uppercase">
@@ -66,7 +66,7 @@ export function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean; setIsOpen?: (
           </Button>
         </div>
 
-        <ul id="tour-nav-menu" className="flex-1 list-none m-0 p-0 flex flex-col gap-2 overflow-y-auto custom-scrollbar-inner">
+        <ul id="tour-nav-menu" className="flex-1 list-none m-0 p-0 pb-4 flex flex-col gap-2 overflow-y-auto custom-scrollbar-inner">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;

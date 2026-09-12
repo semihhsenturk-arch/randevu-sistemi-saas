@@ -349,6 +349,8 @@ function OdemeContent() {
   return (
     <div className="flex flex-col h-full relative">
       <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 custom-scrollbar-auto">
+        <div className="flex flex-col h-full relative">
+      <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 custom-scrollbar-auto">
         <div className="flex flex-col items-center justify-center min-h-[60vh] gap-8">
       {/* Ödeme formu gösteriliyorsa */}
       {checkoutHTML ? (
@@ -588,6 +590,8 @@ function OdemeContent() {
         </DialogContent>
       </Dialog>
       </div>
+      </div>
+    </div>
       </div>
     </div>
   );
