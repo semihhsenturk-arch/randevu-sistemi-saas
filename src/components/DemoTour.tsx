@@ -18,22 +18,22 @@ const CustomTooltip = ({
   return (
     <div 
       {...tooltipProps} 
-      className="bg-white rounded-2xl shadow-[0_12px_40px_-10px_rgba(0,0,0,0.15)] border border-slate-200/80 overflow-hidden w-[320px] md:w-[360px] z-[10000] font-sans"
+      className="bg-white/95 backdrop-blur-xl rounded-[1.25rem] shadow-2xl border border-white/40 ring-1 ring-slate-900/5 overflow-hidden w-[340px] md:w-[380px] z-[10000] font-sans"
     >
-      <div className="p-5 flex flex-col gap-3.5">
+      <div className="p-6 flex flex-col gap-4">
         {/* Header part */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[#0a3d34]/10 text-[#0a3d34] text-[0.7rem] font-bold">
+          <div className="flex items-center gap-2.5">
+            <div className="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-[#0a3d34]/20 to-[#0a3d34]/5 text-[#0a3d34] text-xs font-bold ring-1 ring-[#0a3d34]/10 shadow-sm">
               {index + 1}
             </div>
-            <span className="text-slate-400 text-[0.65rem] font-bold tracking-wider uppercase">
+            <span className="text-slate-400 text-[0.65rem] font-bold tracking-widest uppercase">
               Adım {index + 1} / {size}
             </span>
           </div>
           <button 
             {...skipProps} 
-            className="text-slate-400 hover:text-slate-700 transition-colors rounded-md p-1 hover:bg-slate-100"
+            className="text-slate-400 hover:text-slate-700 transition-colors rounded-lg p-1.5 hover:bg-slate-100/80"
             title="Turu Kapat"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -41,23 +41,23 @@ const CustomTooltip = ({
         </div>
 
         {/* Title and Content */}
-        <div className="flex flex-col gap-1.5">
-          <h3 className="text-slate-900 font-extrabold text-[1.1rem] leading-snug">
+        <div className="flex flex-col gap-2">
+          <h3 className="text-slate-800 font-bold text-lg tracking-tight leading-tight">
             {step.title}
           </h3>
-          <p className="text-slate-600 font-medium text-[0.9rem] leading-relaxed">
+          <p className="text-slate-500 font-medium text-[0.925rem] leading-relaxed">
             {step.content}
           </p>
         </div>
       </div>
 
       {/* Footer */}
-      <div className="bg-slate-50/80 px-5 py-3.5 flex items-center justify-between border-t border-slate-100">
+      <div className="bg-slate-50/50 px-6 py-4 flex items-center justify-between border-t border-slate-100/60">
         <div className="flex gap-1.5 items-center">
           {Array.from({ length: size }).map((_, i) => (
              <div 
               key={i} 
-              className={`h-1.5 rounded-full transition-all duration-300 ${i === index ? 'w-5 bg-[#0a3d34]' : 'w-1.5 bg-slate-200'}`} 
+              className={`h-1.5 rounded-full transition-all duration-500 ${i === index ? 'w-6 bg-gradient-to-r from-[#0a3d34] to-[#125c50]' : 'w-1.5 bg-slate-200'}`} 
             />
           ))}
         </div>
@@ -65,14 +65,14 @@ const CustomTooltip = ({
           {index > 0 && (
             <button 
               {...backProps} 
-              className="px-3 py-2 rounded-xl text-[0.8rem] font-bold text-slate-500 hover:text-slate-800 transition-colors"
+              className="px-3 py-2 rounded-xl text-[0.8rem] font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
             >
               Geri
             </button>
           )}
           <button 
             {...primaryProps} 
-            className="px-4 py-2 rounded-xl text-[0.8rem] font-bold text-white bg-[#0a3d34] hover:bg-[#072b24] shadow-sm transition-all flex items-center gap-1.5 active:scale-95"
+            className="px-4 py-2 rounded-xl text-[0.8rem] font-bold text-white bg-gradient-to-b from-[#0a3d34] to-[#072b24] shadow-[0_2px_10px_-3px_rgba(10,61,52,0.5)] hover:shadow-[0_4px_15px_-4px_rgba(10,61,52,0.6)] hover:-translate-y-0.5 transition-all flex items-center gap-1.5 active:scale-95"
           >
             {isLastStep ? 'Turu Bitir' : 'İleri'}
             {!isLastStep && (
@@ -93,21 +93,21 @@ const getStepsForPath = (pathname: string): any[] => {
     return [
       {
         target: "body",
-        content: "Takvim arayüzü üzerinden kliniğinizin günlük iş akışını anlık takip edebilir, sürükle-bırak özelliği ile randevularınızı hızlıca organize edebilirsiniz.",
+        content: "İş akışınızı tek ekranda yönetin. Sürükle-bırak özelliği sayesinde randevularınızı kolayca organize ederek zamandan tasarruf edebilirsiniz.",
         placement: "center",
-        title: "Kapsamlı Takvim Yönetimi"
+        title: "🗓 Akıllı Takvim ile Tanışın"
       },
       {
         target: "#tour-add-appointment",
-        content: "Sağ üst köşedeki buton ile saniyeler içinde yeni bir hasta kaydı oluşturabilir ve randevu planlamasını tamamlayabilirsiniz.",
+        content: "Yeni hasta kaydı oluşturmak ve randevu planlamak artık çok kolay. İşlemlerinizi saniyeler içinde tamamlayarak hasta deneyimini iyileştirin.",
         placement: "bottom",
-        title: "Hızlı Randevu Oluşturma"
+        title: "⚡️ Hızlı Randevu"
       },
       {
         target: "#tour-link-hasta-listesi",
-        content: "Kapsamlı hasta profillerini ve yapay zeka destekli yüz haritalama (FaceMap) özelliğini incelemek için Hasta Listesi sekmesine ilerleyelim.",
+        content: "Hastalarınızın detaylı tedavi geçmişini ve yapay zeka destekli FaceMap (Yüz Haritası) özelliğini keşfetmek için Hasta Listesine göz atalım.",
         placement: "right",
-        title: "Hasta Listesine Geçiş",
+        title: "👥 Hasta Profilleri",
         spotlightClicks: true
       }
     ];
@@ -115,21 +115,21 @@ const getStepsForPath = (pathname: string): any[] => {
     return [
       {
         target: "body",
-        content: "Bu alanda kliniğinize kayıtlı tüm hastaları filtreleyebilir, detaylı geçmişlerine ve randevu istatistiklerine tek tıkla ulaşabilirsiniz.",
+        content: "Kliniğinizin en değerli varlığı olan hasta verilerinizi güvenle saklayın. Arama ve filtreleme ile istediğiniz bilgiye anında ulaşın.",
         placement: "center",
-        title: "Merkezi Hasta Veritabanı"
+        title: "🗂 Merkezi Hasta Yönetimi"
       },
       {
         target: "body",
-        content: "Detaylı hasta profilinde yer alan FaceMap (Yüz Haritası) ile estetik ve dermatolojik işlemleri görsel olarak işaretleyip, tedavi süreçlerini profesyonelce kayıt altına alabilirsiniz.",
+        content: "Estetik ve dermatolojik işlemleri hasta yüz haritası üzerinde görsel olarak işaretleyin. Tedavi gelişimini öncesi/sonrası fotoğraflarla profesyonelce takip edin.",
         placement: "center",
-        title: "FaceMap ile İşlem Takibi"
+        title: "✨ FaceMap & Görsel Takip"
       },
       {
         target: "#tour-link-stok-yonetimi",
-        content: "İşlem yapıldıkça azalan ürünlerin takibini sağlayan otomatik Stok Yönetimi modülümüzü keşfetmek için bir sonraki adıma geçelim.",
+        content: "Uygulanan her işlemde sarf malzemelerinizin otomatik olarak nasıl güncellendiğini görmek için Stok Yönetimi modülüne ilerleyelim.",
         placement: "right",
-        title: "Stok Yönetimine Geçiş",
+        title: "📦 Stok Entegrasyonu",
         spotlightClicks: true
       }
     ];
@@ -137,15 +137,15 @@ const getStepsForPath = (pathname: string): any[] => {
     return [
       {
         target: "body",
-        content: "Kliniğinizdeki sarf malzemelerin güncel durumunu buradan yönetebilir, kritik seviyeye düşen ürünler için sistemden otomatik uyarılar alarak tedarik zincirinizi koruyabilirsiniz.",
+        content: "Malzeme kayıplarına ve stok tükenme riskine son. Kritik seviyeye düşen ürünler için otomatik uyarılar alarak tedarik sürecinizi güvenceye alın.",
         placement: "center",
-        title: "Akıllı Stok Takibi"
+        title: "📊 Akıllı Stok Takibi"
       },
       {
         target: "#tour-link-dashboard",
-        content: "Son olarak, kliniğinizin finansal ve operasyonel büyümesini yapay zeka destekli raporlarla görmek için Analiz paneline göz atalım.",
+        content: "Kliniğinizin finansal durumunu, ciro büyümesini ve operasyonel metrikleri görmek için Analiz ve Raporlama paneline geçelim.",
         placement: "right",
-        title: "Analiz ve Raporlamaya Geçiş",
+        title: "📈 Finans ve Analiz",
         spotlightClicks: true
       }
     ];
@@ -153,24 +153,24 @@ const getStepsForPath = (pathname: string): any[] => {
     return [
       {
         target: "body",
-        content: "Bu ekranda kliniğinizde sunduğunuz tüm işlemleri listeleyebilir, her bir işlem için tahmini süre ve fiyat bilgilerini girerek randevu planlamanızı otomatize edebilirsiniz.",
+        content: "Sunduğunuz hizmetleri kategorize edin, işlem sürelerini ve fiyatlandırmaları belirleyin. Randevu alırken sistem fiyatı ve süreyi otomatik hesaplasın.",
         placement: "center",
-        title: "Hizmet ve Fiyatlandırma Yönetimi"
+        title: "⚙️ Hizmet Yapılandırması"
       },
     ];
   } else if (pathname === "/dashboard") {
     return [
       {
         target: "body",
-        content: "Analiz ekranı sayesinde aylık cironuzu, personel bazlı performansınızı ve hizmet doluluk oranlarınızı detaylı grafiklerle takip ederek stratejik kararlar alabilirsiniz.",
+        content: "Aylık cironuz, personel bazlı performans ve hizmet doluluk oranlarınız tek bir ekranda. Veriye dayalı kararlar alarak kliniğinizi büyütün.",
         placement: "center",
-        title: "Yapay Zeka Destekli Analiz"
+        title: "🎯 Kapsamlı Raporlama"
       },
       {
         target: "#tour-link-hizmet-yonetimi",
-        content: "Şimdi klinik hizmetlerinizi ve fiyatlandırmalarınızı yönetebileceğiniz Hizmet Yönetimi modülünü incelemek için bir sonraki adıma geçelim.",
+        content: "Son olarak, randevu sisteminin temelini oluşturan işlem süreleri ve fiyat tanımlamalarını görmek için Hizmet Yönetimine göz atalım.",
         placement: "right",
-        title: "Hizmet Yönetimine Geçiş",
+        title: "⚙️ Hizmet Yönetimine Geçiş",
         spotlightClicks: true
       }
     ];
