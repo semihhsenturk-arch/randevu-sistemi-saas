@@ -271,10 +271,7 @@ export default function LandingPageContent() {
                   <h3 className="text-xl font-extrabold mb-1 text-slate-900">Starter</h3>
                   <p className="text-slate-500 text-sm h-8">Bireysel hekimler ve yeni başlayan klinikler için.</p>
                 </div>
-                <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-4xl font-black">999 ₺</span>
-                  <span className="text-slate-400 font-bold text-sm">/ Ay</span>
-                </div>
+
                 <div className="py-4 border-t border-slate-100 flex flex-col gap-2.5">
                   {[
                     "Randevu Takvimi",
@@ -290,7 +287,8 @@ export default function LandingPageContent() {
                   {[
                     "Hasta Listesi & Kayıt Yönetimi",
                     "Stok Yönetimi",
-                    "Detaylı Analiz & Raporlama"
+                    "Detaylı Analiz & Raporlama",
+                    "Yüz İşaretleme (Face Mapping)"
                   ].map((item, i) => (
                     <div key={i + 10} className="flex items-start gap-3 text-[15px] font-semibold text-slate-400">
                       <div className="w-5 h-5 rounded-full border-2 border-slate-200 shrink-0" />
@@ -313,10 +311,7 @@ export default function LandingPageContent() {
                   <h3 className="text-xl font-extrabold mb-1 text-slate-900">Professional</h3>
                   <p className="text-slate-500 text-sm h-8">Hasta takibi gerektiren büyüyen klinikler için.</p>
                 </div>
-                <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-4xl font-black">1.999 ₺</span>
-                  <span className="text-slate-400 font-bold text-sm">/ Ay</span>
-                </div>
+
                 <div className="py-4 border-t border-slate-100 flex flex-col gap-2.5">
                   {[
                     "Randevu Takvimi",
@@ -332,7 +327,8 @@ export default function LandingPageContent() {
                   ))}
                   {[
                     "Stok Yönetimi",
-                    "Detaylı Analiz & Raporlama"
+                    "Detaylı Analiz & Raporlama",
+                    "Yüz İşaretleme (Face Mapping)"
                   ].map((item, i) => (
                     <div key={i + 10} className="flex items-start gap-3 text-[15px] font-semibold text-slate-400">
                       <div className="w-5 h-5 rounded-full border-2 border-slate-200 shrink-0" />
@@ -358,10 +354,7 @@ export default function LandingPageContent() {
                   <h3 className="text-xl font-extrabold mb-1">Advanced</h3>
                   <p className="text-[#94a3b8] text-sm h-8">Tüm özelliklere ihtiyaç duyan profesyonel klinikler için.</p>
                 </div>
-                <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-4xl font-black">2.999 ₺</span>
-                  <span className="text-[#94a3b8] font-bold text-sm">/ Ay</span>
-                </div>
+
                 <div className="py-4 border-t border-white/10 flex flex-col gap-2.5">
                   {[
                     "Randevu Takvimi",
@@ -371,7 +364,7 @@ export default function LandingPageContent() {
                     "Hasta Listesi & Kayıt Yönetimi",
                     "Stok Yönetimi",
                     "Detaylı Analiz & Raporlama",
-                    "Google Sheets Senkronizasyonu"
+                    "Yüz İşaretleme (Face Mapping)"
                   ].map((item, i) => (
                     <div key={i} className="flex items-start gap-3 text-[15px] font-semibold text-white">
                       <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />

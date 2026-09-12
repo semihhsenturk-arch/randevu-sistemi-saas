@@ -359,24 +359,7 @@ function RegisterContent() {
                           </p>
                         )}
 
-                        <div className="space-y-1.5">
-                          {features.included.slice(0, 4).map((f, i) => (
-                            <div key={i} className="flex items-center gap-2">
-                              <CheckCircle2 className={`w-3.5 h-3.5 shrink-0 ${isSelected && planKey === "advanced" ? "text-emerald-400" : "text-emerald-500"
-                                }`} />
-                              <span className={`text-[11px] font-semibold ${isSelected && planKey === "advanced" ? "text-white/90" : "text-slate-700"
-                                }`}>
-                                {f}
-                              </span>
-                            </div>
-                          ))}
-                          {features.included.length > 4 && (
-                            <p className={`text-[10px] font-bold pl-5 ${isSelected && planKey === "advanced" ? "text-emerald-400" : "text-emerald-600"
-                              }`}>
-                              +{features.included.length - 4} özellik daha
-                            </p>
-                          )}
-                        </div>
+
                       </button>
                     );
                   })}
