@@ -357,9 +357,6 @@ export default function AdminUsersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  );
-      </Dialog>
       </div>
       </div>
     </div>

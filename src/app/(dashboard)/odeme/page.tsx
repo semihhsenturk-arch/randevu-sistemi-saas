@@ -587,24 +587,13 @@ function OdemeContent() {
           </div>
         </DialogContent>
       </Dialog>
+      </div>
+      </div>
     </div>
   );
 }
 
 import { Suspense } from "react";
-export default function OdemePage() {
-  return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="w-8 h-8 animate-spin text-emerald-500" /></div>}>
-      <OdemeContent />
-    </Suspense>
-  );
-      )}
-      </div>
-      </div>
-    </div>
-  );
-}
-
 export default function OdemePage() {
   return (
     <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="w-8 h-8 animate-spin text-emerald-500" /></div>}>
