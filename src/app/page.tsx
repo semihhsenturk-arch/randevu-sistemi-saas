@@ -56,7 +56,7 @@ export default function LandingPage() {
               alt="Dermofis"
               width={300}
               height={80}
-              className="h-14 md:h-16 lg:h-20 w-auto object-contain"
+              className="h-12 md:h-16 lg:h-20 w-auto scale-[1.5] lg:scale-[2.2] origin-left"
               priority
             />
           </Link>
@@ -72,7 +72,7 @@ export default function LandingPage() {
                   alt="Dermofis"
                   width={240}
                   height={64}
-                  className="h-16 w-auto object-contain"
+                  className="h-16 w-auto scale-[1.5] origin-left"
                   priority
                 />
               </Link>
