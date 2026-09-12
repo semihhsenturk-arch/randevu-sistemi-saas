@@ -49,14 +49,26 @@ export default function LandingPageContent() {
       <nav className="fixed top-4 md:top-6 w-full z-[1000] px-4 md:px-6">
         <div className="max-w-7xl mx-auto h-20 md:h-24 bg-white border border-[#0a3d34]/15 rounded-[24px] md:rounded-[32px] px-6 md:px-10 flex items-center justify-between shadow-2xl shadow-[#0a3d34]/5 transition-all duration-300">
           
-          {/* Original Logo (Hidden on tablet, visible on mobile and desktop) */}
-          <Link href="/" className="flex md:hidden lg:flex items-center shrink-0">
+          {/* Mobile Logo (Sadece Telefonda Görünür) */}
+          <Link href="/" className="flex md:hidden items-center shrink-0">
             <Image
               src="/logo.png"
               alt="Dermofis"
               width={300}
               height={80}
-              className="h-12 md:h-16 lg:h-20 w-auto scale-[1.5] lg:scale-[2.2] origin-left"
+              className="h-14 w-auto scale-[1.5] origin-left translate-y-1"
+              priority
+            />
+          </Link>
+
+          {/* Desktop Logo (Sadece Masaüstünde Görünür) */}
+          <Link href="/" className="hidden lg:flex items-center shrink-0">
+            <Image
+              src="/logo.png"
+              alt="Dermofis"
+              width={300}
+              height={80}
+              className="h-20 w-auto scale-[2.2] origin-left -translate-y-2"
               priority
             />
           </Link>
@@ -65,14 +77,14 @@ export default function LandingPageContent() {
             {/* Desktop & Tablet Menu */}
             <div className="hidden md:flex items-center md:justify-evenly md:w-full lg:w-auto lg:justify-center md:gap-2 lg:gap-12 text-base lg:text-lg font-bold text-slate-600">
               
-              {/* Tablet Logo (Visible ONLY on tablet to allow equal spacing) */}
+              {/* Tablet Logo (Sadece Tablette Görünür) */}
               <Link href="/" className="hidden md:flex lg:hidden items-center shrink-0">
                 <Image
                   src="/logo.png"
                   alt="Dermofis"
                   width={240}
                   height={64}
-                  className="h-16 w-auto scale-[1.5] origin-left"
+                  className="h-16 w-auto scale-[1.7] origin-left translate-y-1"
                   priority
                 />
               </Link>
