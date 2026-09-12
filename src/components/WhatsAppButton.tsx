@@ -12,7 +12,7 @@ export function WhatsAppButton() {
       href={whatsappUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-8 right-8 z-[3000] flex items-center gap-3 bg-[#25D366] text-white px-5 py-4 rounded-full shadow-[0_10px_25px_-5px_rgba(37,211,102,0.4)] hover:shadow-[0_15px_30px_-5px_rgba(37,211,102,0.6)] hover:-translate-y-1 hover:scale-105 transition-all group"
+      className="fixed bottom-8 right-8 z-[3000] flex items-center gap-3 bg-[#25D366] text-white px-5 py-4 rounded-full shadow-[0_10px_25px_-5px_rgba(37,211,102,0.4)] hover:shadow-[0_15px_30px_-5px_rgba(37,211,102,0.6)] hover:-translate-y-1 hover:scale-105 transition-all duration-500 group [.has-cookie-banner_&]:bottom-[220px] md:[.has-cookie-banner_&]:bottom-[120px]"
     >
       <div className="relative">
         <svg 

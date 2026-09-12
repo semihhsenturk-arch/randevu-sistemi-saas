@@ -13,17 +13,24 @@ export function CookieBanner() {
     const consent = localStorage.getItem("cookie_consent");
     if (!consent) {
       setIsVisible(true);
+      document.body.classList.add("has-cookie-banner");
     }
+
+    return () => {
+      document.body.classList.remove("has-cookie-banner");
+    };
   }, []);
 
   const handleAccept = () => {
     localStorage.setItem("cookie_consent", "accepted");
     setIsVisible(false);
+    document.body.classList.remove("has-cookie-banner");
   };
 
   const handleDecline = () => {
     localStorage.setItem("cookie_consent", "declined");
     setIsVisible(false);
+    document.body.classList.remove("has-cookie-banner");
   };
 
   if (!isVisible) return null;
