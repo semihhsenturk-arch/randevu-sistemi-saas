@@ -394,7 +394,7 @@ export default function LandingPageContent() {
                 </div>
                 <span className="font-extrabold text-xl tracking-tight text-white">Dermofis</span>
             </div>
-            <p className="max-w-sm text-sm leading-relaxed">Modern kliniklerin iş akışını dijitalleştiren ve hasta deneyimini iyileştiren bulut tabanlı bir yönetim sistemi.</p>
+            <p className="max-w-sm text-sm leading-relaxed">Karmaşık klinik süreçlerinizi basitleştirin. Dijital onam, yüz haritalama ve akıllı stok yönetimiyle hasta deneyiminizi kusursuzlaştırın.</p>
           </div>
           
           <div className="space-y-4">
