@@ -50,24 +50,32 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto h-20 md:h-24 bg-white/90 backdrop-blur-xl border border-[#0a3d34]/15 rounded-[24px] md:rounded-[32px] px-6 md:px-10 flex items-center justify-between shadow-2xl shadow-[#0a3d34]/5 transition-all duration-300">
           
           {/* Original Logo (Hidden on tablet, visible on mobile and desktop) */}
-          <div className="flex md:hidden lg:flex items-center gap-3 shrink-0">
-            <div className="w-10 h-10 md:w-12 md:h-12 bg-[#0a3d34] rounded-xl md:rounded-2xl flex items-center justify-center shadow-xl shadow-[#0a3d34]/20">
-              <CalendarDays className="text-white w-6 h-6 md:w-7 md:h-7" />
-            </div>
-            <span className="font-black text-xl md:text-2xl tracking-tighter text-[#0a3d34]">Dermofis</span>
-          </div>
+          <Link href="/" className="flex md:hidden lg:flex items-center shrink-0">
+            <Image
+              src="/logo.png"
+              alt="Dermofis"
+              width={160}
+              height={45}
+              className="h-9 md:h-11 w-auto"
+              priority
+            />
+          </Link>
           
           <div className="flex-1 flex justify-end md:justify-center">
             {/* Desktop & Tablet Menu */}
             <div className="hidden md:flex items-center md:justify-evenly md:w-full lg:w-auto lg:justify-center md:gap-2 lg:gap-12 text-base lg:text-lg font-bold text-slate-600">
               
               {/* Tablet Logo (Visible ONLY on tablet to allow equal spacing) */}
-              <div className="hidden md:flex lg:hidden items-center gap-2 shrink-0">
-                <div className="w-10 h-10 bg-[#0a3d34] rounded-xl flex items-center justify-center shadow-xl shadow-[#0a3d34]/20">
-                  <CalendarDays className="text-white w-6 h-6" />
-                </div>
-                <span className="font-black text-xl tracking-tighter text-[#0a3d34]">Dermofis</span>
-              </div>
+              <Link href="/" className="hidden md:flex lg:hidden items-center shrink-0">
+                <Image
+                  src="/logo.png"
+                  alt="Dermofis"
+                  width={140}
+                  height={40}
+                  className="h-10 w-auto"
+                  priority
+                />
+              </Link>
 
               <a href="#ozellikler" className="hover:text-[#0a3d34] transition-colors relative group whitespace-nowrap">
                 Özellikler
