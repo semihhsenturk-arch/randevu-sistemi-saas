@@ -172,7 +172,7 @@ export function WasteDistributionModal({ open, onOpenChange, inventoryItems, inv
           id: "mov_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5),
           date: format(new Date(), "yyyy-MM-dd HH:mm"),
           transaction_no: txNo,
-          text: `${unitWaste.toLocaleString("tr-TR", {maximumFractionDigits:2})} ${selectedItem.birim} ${selectedItem.ad} (Fire Payı) [Maliyet: ${distributionCost}]`,
+          text: `${Number(unitWaste.toFixed(2))} ${selectedItem.birim} ${selectedItem.ad} (Fire Payı) [Maliyet: ${unitCost}]`,
           cost_items: [{
             name: `${selectedItem.ad} (Fire Payı)`,
             amount: unitWaste,
