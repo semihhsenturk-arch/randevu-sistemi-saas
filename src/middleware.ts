@@ -106,9 +106,8 @@ export async function middleware(request: NextRequest) {
     // Middleware artık sadece gerçek Supabase auth'a güvenir.
     // Demo kullanıcıları için client-side AuthProvider kendi yönlendirmesini yapar.
     
-    // Demo hesabı /admin sayfasına kesinlikle giremez ve sadece development ortamında aktiftir
-    const isDemoSession = process.env.NODE_ENV !== "production" && 
-                          request.cookies.has("demo_mode") && 
+    // Demo hesabı /admin sayfasına kesinlikle giremez
+    const isDemoSession = request.cookies.has("demo_mode") && 
                           request.cookies.get("demo_mode")?.value === "true";
                           
     if (isDemoSession && pathname.startsWith("/admin")) {
