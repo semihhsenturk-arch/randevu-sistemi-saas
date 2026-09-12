@@ -124,8 +124,8 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <section className="pt-32 md:pt-40 pb-20 px-6 overflow-hidden">
-        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-12 md:gap-16">
-          <div className="flex-1 text-center lg:text-left space-y-6 md:space-y-8">
+        <div className="max-w-[1400px] mx-auto flex flex-col lg:flex-row items-center gap-12 md:gap-16">
+          <div className="lg:w-[45%] text-center lg:text-left space-y-6 md:space-y-8">
             <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider">
               <Zap className="w-4 h-4 fill-current" />
               Klinik Yönetiminde Yeni Nesil Dönem
@@ -152,10 +152,10 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="flex-1 relative w-full max-w-2xl lg:max-w-none">
+          <div className="lg:w-[55%] relative w-full max-w-2xl lg:max-w-none">
             <div className="absolute -top-10 -right-10 md:-top-20 md:-right-20 w-[300px] h-[300px] md:w-[600px] md:h-[600px] bg-emerald-100/50 rounded-full blur-3xl -z-1" />
-            <div className="relative bg-white border border-slate-100 rounded-[24px] md:rounded-[32px] p-2 shadow-2xl shadow-slate-200/60 overflow-hidden">
-              <div className="relative aspect-square w-full overflow-hidden rounded-[20px] md:rounded-[28px]">
+            <div className="relative bg-white border border-slate-100 rounded-[24px] md:rounded-[32px] p-2 md:p-3 shadow-2xl shadow-slate-200/60 overflow-hidden">
+              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[20px] md:rounded-[24px]">
                 {promoImages.map((src, index) => (
                   <div 
                     key={src}
