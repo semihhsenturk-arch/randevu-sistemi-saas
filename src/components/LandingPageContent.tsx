@@ -24,6 +24,19 @@ import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 
+const Logo = ({ className = "" }: { className?: string }) => (
+  <div className={`flex items-center gap-2 ${className}`}>
+    <svg width="36" height="36" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
+      <path d="M10 6H20C27.732 6 34 12.268 34 20C34 27.732 27.732 34 20 34H10V6Z" stroke="#0a3d34" strokeWidth="4" strokeLinejoin="round"/>
+      <path d="M14 20L20 26L32 10" stroke="#0a3d34" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
+      <circle cx="14" cy="20" r="2.5" fill="#a7f3d0" />
+      <circle cx="32" cy="10" r="4" fill="#6ee7b7" />
+      <circle cx="32" cy="10" r="8" fill="#6ee7b7" fillOpacity="0.4" />
+    </svg>
+    <span className="text-2xl md:text-[28px] font-extrabold text-[#0a3d34] tracking-tight">Dermofis</span>
+  </div>
+);
+
 export default function LandingPageContent() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -51,26 +64,12 @@ export default function LandingPageContent() {
           
           {/* Mobile Logo (Sadece Telefonda Görünür) */}
           <Link href="/" className="flex md:hidden items-center shrink-0">
-            <Image
-              src="/logo.png"
-              alt="Dermofis"
-              width={300}
-              height={80}
-              className="w-[200px] h-auto object-contain translate-y-4"
-              priority
-            />
+            <Logo />
           </Link>
 
           {/* Desktop Logo (Sadece Masaüstünde Görünür) */}
           <Link href="/" className="hidden lg:flex items-center shrink-0">
-            <Image
-              src="/logo.png"
-              alt="Dermofis"
-              width={300}
-              height={80}
-              className="w-[320px] h-auto object-contain translate-y-8"
-              priority
-            />
+            <Logo />
           </Link>
           
           <div className="flex-1 flex justify-end md:justify-center">
@@ -79,14 +78,7 @@ export default function LandingPageContent() {
               
               {/* Tablet Logo (Sadece Tablette Görünür) */}
               <Link href="/" className="hidden md:flex lg:hidden items-center shrink-0">
-                <Image
-                  src="/logo.png"
-                  alt="Dermofis"
-                  width={240}
-                  height={64}
-                  className="w-[250px] h-auto object-contain translate-y-6"
-                  priority
-                />
+                <Logo />
               </Link>
 
               <a href="#ozellikler" className="hover:text-[#0a3d34] transition-colors relative group whitespace-nowrap">
