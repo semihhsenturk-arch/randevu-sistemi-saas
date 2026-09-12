@@ -47,16 +47,16 @@ export default function LandingPage() {
     <div className="min-h-screen bg-white text-slate-900 selection:bg-emerald-100 selection:text-emerald-900">
       {/* Navbar */}
       <nav className="fixed top-4 md:top-6 w-full z-[1000] px-4 md:px-6">
-        <div className="max-w-7xl mx-auto h-20 md:h-24 bg-white/90 backdrop-blur-xl border border-[#0a3d34]/15 rounded-[24px] md:rounded-[32px] px-6 md:px-10 flex items-center justify-between shadow-2xl shadow-[#0a3d34]/5 transition-all duration-300">
+        <div className="max-w-7xl mx-auto h-20 md:h-24 bg-white border border-[#0a3d34]/15 rounded-[24px] md:rounded-[32px] px-6 md:px-10 flex items-center justify-between shadow-2xl shadow-[#0a3d34]/5 transition-all duration-300">
           
           {/* Original Logo (Hidden on tablet, visible on mobile and desktop) */}
           <Link href="/" className="flex md:hidden lg:flex items-center shrink-0">
             <Image
               src="/logo.png"
               alt="Dermofis"
-              width={240}
-              height={64}
-              className="h-12 md:h-16 w-auto mix-blend-multiply"
+              width={300}
+              height={80}
+              className="h-16 md:h-20 w-auto"
               priority
             />
           </Link>
@@ -70,9 +70,9 @@ export default function LandingPage() {
                 <Image
                   src="/logo.png"
                   alt="Dermofis"
-                  width={200}
-                  height={56}
-                  className="h-14 w-auto mix-blend-multiply"
+                  width={240}
+                  height={64}
+                  className="h-16 w-auto"
                   priority
                 />
               </Link>
