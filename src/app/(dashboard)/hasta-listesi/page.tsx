@@ -663,10 +663,10 @@ export default function PatientListPage() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col h-full relative">
       {!modalOpen && (
         <>
-          <header className="flex flex-col md:flex-row justify-between items-center bg-white/88 backdrop-blur-[20px] p-4 md:p-[14px_24px] rounded-[20px] border border-slate-200/60 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.07)] sticky top-3 z-[40] gap-4">
+          <header className="shrink-0 flex flex-col md:flex-row justify-between items-center bg-white border-b border-slate-200 px-4 md:px-6 lg:px-8 py-3 lg:py-4 z-[40] gap-4">
         <div className="flex flex-col gap-[2px] text-center md:text-left w-full md:w-auto">
           <span className="text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[#0a3d34] opacity-80 mb-[1px]">{(profile?.clinic_name || "Klinik").toUpperCase()}</span>
           <div className="flex items-center justify-center md:justify-start gap-3">
@@ -704,7 +704,7 @@ export default function PatientListPage() {
         </div>
       </header>
 
-
+      <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 custom-scrollbar-auto flex flex-col gap-4">
       <div className="block md:hidden space-y-3 pb-28">
         {filteredPatients.length === 0 && !loading ? (
           <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-500 italic">Kayıt bulunamadı.</div>
@@ -724,7 +724,7 @@ export default function PatientListPage() {
               </div>
               <div className="flex items-center justify-between pt-2 border-t border-slate-100">
                 <span className={`${h?.ad?.toLowerCase().includes('mezoterapi') ? 'bg-blue-50 text-blue-700 border border-blue-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'} px-3 py-1 rounded-full text-[0.7rem] font-bold`}>{h?.ad}</span>
-                <div className="flex gap-2 items-center">
+                <div className="flex flex-wrap gap-2 items-center mt-2 justify-end">
                   {p.whatsapp_status === 'declined' && (
                     <span className="text-[0.65rem] font-bold text-rose-600 bg-rose-50 px-2 py-1 rounded-md border border-rose-100 flex items-center gap-1"><X className="w-3 h-3" /> Reddedildi</span>
                   )}
@@ -810,6 +810,7 @@ export default function PatientListPage() {
           </TableBody>
         </Table>
         </div>
+      </div>
       </div>
       </>
       )}

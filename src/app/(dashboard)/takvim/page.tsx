@@ -696,7 +696,7 @@ export default function CalendarPage() {
   }
 
   return (
-    <div className="flex flex-col gap-4 relative">
+    <div className="flex flex-col h-full relative">
       <CalendarHeader 
         monday={monday} 
         sunday={sunday} 
@@ -709,12 +709,13 @@ export default function CalendarPage() {
         clinicName={profile?.clinic_name}
       />
 
-      <div className="grid grid-cols-1 xl:grid-cols-[1fr_280px] gap-6 pb-20">
+      <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 custom-scrollbar-auto">
+        <div className="grid grid-cols-1 xl:grid-cols-[1fr_280px] gap-6 pb-20">
         {/* Sol Kolon: Takvim Alanı */}
         <div id="tour-calendar-view" className="flex-1 w-full bg-transparent min-w-0">
           <DndContext sensors={sensors} collisionDetection={pointerWithin} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd} onDragCancel={handleDragCancel} measuring={measuringConfig}>
             {/* Mobile Day Selector */}
-            <div className="lg:hidden grid grid-cols-7 gap-1 mb-2">
+            <div className="lg:hidden grid grid-cols-7 gap-1.5 px-1 mb-2">
               {weekDays.map((d, i) => (
                 <button
                   key={i}
@@ -890,6 +891,7 @@ export default function CalendarPage() {
             </Card>
           </div>
         </div>
+      </div>
       </div>
 
       {/* Modallar */}

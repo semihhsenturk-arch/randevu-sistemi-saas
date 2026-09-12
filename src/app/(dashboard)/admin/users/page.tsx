@@ -157,7 +157,9 @@ export default function AdminUsersPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col h-full relative">
+      <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 custom-scrollbar-auto">
+        <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Kullanıcı Yönetimi</h1>
         <p className="text-slate-500 mt-1">Sisteme kayıt olan tüm klinikleri onayla veya reddet.</p>
@@ -355,6 +357,11 @@ export default function AdminUsersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+      </Dialog>
+      </div>
+      </div>
     </div>
   );
 }

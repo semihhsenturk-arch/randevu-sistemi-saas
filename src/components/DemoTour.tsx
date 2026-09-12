@@ -18,7 +18,7 @@ const CustomTooltip = ({
   return (
     <div 
       {...tooltipProps} 
-      className="bg-white/95 backdrop-blur-xl rounded-[1.25rem] shadow-2xl border border-white/40 ring-1 ring-slate-900/5 overflow-hidden w-[340px] md:w-[380px] z-[10000] font-sans"
+      className="bg-white/95 backdrop-blur-xl rounded-[1.25rem] shadow-2xl border border-white/40 ring-1 ring-slate-900/5 overflow-hidden w-[calc(100vw-32px)] md:w-[380px] mx-auto z-[10000] font-sans"
     >
       <div className="p-6 flex flex-col gap-4">
         {/* Header part */}

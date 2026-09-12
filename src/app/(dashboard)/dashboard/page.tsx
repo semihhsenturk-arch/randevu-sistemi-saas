@@ -507,15 +507,17 @@ export default function DashboardAnalyticsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-2 animate-in fade-in duration-500">
+    <div className="flex flex-col h-full relative">
       {/* ── HEADER ── */}
-      <header className="flex flex-col md:flex-row justify-between items-center bg-white/88 backdrop-blur-[20px] p-4 md:p-[14px_24px] rounded-[20px] border border-slate-200/60 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.07)] sticky top-20 lg:top-3 z-[40] mb-4 gap-4">
+      <header className="shrink-0 flex flex-col md:flex-row justify-between items-center bg-white border-b border-slate-200 px-4 md:px-6 lg:px-8 py-3 lg:py-4 z-[40] gap-4">
         <div className="flex flex-col gap-[2px] text-center md:text-left w-full md:w-auto">
           <span className="text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[#0a3d34] opacity-80 mb-[1px]">{(profile?.clinic_name || "Klinik").toUpperCase()}</span>
           <h1 className="text-[1.25rem] font-extrabold text-[#1e293b]">Analiz Paneli</h1>
           <div className="text-[0.78rem] font-medium text-[#64748b]">{format(new Date(), "d MMMM yyyy, eeee", { locale: tr })}</div>
         </div>
       </header>
+
+      <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 custom-scrollbar-auto flex flex-col gap-4 animate-in fade-in duration-500">
 
       {/* ── DATE FILTER ── */}
       <div className="bg-white/50 backdrop-blur-sm px-4 md:px-6 py-4 rounded-2xl mb-6 flex flex-col lg:flex-row items-stretch lg:items-center gap-4 lg:gap-6 shadow-sm border border-slate-200/60">
@@ -934,6 +936,7 @@ export default function DashboardAnalyticsPage() {
           onClose={() => setSelectedReceipt(null)} 
         />
       )}
+      </div>
     </div>
   );
 }

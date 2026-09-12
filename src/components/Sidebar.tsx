@@ -66,7 +66,7 @@ export function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean; setIsOpen?: (
           </Button>
         </div>
 
-        <ul id="tour-nav-menu" className="flex-1 list-none m-0 p-0 flex flex-col gap-2">
+        <ul id="tour-nav-menu" className="flex-1 list-none m-0 p-0 flex flex-col gap-2 overflow-y-auto custom-scrollbar-inner">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;

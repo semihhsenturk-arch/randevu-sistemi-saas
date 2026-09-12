@@ -163,7 +163,11 @@ export default function AyarlarPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto">
+    <div className="flex flex-col h-full relative">
+      <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 custom-scrollbar-auto">
+        <div className="flex flex-col h-full relative">
+      <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 custom-scrollbar-auto">
+        <div className="space-y-6 max-w-3xl mx-auto">
       {/* Header */}
       <div className="flex items-center gap-3">
         <div className="w-11 h-11 bg-slate-100 rounded-xl flex items-center justify-center">
@@ -533,6 +537,13 @@ export default function AyarlarPage() {
           )}
         </DialogContent>
       </Dialog>
+      </div>
+      </div>
+    </div>
+  );
+      </Dialog>
+      </div>
+      </div>
     </div>
   );
 }

@@ -42,8 +42,8 @@ export function CalendarHeader({
   stats
 }: CalendarHeaderProps) {
   return (
-    <div className="flex flex-col gap-3 pb-3 sticky top-16 md:top-20 xl:top-3 z-[40] bg-slate-50">
-      <header className="flex flex-col lg:flex-row justify-between items-center bg-white/88 backdrop-blur-[20px] p-4 lg:p-[10px_16px] xl:p-[14px_24px] rounded-[20px] border border-slate-200/60 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.07)] gap-3 lg:gap-2">
+    <div className="flex flex-col shrink-0 bg-white border-b border-slate-200 z-[40]">
+      <header className="flex flex-col lg:flex-row justify-between items-center p-4 md:px-6 lg:px-8 py-3 lg:py-4 gap-3 lg:gap-2">
         {/* Left: Clinic Name & Date */}
         <div className="flex flex-col gap-[2px] text-center lg:text-left w-full lg:w-auto shrink-0">
           <div className="text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[#0a3d34] opacity-80 mb-[1px]">
@@ -106,8 +106,8 @@ export function CalendarHeader({
         </div>
       </header>
 
-      <div className="flex justify-center items-center py-2">
-        <div className="flex items-center gap-3 bg-white p-[6px_12px] rounded-full border border-slate-200 shadow-md">
+      <div className="flex justify-center items-center py-2 bg-slate-50 border-b border-slate-200 shadow-sm">
+        <div className="flex items-center gap-3 bg-white p-[6px_12px] rounded-full border border-slate-200">
           <Button 
             variant="ghost" 
             size="icon" 
