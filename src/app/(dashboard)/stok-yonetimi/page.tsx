@@ -14,6 +14,7 @@ import { tr } from "date-fns/locale/tr";
 import { useAuth } from "@/hooks/use-auth";
 import { UpgradeScreen } from "@/components/UpgradeScreen";
 import { toast } from "sonner";
+import { WasteDistributionModal } from "@/components/WasteDistributionModal";
 
 export default function StockManagementPage() {
   const { profile, isLoading, checkAccess } = useAuth();
@@ -28,6 +29,7 @@ export default function StockManagementPage() {
   const [selectedExistingId, setSelectedExistingId] = useState<string>("");
   const [entryForm, setEntryForm] = useState<{ kod: string; ad: string; adet: number | string; birim: string; fiyat: number | string; kritik: number | string }>({ kod: "", ad: "", adet: "", birim: "Adet", fiyat: "", kritik: "" });
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [wasteModalOpen, setWasteModalOpen] = useState(false);
 
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [selectedItemToDelete, setSelectedItemToDelete] = useState<InventoryItem | null>(null);
@@ -307,6 +309,9 @@ export default function StockManagementPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
              />
            </div>
+           <Button variant="outline" onClick={() => setWasteModalOpen(true)} className="border-orange-500 text-orange-600 hover:bg-orange-50 h-11 px-4 rounded-xl font-bold w-full sm:w-auto">
+             <AlertTriangle className="w-4 h-4 mr-2" /> Fire Dağıt
+           </Button>
            <Button onClick={() => { resetEntryForm(); setModalOpen(true); }} className="bg-[#0a3d34] hover:bg-[#072b25] h-11 px-6 rounded-xl font-bold w-full sm:w-auto">
              <Plus className="w-4 h-4 mr-2" /> Stok Girişi
            </Button>
@@ -561,6 +566,14 @@ export default function StockManagementPage() {
       </div>
         </>
       )}
+      
+      <WasteDistributionModal 
+        open={wasteModalOpen} 
+        onOpenChange={setWasteModalOpen} 
+        inventoryItems={inventory.items}
+        inventoryStock={inventory.stock}
+        onSuccess={loadData}
+      />
 
       {/* Full Page Stock Entry */}
       {modalOpen && (
