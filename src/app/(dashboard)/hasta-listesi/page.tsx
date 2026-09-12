@@ -813,7 +813,7 @@ export default function PatientListPage() {
       </div>
       </>
       )}
-      <WhatsAppSimulator />
+      {/* <WhatsAppSimulator /> */}
 
       {/* Patient Detail Full Screen View */}
       {modalOpen && (
