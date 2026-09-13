@@ -95,14 +95,17 @@ export function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean; setIsOpen?: (
               <li key={item.href} id={`tour-link${item.href.replace('/', '-')}`}>
                 <Link
                   href={item.href}
-                  onClick={() => setIsOpen?.(false)}
+                  onClick={(e) => {
+                    // Mobilde tıklandığında menüyü kapat, ancak navigasyonu engelleme
+                    setIsOpen?.(false);
+                  }}
                   className={`flex items-center justify-between p-3 rounded-xl text-[0.9rem] font-medium transition-all duration-250 ${
                     isActive
                       ? "bg-[#f8fafc] text-[#1e293b] font-bold shadow-[0_4px_12px_rgba(0,0,0,0.1)]"
-                      : "text-[#94a3b8] hover:bg-white/10 hover:text-white active:bg-white/15"
+                      : "text-[#94a3b8] active:bg-white/15 md:hover:bg-white/10 md:hover:text-white"
                   }`}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 pointer-events-none">
                     <Icon className="w-5 h-5" />
                     <span>{item.label}</span>
                   </div>
