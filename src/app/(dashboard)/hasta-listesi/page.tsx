@@ -34,7 +34,7 @@ export default function PatientListPage() {
   const isLocked = !checkAccess("professional");
   const canUseInventory = checkAccess("advanced");
   
-  const { getAppointments, getPatientProfiles, savePatientProfile, deletePatientProfile, getInventory, saveInventoryItem, getServices, getConsentRecords, deleteConsentRecord } = useDatabase();
+  const { getAppointments, getPatientProfiles, savePatientProfile, deletePatientProfile, getInventory, saveInventoryItem, getServices, getConsentRecords, deleteConsentRecord, deleteAppointment } = useDatabase();
   
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [profiles, setProfiles] = useState<Record<string, Omit<PatientProfile, "patient_name">>>({});
@@ -61,6 +61,7 @@ export default function PatientListPage() {
   const [selectedConsent, setSelectedConsent] = useState<ConsentRecord | null>(null);
   const [deleteConsentModalOpen, setDeleteConsentModalOpen] = useState(false);
   const [consentToDelete, setConsentToDelete] = useState<ConsentRecord | null>(null);
+  const [deletePatientModalOpen, setDeletePatientModalOpen] = useState(false);
 
   // Material Modal
   const [materialModalOpen, setMaterialModalOpen] = useState(false);
@@ -448,6 +449,34 @@ export default function PatientListPage() {
     } finally {
       setDeleteConsentModalOpen(false);
       setConsentToDelete(null);
+    }
+  };
+
+  const executeDeletePatient = async () => {
+    try {
+      setIsSubmitting(true);
+      await deletePatientProfile(selectedPatientName);
+      
+      const patientAppointments = appointments.filter(a => (a.musteriAdi || "") === selectedPatientName);
+      for (const apt of patientAppointments) {
+        await deleteAppointment(apt.id);
+      }
+
+      setProfiles(prev => {
+        const next = { ...prev };
+        delete next[selectedPatientName];
+        return next;
+      });
+      setAppointments(prev => prev.filter(a => (a.musteriAdi || "") !== selectedPatientName));
+
+      toast.success("Hasta ve tüm randevu kayıtları başarıyla silindi.");
+      setDeletePatientModalOpen(false);
+      setModalOpen(false);
+    } catch (err) {
+      console.error("Delete patient err:", err);
+      toast.error("Hasta silinirken bir hata oluştu.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -896,18 +925,8 @@ export default function PatientListPage() {
               <div className="p-4 border-t border-slate-200/50 bg-slate-50/80">
                 <button 
                   className="flex items-center justify-center gap-2 w-full py-2.5 px-3 text-xs font-bold text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl border border-transparent hover:border-red-100 transition-colors"
-                  onClick={() => {
-                    if(confirm("Bu hastayı silmek istediğinize emin misiniz? Bu işlem hastayı gizler, kalıcı olarak silmez.")) {
-                      deletePatientProfile(selectedPatientName).then(() => {
-                        setProfiles(prev => {
-                          const next = { ...prev };
-                          delete next[selectedPatientName];
-                          return next;
-                        });
-                        setModalOpen(false);
-                      });
-                    }
-                  }}
+                  onClick={() => setDeletePatientModalOpen(true)}
+                  disabled={isSubmitting}
                 >
                   <Trash2 className="w-3.5 h-3.5" /> Hastayı Sil
                 </button>
@@ -1696,6 +1715,24 @@ export default function PatientListPage() {
            <div className="flex gap-3 mt-2">
               <Button variant="outline" className="flex-1 border-slate-200 font-bold" onClick={() => setDeleteConsentModalOpen(false)}>İptal</Button>
               <Button className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold shadow-md shadow-red-600/20" onClick={executeDeleteConsent}>Evet, Sil</Button>
+           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Patient Confirm Modal */}
+      <Dialog open={deletePatientModalOpen} onOpenChange={setDeletePatientModalOpen}>
+        <DialogContent className="sm:max-w-[400px] text-center p-8 bg-white border-slate-200">
+           <div className="mx-auto w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mb-4 rotate-3 shadow-sm border border-red-100">
+             <Trash2 className="w-8 h-8" />
+           </div>
+           <DialogHeader><DialogTitle className="text-center text-xl font-extrabold text-[#111827]">Hastayı Sil</DialogTitle></DialogHeader>
+           <p className="text-sm font-medium text-slate-500 mb-6">Bu hastayı ve hastaya ait tüm randevu kayıtlarını sistemden silmek istediğinize emin misiniz? Bu işlem geri alınamaz.</p>
+           <div className="flex gap-3 mt-2">
+              <Button variant="outline" className="flex-1 border-slate-200 font-bold" onClick={() => setDeletePatientModalOpen(false)} disabled={isSubmitting}>İptal</Button>
+              <Button className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold shadow-md shadow-red-600/20" onClick={executeDeletePatient} disabled={isSubmitting}>
+                {isSubmitting ? <Loader2 className="w-4 h-4 mr-2 animate-spin inline" /> : null}
+                Evet, Sil
+              </Button>
            </div>
         </DialogContent>
       </Dialog>
