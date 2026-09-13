@@ -151,6 +151,11 @@ export default function DashboardAnalyticsPage() {
     if (savedStart) { setStartDate(savedStart); setAppliedStartDate(savedStart); }
     if (savedEnd) { setEndDate(savedEnd); setAppliedEndDate(savedEnd); }
     setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isLoading) return;
+
     const cachedApts = getCacheSync<Appointment[]>(CACHE_KEYS.APPOINTMENTS);
     if (cachedApts) setAppointments(cachedApts);
     const cachedSvcs = getCacheSync<Service[]>(CACHE_KEYS.SERVICES);
@@ -162,7 +167,7 @@ export default function DashboardAnalyticsPage() {
 
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isLoading, getAppointments, getServices, getPatientProfiles, getInventory]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
