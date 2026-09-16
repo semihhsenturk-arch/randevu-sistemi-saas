@@ -182,10 +182,36 @@ function OdemeContent() {
   // İyzico checkout formunu render et
   useEffect(() => {
     if (checkoutHTML && checkoutRef.current) {
-      checkoutRef.current.innerHTML = checkoutHTML;
-      // İyzico scriptlerini çalıştır
-      const scripts = checkoutRef.current.querySelectorAll("script");
-      scripts.forEach((oldScript) => {
+      // SEC-1.6 FIX: Sanitize Iyzico HTML before rendering — only allow Iyzico-origin scripts
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(checkoutHTML, "text/html");
+      const scripts = doc.querySelectorAll("script");
+      const ALLOWED_SCRIPT_DOMAINS = ["iyzipay.com", "iyzico.com"];
+
+      scripts.forEach((script) => {
+        const src = script.getAttribute("src") || "";
+        if (src) {
+          try {
+            const url = new URL(src, window.location.origin);
+            const isAllowed = ALLOWED_SCRIPT_DOMAINS.some((d) => url.hostname.endsWith(d));
+            if (!isAllowed) {
+              console.warn("[SEC] Blocked non-Iyzico script:", src);
+              script.remove();
+            }
+          } catch {
+            console.warn("[SEC] Blocked script with invalid URL:", src);
+            script.remove();
+          }
+        }
+        // Inline scripts from Iyzico are allowed (they contain checkout init code)
+      });
+
+      const sanitizedHTML = doc.body.innerHTML;
+      checkoutRef.current.innerHTML = sanitizedHTML;
+
+      // İyzico scriptlerini çalıştır (only the ones that survived sanitization)
+      const liveScripts = checkoutRef.current.querySelectorAll("script");
+      liveScripts.forEach((oldScript) => {
         const newScript = document.createElement("script");
         Array.from(oldScript.attributes).forEach((attr) =>
           newScript.setAttribute(attr.name, attr.value)

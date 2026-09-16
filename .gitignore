@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# security: test/debug scripts with potential secrets
+test-*.mjs
+query_patient.mjs
+scratch.py
+tmp.tsx

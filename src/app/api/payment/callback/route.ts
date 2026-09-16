@@ -30,6 +30,9 @@ function clientRedirect(origin: string, path: string) {
   );
 }
 
+// SEC-IDOR FIX: UUID format validation
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function POST(req: NextRequest) {
   const origin = new URL(req.url).origin;
 
@@ -52,21 +55,66 @@ export async function POST(req: NextRequest) {
     const result = await retrieveCheckoutForm(token);
 
     if (result.status === "success" && (result.paymentStatus === "SUCCESS" || result.paymentStatus === "INIT_THREEDS")) {
-      let userId = result.conversationId;
+      // SEC-IDOR FIX: Extract userId from conversationId (primary) and basketId (secondary)
+      const userIdFromConversation = result.conversationId || null;
+      let userIdFromBasket: string | null = null;
 
-      if (!userId && result.basketId && result.basketId.startsWith("basket_")) {
+      if (result.basketId && result.basketId.startsWith("basket_")) {
         const parts = result.basketId.split("_");
         if (parts.length >= 2) {
-          userId = parts[1];
+          userIdFromBasket = parts[1];
         }
       }
+
+      // SEC-IDOR FIX: Cross-validate — if both sources exist, they must agree
+      if (userIdFromConversation && userIdFromBasket && userIdFromConversation !== userIdFromBasket) {
+        logger.error("Payment callback: userId mismatch between conversationId and basketId", {
+          conversationId: userIdFromConversation,
+          basketId: result.basketId,
+        });
+        return clientRedirect(origin, "/odeme?status=error&message=Ödeme doğrulama hatası");
+      }
+
+      const userId = userIdFromConversation || userIdFromBasket;
 
       if (!userId) {
         logger.error("Payment successful but userId is missing", { result });
         return clientRedirect(origin, "/odeme?status=error&message=Kullanıcı bilgisi alınamadı");
       }
 
-      const supabaseAdmin = createServiceClient();
+      // SEC-IDOR FIX: Validate userId is a proper UUID to prevent injection
+      if (!UUID_REGEX.test(userId)) {
+        logger.error("Payment callback: Invalid userId format (not a UUID)", { userId });
+        return clientRedirect(origin, "/odeme?status=error&message=Geçersiz kullanıcı bilgisi");
+      }
+
+      const supabaseAdmin = await createServiceClient();
+
+      // SEC-IDOR FIX: Verify profile exists and is in 'pending' state before updating
+      const { data: profile, error: fetchError } = await supabaseAdmin
+        .from("profiles")
+        .select("id, payment_status")
+        .eq("id", userId)
+        .single();
+
+      if (fetchError || !profile) {
+        logger.error("Payment callback: Profile not found for userId", { userId });
+        return clientRedirect(origin, "/odeme?status=error&message=Kullanıcı bulunamadı");
+      }
+
+      // SEC-IDOR FIX: Only allow transition from 'pending' to 'paid'
+      if (profile.payment_status === "paid") {
+        logger.warn("Payment callback: Profile already paid, skipping update", { userId });
+        return clientRedirect(origin, "/odeme?status=success");
+      }
+
+      if (profile.payment_status !== "pending") {
+        logger.warn("Payment callback: Unexpected payment_status, blocking update", {
+          userId,
+          currentStatus: profile.payment_status,
+        });
+        return clientRedirect(origin, "/odeme?status=error&message=Ödeme durumu güncelenemedi");
+      }
 
       const { error: updateError } = await supabaseAdmin
         .from("profiles")
@@ -78,6 +126,7 @@ export async function POST(req: NextRequest) {
         return clientRedirect(origin, `/odeme?status=error&message=${encodeURIComponent("Profil güncellenemedi")}`);
       }
 
+      logger.info("Payment successful, profile updated", { userId });
       return clientRedirect(origin, "/odeme?status=success");
     } else {
       logger.warn("Payment failed or invalid status", { result });
