@@ -45,8 +45,8 @@ export default function ClientLayout({
       {/* Trial Banner — fixed top bar with 7-day countdown */}
       {showTrialBanner && <TrialBanner />}
 
-      {/* Mobile Header */}
-      <div className={`lg:hidden fixed left-0 right-0 h-16 bg-[#1e293b] border-b border-white/5 flex items-center px-5 z-40 shadow-lg gap-4 ${hasTopBanner ? "top-[52px]" : "top-0"}`}>
+      {/* Header */}
+      <div className={`fixed left-0 right-0 h-16 bg-[#1e293b] border-b border-white/5 flex items-center px-5 z-40 shadow-lg gap-4 ${hasTopBanner ? "top-[52px]" : "top-0"}`}>
         <Button 
           variant="ghost" 
           size="icon" 
@@ -65,7 +65,7 @@ export default function ClientLayout({
 
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
       
-      <main className={`block lg:ml-[280px] w-full lg:w-[calc(100%-280px)] h-[100dvh] lg:h-screen overflow-hidden transition-all ${hasTopBanner ? "pt-[100px] lg:pt-[52px]" : "pt-16 lg:pt-0"}`}>
+      <main className={`block w-full h-[100dvh] lg:h-screen overflow-hidden transition-all ${hasTopBanner ? "pt-[116px]" : "pt-16"}`}>
         {children}
       </main>
     </div>
