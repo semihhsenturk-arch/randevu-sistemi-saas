@@ -998,6 +998,7 @@ export default function CalendarPage() {
                     Randevu Tarihi
                   </Label>
                   <DatePicker 
+                    className="h-10 text-sm"
                     date={currentApt.tarih ? parseISO(currentApt.tarih) : undefined} 
                     setDate={(val) => setCurrentApt(prev => ({...prev, tarih: val ? format(val, "yyyy-MM-dd") : ""}))}
                   />
