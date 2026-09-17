@@ -896,7 +896,7 @@ export default function CalendarPage() {
 
       {/* Modallar */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="sm:max-w-[480px] p-0 overflow-hidden border-none shadow-[0_20px_40px_-8px_rgba(0,0,0,0.18)] rounded-[20px] bg-white [&>button:last-child]:hidden">
+        <DialogContent className="sm:max-w-[480px] p-0 max-h-[90vh] overflow-y-auto custom-scrollbar-auto border-none shadow-[0_20px_40px_-8px_rgba(0,0,0,0.18)] rounded-[32px] bg-white [&>button:last-child]:hidden">
           <div className="p-8">
             <div className="flex justify-between items-center mb-5">
               <DialogTitle className="text-[1.3rem] font-extrabold text-[#1e293b]">
