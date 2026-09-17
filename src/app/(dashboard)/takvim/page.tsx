@@ -975,7 +975,7 @@ export default function CalendarPage() {
                       <SelectValue/>
                     </SelectTrigger>
                     <SelectContent>
-                      {services.map(h => <SelectItem key={h.id} value={h.id.toString()}>{h.ad} ({h.fiyat} ₺)</SelectItem>)}
+                      {services.map(h => <SelectItem key={h.id} value={h.id.toString()}>{h.ad}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
