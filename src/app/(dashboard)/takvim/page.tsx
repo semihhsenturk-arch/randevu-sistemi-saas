@@ -151,7 +151,7 @@ export default function CalendarPage() {
         setCurrentApt({
           tarih: todayStr,
           saat: "09:00",
-          durum: "beklemede",
+          durum: "onaylandi",
           musteriAdi: name,
           telefon: phone
         });
@@ -477,7 +477,7 @@ export default function CalendarPage() {
       ...(currentApt as Appointment),
       id: tempId,
       hizmetId: currentApt.hizmetId || "1",
-      durum: currentApt.durum || "beklemede"
+      durum: currentApt.durum || "onaylandi"
     };
 
     setAppointments(prev => currentApt.id ? prev.map(a => a.id === payload.id ? payload : a) : [...prev, payload]);
@@ -704,7 +704,7 @@ export default function CalendarPage() {
         setWeekOffset={setWeekOffset} 
         syncing={syncing}
         onSync={handleSync}
-        onNewAppointment={(t, s) => { setCurrentApt({ tarih: t, saat: s, durum: "beklemede", musteriAdi: "" }); setModalOpen(true); }}
+        onNewAppointment={(t, s) => { setCurrentApt({ tarih: t, saat: s, durum: "onaylandi", musteriAdi: "" }); setModalOpen(true); }}
         stats={stats}
         clinicName={profile?.clinic_name}
       />
@@ -771,7 +771,7 @@ export default function CalendarPage() {
                         if (t === "12:30") return <div key="lunch-s" className="h-[100px] bg-[repeating-linear-gradient(-45deg,transparent,transparent_4px,#f1f5f9_4px,#f1f5f9_5px)] border-y border-slate-200 flex items-center justify-center text-[0.65rem] uppercase font-bold text-slate-400 tracking-wider">Öğle Arası</div>;
                         if (t === "13:00") return null;
                         return (
-                          <DroppableSlot key={j} id={`${dStr}_${t}`} date={dStr} time={t} onClick={() => { setCurrentApt({ tarih: dStr, saat: t, durum: "beklemede" }); setModalOpen(true); }}>
+                          <DroppableSlot key={j} id={`${dStr}_${t}`} date={dStr} time={t} onClick={() => { setCurrentApt({ tarih: dStr, saat: t, durum: "onaylandi" }); setModalOpen(true); }}>
                             <div className="h-[50px] border-b border-slate-50"></div>
                           </DroppableSlot>
                         );

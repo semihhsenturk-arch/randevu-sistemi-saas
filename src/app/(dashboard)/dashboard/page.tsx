@@ -12,6 +12,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieCha
 import { UpgradeScreen } from "@/components/UpgradeScreen";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TransactionReceiptModal } from "@/components/TransactionReceiptModal";
+import { TableColumnFilter } from "@/components/TableColumnFilter";
 
 /* ── Circular Progress Ring ── */
 function CircularProgress({ value, size = 56, stroke = 5, color }: { value: number; size?: number; stroke?: number; color: string }) {
@@ -73,6 +74,7 @@ export default function DashboardAnalyticsPage() {
   const [patientProfiles, setPatientProfiles] = useState<Record<string, any>>({});
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [inventory, setInventory] = useState<any>({ stock: {}, items: [] });
+  const [columnFilters, setColumnFilters] = useState<Record<string, string[]>>({});
   
   const isLocked = !checkAccess("advanced");
   const [startDate, setStartDate] = useState(format(startOfMonth(new Date()), "yyyy-MM-dd"));
@@ -504,6 +506,25 @@ export default function DashboardAnalyticsPage() {
 
   const varColor = (v: number) => v > 80 ? '#0d9488' : v > 40 ? '#f59e0b' : '#ef4444';
 
+  const { filteredTransactions, uniqueTxHastalar, uniqueTxHizmetler } = useMemo(() => {
+    const txs = analytics?.transactions || [];
+    const hastalar = Array.from(new Set(txs.map(t => t.patientName || "(Boş)"))).sort();
+    const hizmetler = Array.from(new Set(txs.map(t => t.serviceName || "(Boş)"))).sort();
+
+    const filtered = txs.filter(t => {
+      let match = true;
+      if (columnFilters['hasta'] && columnFilters['hasta'].length > 0) {
+        if (!columnFilters['hasta'].includes(t.patientName || "(Boş)")) match = false;
+      }
+      if (columnFilters['hizmet'] && columnFilters['hizmet'].length > 0) {
+        if (!columnFilters['hizmet'].includes(t.serviceName || "(Boş)")) match = false;
+      }
+      return match;
+    });
+
+    return { filteredTransactions: filtered, uniqueTxHastalar: hastalar, uniqueTxHizmetler: hizmetler };
+  }, [analytics, columnFilters]);
+
   if (isLoading || !isMounted) {
     return (<div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="w-8 h-8 animate-spin text-emerald-500" /></div>);
   }
@@ -877,7 +898,7 @@ export default function DashboardAnalyticsPage() {
         <div className="text-[0.95rem] font-extrabold mb-1 text-slate-900">İşlem Fişi & Kârlılık Özeti</div>
         <p className="text-[0.75rem] text-slate-400 font-medium mb-4">Seçili tarih aralığındaki işlemler, liste fiyatları, stok maliyetleri ve kâr marjı analizi</p>
         
-        {analytics.transactions.length === 0 ? (
+        {filteredTransactions.length === 0 ? (
            <div className="flex items-center justify-center h-[120px] text-slate-400 italic text-sm">Veri Yok</div>
         ) : (
            <div className="overflow-x-auto custom-scrollbar-auto">
@@ -887,8 +908,24 @@ export default function DashboardAnalyticsPage() {
                    <tr className="border-b border-slate-100">
                      <th className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-wider py-3 pr-3">Tarih</th>
                      <th className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-wider py-3 px-3">İşlem No</th>
-                     <th className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-wider py-3 px-3">Hasta Adı</th>
-                     <th className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-wider py-3 px-3">Hizmet</th>
+                     <th className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-wider py-3 px-3">
+                        <TableColumnFilter
+                          title="Hasta Adı"
+                          options={uniqueTxHastalar}
+                          selectedValues={columnFilters['hasta'] || []}
+                          onFilterChange={(values) => setColumnFilters(prev => ({ ...prev, hasta: values }))}
+                          align="center"
+                        />
+                     </th>
+                     <th className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-wider py-3 px-3">
+                        <TableColumnFilter
+                          title="Hizmet"
+                          options={uniqueTxHizmetler}
+                          selectedValues={columnFilters['hizmet'] || []}
+                          onFilterChange={(values) => setColumnFilters(prev => ({ ...prev, hizmet: values }))}
+                          align="center"
+                        />
+                     </th>
                      <th className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-wider py-3 px-3 text-right">Liste Fiyatı</th>
                      <th className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-wider py-3 px-3 text-right">Gider (Maliyet)</th>
                      <th className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-wider py-3 px-3 text-right">Net Kâr</th>
@@ -896,7 +933,7 @@ export default function DashboardAnalyticsPage() {
                    </tr>
                  </thead>
                  <tbody>
-                   {analytics.transactions.map((tx: any, i: number) => (
+                   {filteredTransactions.map((tx: any, i: number) => (
                      <tr key={i} className={`border-b border-slate-50 ${i % 2 === 1 ? 'bg-slate-50/50' : ''} hover:bg-slate-50 transition-colors`}>
                        <td className="py-3 pr-3 text-[0.8rem] font-bold text-slate-700 whitespace-nowrap">
                          {format(new Date(tx.date), "dd.MM.yyyy")}

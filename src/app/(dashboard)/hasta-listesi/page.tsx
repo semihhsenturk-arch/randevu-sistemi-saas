@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useDatabase, Appointment, PatientProfile, FaceTreatment, InventoryItem, Service, ConsentRecord, getCacheSync, CACHE_KEYS, generateTransactionNo } from "@/hooks/use-database";
 import { useTransactionMapping } from "@/hooks/useTransactionMapping";
+import { TableColumnFilter } from "@/components/TableColumnFilter";
 import { FaceMap } from "@/components/FaceMap";
 import { TransactionReceiptModal } from "@/components/TransactionReceiptModal";
 import { BeforeAfterCompare } from "@/components/BeforeAfterCompare";
@@ -42,6 +43,7 @@ export default function PatientListPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
+  const [columnFilters, setColumnFilters] = useState<Record<string, string[]>>({});
 
   // Patient Modal
   const [modalOpen, setModalOpen] = useState(false);
@@ -149,13 +151,19 @@ export default function PatientListPage() {
       const telefon = a.telefon || "";
       const matchesSearch = musteriAdi.toLocaleUpperCase("tr-TR").includes(search) || telefon.includes(searchTerm);
       
-      if (filterType === "today") {
-        return isToday && isActive && matchesSearch;
-      } else {
-        // "Tümü" seçildiğinde durumu ne olursa olsun (geçmiş/gelecek) arama eşleşiyorsa göster
-        return matchesSearch;
+      let typeMatch = true;
+      if (filterType === "today") typeMatch = isToday && isActive && matchesSearch;
+      else typeMatch = matchesSearch;
+
+      // Column Filters Logic
+      let columnMatch = true;
+      if (columnFilters['hizmet'] && columnFilters['hizmet'].length > 0) {
+        const h = a.hizmetId ? services.find(x => x.id.toString() === a.hizmetId.toString())?.ad : "";
+        if (!columnFilters['hizmet'].includes(h || "(Boş)")) columnMatch = false;
       }
-    }).sort((a,b) => {
+      
+      return typeMatch && columnMatch;
+    }).sort((a, b) => {
       const nameA = (a.musteriAdi || "").toLocaleUpperCase("tr-TR");
       const nameB = (b.musteriAdi || "").toLocaleUpperCase("tr-TR");
       const nameCompare = nameA.localeCompare(nameB, "tr-TR");
@@ -170,7 +178,15 @@ export default function PatientListPage() {
       const timeB = b.saat || "";
       return timeB.localeCompare(timeA);
     });
-  }, [appointments, todayStr, searchTerm, filterType]);
+  }, [appointments, filterType, searchTerm, todayStr, columnFilters, services]);
+
+  const uniqueHizmetler = useMemo(() => {
+    const list = appointments.map(a => {
+      const h = a.hizmetId ? services.find(x => x.id.toString() === a.hizmetId.toString())?.ad : "";
+      return h || "(Boş)";
+    });
+    return Array.from(new Set(list)).sort();
+  }, [appointments, services]);
 
   const stats = useMemo(() => ({
     total: filteredPatients.length,
@@ -783,7 +799,15 @@ export default function PatientListPage() {
             <TableRow className="hover:bg-transparent border-none">
               <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">Hasta Adı Soyadı</TableHead>
               <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">İletişim Numarası</TableHead>
-              <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">Hizmet Türü</TableHead>
+              <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">
+                <TableColumnFilter
+                  title="Hizmet Türü"
+                  options={uniqueHizmetler}
+                  selectedValues={columnFilters['hizmet'] || []}
+                  onFilterChange={(values) => setColumnFilters(prev => ({ ...prev, hizmet: values }))}
+                  align="center"
+                />
+              </TableHead>
               <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">Tarih / Saat</TableHead>
               <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">İşlem</TableHead>
             </TableRow>

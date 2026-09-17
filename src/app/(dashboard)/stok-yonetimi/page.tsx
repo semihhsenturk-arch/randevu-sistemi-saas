@@ -15,12 +15,14 @@ import { useAuth } from "@/hooks/use-auth";
 import { UpgradeScreen } from "@/components/UpgradeScreen";
 import { toast } from "sonner";
 import { WasteDistributionModal } from "@/components/WasteDistributionModal";
+import { TableColumnFilter } from "@/components/TableColumnFilter";
 
 export default function StockManagementPage() {
   const { profile, isLoading, checkAccess } = useAuth();
   const { getInventory, saveInventoryItem, deleteInventoryItem } = useDatabase();
   const [inventory, setInventory] = useState<{ stock: Record<string, number>; items: InventoryItem[] }>({ stock: {}, items: [] });
   const [searchTerm, setSearchTerm] = useState("");
+  const [columnFilters, setColumnFilters] = useState<Record<string, string[]>>({});
   const [loading, setLoading] = useState(false);
   
   const [modalOpen, setModalOpen] = useState(false);
@@ -252,7 +254,21 @@ export default function StockManagementPage() {
   };
 
   const filteredItems = inventory.items
-    .filter(i => i.ad.toLowerCase().includes(searchTerm.toLowerCase()))
+    .filter(i => {
+      const matchSearch = i.ad.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      let columnMatch = true;
+      if (columnFilters['durum'] && columnFilters['durum'].length > 0) {
+        const qty = inventory.stock[i.id] || 0;
+        const crit = i.kritik_stok || 10;
+        const durumText = qty <= crit ? "Kritik" : "Yeterli";
+        if (!columnFilters['durum'].includes(durumText)) {
+          columnMatch = false;
+        }
+      }
+      
+      return matchSearch && columnMatch;
+    })
     .sort((a, b) => {
       const kodA = a.kod || "";
       const kodB = b.kod || "";
@@ -459,7 +475,15 @@ export default function StockManagementPage() {
               <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">Malzeme Adı</TableHead>
               <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">Mevcut Miktar</TableHead>
               <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">Kritik Limit</TableHead>
-              <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">Durum</TableHead>
+              <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">
+                <TableColumnFilter
+                  title="Durum"
+                  options={["Kritik", "Yeterli"]}
+                  selectedValues={columnFilters['durum'] || []}
+                  onFilterChange={(values) => setColumnFilters(prev => ({ ...prev, durum: values }))}
+                  align="center"
+                />
+              </TableHead>
               <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">Ort. Birim Maliyet</TableHead>
               <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">Toplam Değer</TableHead>
               <TableHead className="text-white font-bold uppercase tracking-wider text-[0.72rem] py-4 text-center">İşlem</TableHead>
