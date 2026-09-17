@@ -447,17 +447,6 @@ export function useDatabase() {
           };
         });
 
-        // Also include items that exist ONLY in cache (not in DB)
-        if (existingCache) {
-          const dbItemIds = new Set(data.map((d: any) => d.item_id));
-          existingCache.items.forEach(ci => {
-            if (!dbItemIds.has(ci.id)) {
-              items.push(ci);
-              stock[ci.id] = existingCache.stock[ci.id] || 0;
-            }
-          });
-        }
-
         const result = { stock, items };
         setCache(CACHE_KEYS.INVENTORY, result);
 
