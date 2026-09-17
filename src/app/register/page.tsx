@@ -13,19 +13,19 @@ import { AlertCircle, CheckCircle, ArrowLeft, ArrowRight, Zap, ShieldCheck, Star
 
 const PLAN_FEATURES: Record<PlanType, { included: string[]; excluded: string[]; icon: any; desc: string }> = {
   starter: {
-    included: ["Randevu Takvimi", "E-posta & WhatsApp Desteği", "KVKK Uyumu", "Ömür Boyu Güncellemeler"],
+    included: ["Randevu Takvimi", "Dijital Hasta Kartı", "KVKK Uyumu", "Ömür Boyu Güncellemeler"],
     excluded: ["Hasta Listesi & Kayıt Yönetimi", "Stok Yönetimi", "Detaylı Analiz & Raporlama"],
     icon: Zap,
     desc: "Bireysel hekimler ve yeni başlayan klinikler için.",
   },
   professional: {
-    included: ["Randevu Takvimi", "E-posta & WhatsApp Desteği", "KVKK Uyumu", "Ömür Boyu Güncellemeler", "Hasta Listesi & Kayıt Yönetimi"],
+    included: ["Randevu Takvimi", "Dijital Hasta Kartı", "KVKK Uyumu", "Ömür Boyu Güncellemeler", "Hasta Listesi & Kayıt Yönetimi"],
     excluded: ["Stok Yönetimi", "Detaylı Analiz & Raporlama"],
     icon: ShieldCheck,
     desc: "Hasta takibi gerektiren büyüyen klinikler için.",
   },
   advanced: {
-    included: ["Randevu Takvimi", "E-posta & WhatsApp Desteği", "KVKK Uyumu", "Ömür Boyu Güncellemeler", "Hasta Listesi & Kayıt Yönetimi", "Stok Yönetimi", "Detaylı Analiz & Raporlama", "Google Sheets Senkronizasyonu"],
+    included: ["Randevu Takvimi", "Dijital Hasta Kartı", "KVKK Uyumu", "Ömür Boyu Güncellemeler", "Hasta Listesi & Kayıt Yönetimi", "Stok Yönetimi", "Detaylı Analiz & Raporlama", "Google Sheets Senkronizasyonu"],
     excluded: [],
     icon: Star,
     desc: "Tüm özelliklere ihtiyaç duyan profesyonel klinikler için.",

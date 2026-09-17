@@ -267,7 +267,7 @@ export default function LandingPageContent() {
                 <div className="py-4 border-t border-slate-100 flex flex-col gap-2.5">
                   {[
                     "Randevu Takvimi",
-                    "E-posta & WhatsApp Desteği",
+                    "Dijital Hasta Kartı",
                     "KVKK Uyumu",
                     "Ömür Boyu Güncellemeler"
                   ].map((item, i) => (
@@ -307,7 +307,7 @@ export default function LandingPageContent() {
                 <div className="py-4 border-t border-slate-100 flex flex-col gap-2.5">
                   {[
                     "Randevu Takvimi",
-                    "E-posta & WhatsApp Desteği",
+                    "Dijital Hasta Kartı",
                     "KVKK Uyumu",
                     "Ömür Boyu Güncellemeler",
                     "Hasta Listesi & Kayıt Yönetimi"
@@ -350,7 +350,7 @@ export default function LandingPageContent() {
                 <div className="py-4 border-t border-white/10 flex flex-col gap-2.5">
                   {[
                     "Randevu Takvimi",
-                    "E-posta & WhatsApp Desteği",
+                    "Dijital Hasta Kartı",
                     "KVKK Uyumu",
                     "Ömür Boyu Güncellemeler",
                     "Hasta Listesi & Kayıt Yönetimi",

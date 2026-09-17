@@ -40,7 +40,7 @@ const PLANS: { key: PlanType; icon: any; color: string; bg: string; border: stri
     color: "text-amber-500",
     bg: "bg-amber-50",
     border: "border-amber-200",
-    features: ["Randevu Takvimi", "E-posta & WhatsApp Desteği", "KVKK Uyumu"],
+    features: ["Randevu Takvimi", "Dijital Hasta Kartı", "KVKK Uyumu"],
   },
   {
     key: "professional",
