@@ -210,9 +210,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               id: "demo-user",
               clinic_name: "Demo Clinic",
               email: "demo@dermofis.com",
-              role: "admin",
+              role: "demo",        // SEC-2.1 FIX: "admin" → "demo" — demo kullanıcı admin yetkisi almamalı
               is_approved: true,
-              plan: "advanced",
+              plan: "starter",     // SEC-2.1 FIX: "advanced" → "starter" — demo kullanıcı advanced plan almamalı
               payment_status: "paid",
             };
             setSession({ user: { id: "demo-user" } } as Session);

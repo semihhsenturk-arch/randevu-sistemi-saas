@@ -40,7 +40,7 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
-  const ip = request.headers.get("x-forwarded-for") || request.ip || "127.0.0.1";
+  const ip = request.headers.get("x-forwarded-for")?.split(',')[0].trim() || "127.0.0.1";
 
   // 1. API Protection & Rate Limiting
   if (pathname.startsWith("/api/")) {

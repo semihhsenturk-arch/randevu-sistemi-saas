@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-import { getAuthenticatedUser } from "@/lib/supabase-server";
+import { getAuthenticatedUser, createServiceClient } from "@/lib/supabase-server";
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,10 +19,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Kullanıcı kimliği uyuşmuyor" }, { status: 403 });
     }
 
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const supabaseAdmin = await createServiceClient();
 
     // Kullanıcının profilini kontrol et
     const { data: profile, error: fetchError } = await supabaseAdmin

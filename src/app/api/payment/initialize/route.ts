@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     const firstName = nameParts[0] || "Klinik";
     const lastName = nameParts.slice(1).join(" ") || "Kullanıcı";
 
-    const ip = req.headers.get("x-forwarded-for")?.split(',')[0].trim() || req.ip || "85.34.78.112";
+    const ip = req.headers.get("x-forwarded-for")?.split(',')[0].trim() || "85.34.78.112";
 
     const result = await initializeCheckoutForm({
       conversationId: userId,

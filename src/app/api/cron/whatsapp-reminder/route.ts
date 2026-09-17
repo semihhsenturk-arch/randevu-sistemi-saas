@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServiceClient } from '@/lib/supabase-server';
 import { parseISO, differenceInMinutes } from 'date-fns';
 
 export async function GET(req: Request) {
@@ -23,10 +23,7 @@ export async function GET(req: Request) {
 
   
   try {
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const supabaseAdmin = await createServiceClient();
 
     // 1. Fetch all 'beklemede' appointments without a whatsapp_status
     const { data: appointments, error } = await supabaseAdmin

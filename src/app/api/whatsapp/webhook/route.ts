@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServiceClient } from '@/lib/supabase-server';
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
@@ -41,10 +41,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: 'Missing appointmentId, reply, or userId' }, { status: 400 });
     }
 
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const supabaseAdmin = await createServiceClient();
 
     const { data: appointment, error: fetchError } = await supabaseAdmin
       .from('appointments')
