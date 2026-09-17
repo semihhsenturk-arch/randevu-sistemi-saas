@@ -917,7 +917,7 @@ export default function CalendarPage() {
             </div>
 
             <form className="space-y-3" onSubmit={handleSaveModal}>
-              <div className="grid grid-cols-[1fr_130px] gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <Label className="block text-[0.7rem] font-bold text-[#64748b] uppercase tracking-[0.05em]">
                     ADI SOYADI
@@ -964,7 +964,7 @@ export default function CalendarPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-[1fr_100px] gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <Label className="block text-[0.7rem] font-bold text-[#64748b] uppercase tracking-[0.05em]">
                     Hizmet Tipi
