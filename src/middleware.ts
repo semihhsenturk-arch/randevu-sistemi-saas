@@ -72,6 +72,8 @@ export async function middleware(request: NextRequest) {
       "/api/payment/callback",
       "/api/whatsapp/webhook",
       "/api/demo-report",
+      "/api/auth/login",
+      "/api/auth/register",
     ];
 
     if (!publicApiRoutes.includes(pathname)) {
