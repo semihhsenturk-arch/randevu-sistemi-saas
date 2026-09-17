@@ -896,82 +896,81 @@ export default function CalendarPage() {
 
       {/* Modallar */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="sm:max-w-[480px] p-0 max-h-[90vh] overflow-y-auto custom-scrollbar-auto border-none shadow-[0_20px_40px_-8px_rgba(0,0,0,0.18)] rounded-[32px] bg-white [&>button:last-child]:hidden">
-          <div className="p-8">
-            <div className="flex justify-between items-center mb-5">
-              <DialogTitle className="text-[1.3rem] font-extrabold text-[#1e293b]">
-                {currentApt.id ? "Randevu Düzenle" : "Randevu Oluştur"}
-              </DialogTitle>
+        <DialogContent className="sm:max-w-[520px] p-0 max-h-[95vh] overflow-y-auto custom-scrollbar-auto border-none shadow-[0_20px_40px_-8px_rgba(0,0,0,0.18)] rounded-[24px] bg-white [&>button:last-child]:hidden">
+          <div className="p-6">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <DialogTitle className="text-[1.2rem] font-extrabold text-[#1e293b]">
+                  {currentApt.id ? "Randevu Düzenle" : "Randevu Oluştur"}
+                </DialogTitle>
+                <div className="flex items-center gap-1 mt-1 text-[0.65rem] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-md inline-flex">
+                  <Check className="w-3 h-3" /> İşlem No: {computedTxNo}
+                </div>
+              </div>
               <button 
                 type="button"
                 onClick={() => setModalOpen(false)}
-                className="w-[30px] h-[30px] bg-[#f1f5f9] text-[#64748b] rounded-full flex items-center justify-center hover:bg-[#e2e8f0] hover:text-[#1e293b] transition-all"
+                className="w-7 h-7 bg-[#f1f5f9] text-[#64748b] rounded-full flex items-center justify-center hover:bg-[#e2e8f0] hover:text-[#1e293b] transition-all mt-1"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form className="space-y-4" onSubmit={handleSaveModal}>
-              <div className="flex items-center gap-2 mb-2 p-3 bg-emerald-50 border border-emerald-100 rounded-xl">
-                <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
-                  <Check className="w-4 h-4" />
+            <form className="space-y-3" onSubmit={handleSaveModal}>
+              <div className="grid grid-cols-[1fr_130px] gap-3">
+                <div className="space-y-1">
+                  <Label className="block text-[0.7rem] font-bold text-[#64748b] uppercase tracking-[0.05em]">
+                    ADI SOYADI
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <Input 
+                      required 
+                      placeholder="Hasta Adı"
+                      className="flex-1 h-10 text-sm border-slate-200 rounded-lg focus-visible:ring-[#0a3d34] focus-visible:ring-offset-0"
+                      value={currentApt.musteriAdi || ""} 
+                      onChange={e => {
+                        const val = e.target.value.toLocaleUpperCase("tr-TR");
+                        setCurrentApt(prev => ({...prev, musteriAdi: val}));
+                      }} 
+                    />
+                    {currentApt.musteriAdi && (
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="icon"
+                        onClick={() => {
+                          const url = `/hasta-listesi?openPatient=${encodeURIComponent(currentApt.musteriAdi || "")}&phone=${encodeURIComponent(currentApt.telefon || "")}`;
+                          router.push(url);
+                        }}
+                        className="h-10 w-10 shrink-0 rounded-lg border-slate-200 text-[#0a3d34] hover:bg-slate-50"
+                        title="Hasta Kartı"
+                      >
+                        <User className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <div className="text-[0.65rem] font-bold text-emerald-600 uppercase tracking-wider">İşlem Fişi No</div>
-                  <div className="text-sm font-extrabold text-emerald-900">{computedTxNo}</div>
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="block text-[0.75rem] font-bold text-[#64748b] uppercase tracking-[0.05em]">
-                  ADI SOYADI
-                </Label>
-                <div className="flex items-center gap-2">
+
+                <div className="space-y-1">
+                  <Label className="block text-[0.7rem] font-bold text-[#64748b] uppercase tracking-[0.05em]">
+                    İletişim
+                  </Label>
                   <Input 
-                    required 
-                    placeholder="Hasta Adı ve Soyadı"
-                    className="flex-1 h-12 border-slate-200 rounded-xl focus-visible:ring-[#0a3d34] focus-visible:ring-offset-0"
-                    value={currentApt.musteriAdi || ""} 
-                    onChange={e => {
-                      const val = e.target.value.toLocaleUpperCase("tr-TR");
-                      setCurrentApt(prev => ({...prev, musteriAdi: val}));
-                    }} 
+                    placeholder="+90 (___) ___"
+                    className="h-10 text-sm border-slate-200 rounded-lg focus-visible:ring-[#0a3d34]"
+                    value={currentApt.telefon || ""} 
+                    onChange={e => setCurrentApt(prev => ({...prev, telefon: e.target.value}))} 
                   />
-                  {currentApt.musteriAdi && (
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={() => {
-                        const url = `/hasta-listesi?openPatient=${encodeURIComponent(currentApt.musteriAdi || "")}&phone=${encodeURIComponent(currentApt.telefon || "")}`;
-                        router.push(url);
-                      }}
-                      className="h-12 px-4 shrink-0 rounded-xl font-bold border-slate-200 text-[#0a3d34] hover:bg-slate-50 flex items-center gap-2"
-                    >
-                      <User className="w-4 h-4" />
-                      Hasta Kartı
-                    </Button>
-                  )}
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <Label className="block text-[0.75rem] font-bold text-[#64748b] uppercase tracking-[0.05em]">
-                  İletişim Numarası
-                </Label>
-                <Input 
-                  placeholder="+90 (___) ___ __ __"
-                  className="h-12 border-slate-200 rounded-xl focus-visible:ring-[#0a3d34]"
-                  value={currentApt.telefon || ""} 
-                  onChange={e => setCurrentApt(prev => ({...prev, telefon: e.target.value}))} 
-                />
-              </div>
-
-              <div className="grid grid-cols-[1fr_120px] gap-3">
-                <div className="space-y-1.5">
-                  <Label className="block text-[0.75rem] font-bold text-[#64748b] uppercase tracking-[0.05em]">
+              <div className="grid grid-cols-[1fr_100px] gap-3">
+                <div className="space-y-1">
+                  <Label className="block text-[0.7rem] font-bold text-[#64748b] uppercase tracking-[0.05em]">
                     Hizmet Tipi
                   </Label>
                   <Select value={currentApt.hizmetId?.toString() || "1"} onValueChange={v => setCurrentApt(prev => ({...prev, hizmetId: v}))}>
-                    <SelectTrigger className="h-12 border-slate-200 rounded-xl focus:ring-[#0a3d34]">
+                    <SelectTrigger className="h-10 text-sm border-slate-200 rounded-lg focus:ring-[#0a3d34]">
                       <SelectValue/>
                     </SelectTrigger>
                     <SelectContent>
@@ -979,14 +978,14 @@ export default function CalendarPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-1.5">
-                  <Label className="block text-[0.75rem] font-bold text-[#64748b] uppercase tracking-[0.05em]">
+                <div className="space-y-1">
+                  <Label className="block text-[0.7rem] font-bold text-[#64748b] uppercase tracking-[0.05em]">
                     Özel Fiyat
                   </Label>
                   <Input 
                     type="number"
                     placeholder="Standart"
-                    className="h-12 border-slate-200 rounded-xl focus-visible:ring-[#0a3d34]"
+                    className="h-10 text-sm border-slate-200 rounded-lg focus-visible:ring-[#0a3d34]"
                     value={currentApt.customPrice !== undefined && currentApt.customPrice !== null ? currentApt.customPrice : ""} 
                     onChange={e => setCurrentApt(prev => ({...prev, customPrice: e.target.value !== "" ? parseFloat(e.target.value) : undefined}))} 
                   />
@@ -994,8 +993,8 @@ export default function CalendarPage() {
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label className="block text-[0.75rem] font-bold text-[#64748b] uppercase tracking-[0.05em]">
+                <div className="space-y-1">
+                  <Label className="block text-[0.7rem] font-bold text-[#64748b] uppercase tracking-[0.05em]">
                     Randevu Tarihi
                   </Label>
                   <DatePicker 
@@ -1003,12 +1002,12 @@ export default function CalendarPage() {
                     setDate={(val) => setCurrentApt(prev => ({...prev, tarih: val ? format(val, "yyyy-MM-dd") : ""}))}
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <Label className="block text-[0.75rem] font-bold text-[#64748b] uppercase tracking-[0.05em]">
+                <div className="space-y-1">
+                  <Label className="block text-[0.7rem] font-bold text-[#64748b] uppercase tracking-[0.05em]">
                     Seçilen Saat
                   </Label>
                   <Select value={currentApt.saat || "09:00"} onValueChange={v => setCurrentApt(prev => ({...prev, saat: v}))}>
-                    <SelectTrigger className="h-12 border-slate-200 rounded-xl focus:ring-[#0a3d34]">
+                    <SelectTrigger className="h-10 text-sm border-slate-200 rounded-lg focus:ring-[#0a3d34]">
                       <SelectValue/>
                     </SelectTrigger>
                     <SelectContent position="popper" side="bottom" align="start" className="max-h-[200px] !w-[var(--radix-select-trigger-width)] !min-w-[var(--radix-select-trigger-width)] !max-w-[var(--radix-select-trigger-width)] overflow-y-auto [&_[data-radix-select-viewport]]:!min-w-0">
@@ -1018,33 +1017,33 @@ export default function CalendarPage() {
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <Label className="block text-[0.75rem] font-bold text-[#64748b] uppercase tracking-[0.05em]">
+              <div className="space-y-1">
+                <Label className="block text-[0.7rem] font-bold text-[#64748b] uppercase tracking-[0.05em]">
                   Notlar
                 </Label>
                 <Textarea 
                   placeholder="Hastaya dair tıbbi notlar veya hatırlatıcılar..."
-                  className="min-h-[80px] border-slate-200 rounded-xl focus-visible:ring-[#0a3d34]"
+                  className="min-h-[50px] h-[50px] resize-none text-sm border-slate-200 rounded-lg focus-visible:ring-[#0a3d34]"
                   value={currentApt.notlar || ""} 
                   onChange={e => setCurrentApt(prev => ({...prev, notlar: e.target.value}))} 
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <Label className="block text-[0.75rem] font-bold text-[#64748b] uppercase tracking-[0.05em]">
+              <div className="space-y-1">
+                <Label className="block text-[0.7rem] font-bold text-[#64748b] uppercase tracking-[0.05em]">
                   Randevu Durumu
                 </Label>
-                <div className="flex gap-2.5 mt-1.5">
+                <div className="flex gap-2 mt-1">
                   {[
                     { id: "onaylandi", label: "Onaylandı", activeBg: "bg-[#ecfdf5]", activeText: "text-[#065f46]", activeBorder: "border-[#10b981]" },
                     { id: "beklemede", label: "Beklemede", activeBg: "bg-[#fffbeb]", activeText: "text-[#92400e]", activeBorder: "border-[#f59e0b]" },
-                    { id: "iptal", label: "İptal Edildi", activeBg: "bg-[#fef2f2]", activeText: "text-[#991b1b]", activeBorder: "border-[#ef4444]" }
+                    { id: "iptal", label: "İptal", activeBg: "bg-[#fef2f2]", activeText: "text-[#991b1b]", activeBorder: "border-[#ef4444]" }
                   ].map(d => (
                     <button 
                       key={d.id} 
                       type="button" 
                       onClick={() => setCurrentApt(prev => ({...prev, durum: d.id as any}))} 
-                      className={`flex-1 py-[9px] text-[0.78rem] font-bold rounded-lg border-2 transition-all ${
+                      className={`flex-1 py-1.5 text-[0.75rem] font-bold rounded-md border-2 transition-all ${
                         currentApt.durum === d.id 
                           ? `${d.activeBg} ${d.activeText} ${d.activeBorder}` 
                           : "bg-white border-slate-200 text-slate-500 hover:border-slate-400"
@@ -1056,11 +1055,11 @@ export default function CalendarPage() {
                 </div>
               </div>
 
-              <div className="flex gap-2.5 mt-6">
+              <div className="flex gap-2 pt-3">
                 <button 
                   type="button" 
                   onClick={() => setModalOpen(false)}
-                  className="flex-1 px-5 py-[11px] rounded-lg font-bold text-[0.85rem] border border-slate-200 bg-[#f8fafc] text-[#1e293b] hover:bg-[#e2e8f0] transition-all flex items-center justify-center"
+                  className="flex-1 px-4 py-2.5 rounded-lg font-bold text-sm border border-slate-200 bg-[#f8fafc] text-[#1e293b] hover:bg-[#e2e8f0] transition-all flex items-center justify-center"
                 >
                   Kapat
                 </button>
@@ -1068,15 +1067,15 @@ export default function CalendarPage() {
                   <button 
                     type="button" 
                     onClick={() => setConfirmOpen(true)}
-                    className="flex-1 px-5 py-[11px] rounded-lg font-bold text-[0.85rem] border border-[#fecaca] bg-[#fef2f2] text-[#ef4444] hover:bg-[#fee2e2] transition-all flex items-center justify-center gap-2"
+                    className="flex-1 px-4 py-2.5 rounded-lg font-bold text-sm border border-[#fecaca] bg-[#fef2f2] text-[#ef4444] hover:bg-[#fee2e2] transition-all flex items-center justify-center gap-1.5"
                   >
-                    <Trash2 className="w-4 h-4"/>
+                    <Trash2 className="w-3.5 h-3.5"/>
                     Sil
                   </button>
                 )}
                 <button 
                   type="submit" 
-                  className="flex-1 px-5 py-[11px] rounded-lg font-bold text-[0.85rem] bg-[#0a3d34] hover:bg-[#072b25] text-white shadow-[0_4px_14px_-3px_rgba(10,61,52,0.3)] transition-all flex items-center justify-center gap-2 hover:-translate-y-[2px]"
+                  className="flex-[1.5] px-4 py-2.5 rounded-lg font-bold text-sm bg-[#0a3d34] hover:bg-[#072b25] text-white shadow-[0_4px_14px_-3px_rgba(10,61,52,0.3)] transition-all flex items-center justify-center gap-1.5 hover:-translate-y-[2px]"
                 >
                   Kaydet
                 </button>
